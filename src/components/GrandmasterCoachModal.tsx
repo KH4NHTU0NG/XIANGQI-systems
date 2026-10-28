@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 import { BoardMatrix, boardToAscii } from '../engine/xiangqiEngine';
 import {
-  GraduationCap,
   X,
   CheckCircle2,
   XCircle,
   Copy,
   Check,
-  Terminal,
   BookOpen,
   ArrowRight,
+  ShieldAlert,
+  Scroll,
 } from 'lucide-react';
 
 interface GrandmasterCoachModalProps {
@@ -107,67 +107,66 @@ export const GrandmasterCoachModal: React.FC<GrandmasterCoachModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
-      <div className="w-full max-w-3xl bg-stone-900 border-2 border-amber-600/50 rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 font-serif">
+      <div className="w-full max-w-3xl bg-[#191411] border border-[#4a3b2d] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-red-950 via-stone-900 to-stone-900 border-b border-stone-800">
+        <div className="flex items-center justify-between px-6 py-4 bg-[#14100d] border-b border-[#382b20]">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-400/50 flex items-center justify-center">
-              <GraduationCap className="w-6 h-6 text-amber-400" />
+            <div className="w-10 h-10 rounded-xl bg-[#8c221e] border border-[#b83833] flex items-center justify-center text-[#fcedc7] font-serif font-bold text-xl shadow-inner">
+              帥
             </div>
             <div>
-              <h2 className="font-extrabold text-lg text-amber-200">
-                Đặc Cấp Quốc Tế Đại Sư — Huấn Luyện Viên 1-1 (Prompt B)
+              <h2 className="font-serif font-black text-lg text-[#f0e6d6]">
+                Kỳ Viện Đại Sư — Điểm Huyệt Chỉ Đạo
               </h2>
-              <p className="text-xs text-stone-400">
-                Chuẩn ký hiệu Việt Nam (`P2-5`, `M8.7`, `X1/2`) • Bàn cờ ASCII
-                trực quan • Kiểm tra đầu vào
+              <p className="text-xs text-[#a89987] font-sans">
+                Ký hiệu WXF chuẩn Việt Nam (`P2-5`, `M8.7`, `X1/2`) • Khảo thí nhập môn • Sa bàn ký âm
               </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-lg text-stone-400 hover:text-white hover:bg-stone-800 transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#9c8975] hover:text-[#f4ece1] hover:bg-[#28201a] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Navigation Tabs */}
-        <div className="flex border-b border-stone-800 bg-stone-950/60 px-6 pt-2 gap-2">
+        <div className="flex border-b border-[#382b20] bg-[#120f0d] px-6 pt-2 gap-2 text-xs font-serif font-bold">
           <button
             type="button"
             onClick={() => setMode('welcome')}
-            className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition cursor-pointer ${
+            className={`px-4 py-2.5 rounded-t-lg border-b-2 transition cursor-pointer ${
               mode === 'welcome'
-                ? 'border-amber-400 text-amber-300 bg-stone-900'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
+                ? 'border-[#dfb673] text-[#dfb673] bg-[#191411]'
+                : 'border-transparent text-[#8a7968] hover:text-[#cfc2b0]'
             }`}
           >
-            1. Phiên Huấn Luyện 1-1
+            1. Tôn Chỉ Huấn Luyện
           </button>
           <button
             type="button"
             onClick={() => setMode('quiz')}
-            className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition cursor-pointer ${
+            className={`px-4 py-2.5 rounded-t-lg border-b-2 transition cursor-pointer ${
               mode === 'quiz'
-                ? 'border-amber-400 text-amber-300 bg-stone-900'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
+                ? 'border-[#dfb673] text-[#dfb673] bg-[#191411]'
+                : 'border-transparent text-[#8a7968] hover:text-[#cfc2b0]'
             }`}
           >
-            2. Kiểm Tra Trình Độ Đầu Vào (3 Câu Hỏi)
+            2. Khảo Thí Nhập Môn (3 Câu)
           </button>
           <button
             type="button"
             onClick={() => setMode('ascii')}
-            className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition cursor-pointer ${
+            className={`px-4 py-2.5 rounded-t-lg border-b-2 transition cursor-pointer ${
               mode === 'ascii'
-                ? 'border-amber-400 text-amber-300 bg-stone-900'
-                : 'border-transparent text-stone-400 hover:text-stone-200'
+                ? 'border-[#dfb673] text-[#dfb673] bg-[#191411]'
+                : 'border-transparent text-[#8a7968] hover:text-[#cfc2b0]'
             }`}
           >
-            3. Sơ Đồ Bàn Cờ ASCII/Text Hiện Tại
+            3. Ký Âm Sa Bàn (ASCII)
           </button>
         </div>
 
@@ -175,57 +174,52 @@ export const GrandmasterCoachModal: React.FC<GrandmasterCoachModalProps> = ({
         <div className="p-6 overflow-y-auto space-y-5 text-sm">
           {mode === 'welcome' && (
             <div className="space-y-4">
-              <div className="p-4 rounded-xl bg-amber-950/25 border border-amber-700/40 text-stone-200 leading-relaxed">
-                <p className="font-bold text-amber-300 text-base mb-2">
-                  👋 Chào mừng đệ tử! Ta là Đặc Cấp Quốc Tế Đại Sư Cờ Tướng.
+              <div className="p-4 rounded-xl bg-[#241c16] border border-[#473627] text-[#e2dad0] leading-relaxed shadow-sm">
+                <p className="font-serif font-bold text-[#dfb673] text-base mb-2">
+                  📜 Lời dặn của Đại Sư Cờ Tướng:
                 </p>
-                <p className="text-xs sm:text-sm text-stone-300">
-                  Theo phương pháp huấn luyện <strong>"Học Sát Pháp & Cờ Tàn trước, học Khai Cuộc sau"</strong>,
-                  mỗi buổi học của chúng ta gồm 3 bước chặt chẽ:{' '}
-                  <span className="text-amber-300 font-semibold">
-                    (a) Lý thuyết cốt lõi ngắn gọn → (b) Ví dụ minh họa trên bàn
-                    cờ → (c) Bài tập tình huống thực tế có chấm điểm Move Coach.
+                <p className="text-xs sm:text-sm text-[#cfc2b0]">
+                  Cổ nhân dạy: <strong>"Học Sát Pháp & Cờ Tàn trước, học Khai Cuộc sau"</strong>.
+                  Người mới nếu chỉ lo học khai cuộc mà không thấu triệt sát pháp thì khi ưu thế cũng không biết cách kết thúc ván cờ. Mỗi buổi rèn luyện gồm 3 bước:
+                  <span className="text-[#dfb673] font-semibold block mt-1">
+                    (a) Lý thuyết kỳ đạo ngắn gọn → (b) Sa bàn thực nghiệm trực quan → (c) Tự giải cờ thế có lời bình chú.
                   </span>
                 </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 flex flex-col justify-between">
+                <div className="p-4 rounded-xl bg-[#14100d] border border-[#382b20] flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
-                      Lựa chọn A
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#dfb673]">
+                      Lựa chọn 1
                     </span>
-                    <h3 className="font-bold text-stone-100 text-base mt-1">
-                      Kiểm tra trình độ đầu vào (3 câu hỏi nhanh)
+                    <h3 className="font-bold text-[#f4ece1] text-base mt-1">
+                      Khảo thí nhập môn (3 câu hỏi)
                     </h3>
-                    <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                      Đánh giá khả năng đọc ký hiệu tọa độ Việt Nam, luật cản
-                      quân và phản xạ sát pháp để Đại Sư xếp đúng tầng học cho
-                      bạn.
+                    <p className="text-xs text-[#a89987] mt-1.5 leading-relaxed">
+                      Đo lường sự am hiểu về ký hiệu tọa độ, luật cản chân Mã/chặn mắt Tượng và đòn Lưỡng chiếu để nhận thưởng EXP.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setMode('quiz')}
-                    className="mt-4 w-full py-2.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="mt-4 w-full py-2.5 px-4 bg-[#8c221e] hover:bg-[#a62b27] text-[#fcedc7] font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer shadow"
                   >
-                    <span>Làm Bài Kiểm Tra Đầu Vào Ngay</span>
+                    <span>Làm bài khảo thí ngay</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
 
-                <div className="p-4 rounded-xl bg-stone-950 border border-stone-800 flex flex-col justify-between">
+                <div className="p-4 rounded-xl bg-[#14100d] border border-[#382b20] flex flex-col justify-between">
                   <div>
-                    <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
-                      Lựa chọn B
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#86efac]">
+                      Lựa chọn 2
                     </span>
-                    <h3 className="font-bold text-stone-100 text-base mt-1">
-                      Vào thẳng Bài 1 của Cấp độ 1 (Nhập Môn)
+                    <h3 className="font-bold text-[#f4ece1] text-base mt-1">
+                      Vào thẳng Tầng 1: Cảm Giác Quân
                     </h3>
-                    <p className="text-xs text-stone-400 mt-1 leading-relaxed">
-                      Bắt đầu ngay từ nền tảng: Quy tắc Cản chân Mã (Biệt Mã
-                      Cước), Chặn mắt Tượng, Lộ mặt Tướng và chiếu bí trong 1
-                      nước.
+                    <p className="text-xs text-[#a89987] mt-1.5 leading-relaxed">
+                      Bắt đầu ngay với Bài 1.1 (Cản Chân Mã & Ngọa Tào 1 Nước) trên bàn cờ tương tác lớn.
                     </p>
                   </div>
                   <button
@@ -234,10 +228,10 @@ export const GrandmasterCoachModal: React.FC<GrandmasterCoachModalProps> = ({
                       onSelectTierLesson(1, 'T1-01');
                       onClose();
                     }}
-                    className="mt-4 w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs flex items-center justify-center gap-2 transition cursor-pointer"
+                    className="mt-4 w-full py-2.5 px-4 bg-[#2b211a] hover:bg-[#3b2e23] border border-[#4a3a2b] text-[#dfb673] font-bold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
                   >
-                    <BookOpen className="w-4 h-4" />
-                    <span>Vào Thẳng Bài 1 - Cấp Độ 1</span>
+                    <span>Luyện tập Bài 1.1</span>
+                    <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -245,141 +239,145 @@ export const GrandmasterCoachModal: React.FC<GrandmasterCoachModalProps> = ({
           )}
 
           {mode === 'quiz' && (
-            <div className="space-y-4">
-              {DIAGNOSTIC_QUESTIONS.map((q) => (
-                <div
-                  key={q.id}
-                  className="p-4 rounded-xl bg-stone-950 border border-stone-800 space-y-2.5"
-                >
-                  <p className="font-bold text-stone-100 text-xs sm:text-sm">
-                    {q.question}
-                  </p>
-                  <div className="space-y-1.5">
-                    {q.options.map((opt, idx) => {
-                      const isSelected = answers[q.id] === idx;
-                      const isCorrect = idx === q.correctIdx;
-                      let btnStyle =
-                        'bg-stone-900 border-stone-800 text-stone-300 hover:border-stone-700';
-                      if (quizSubmitted) {
-                        if (isCorrect) {
-                          btnStyle =
-                            'bg-emerald-950/70 border-emerald-500 text-emerald-200';
-                        } else if (isSelected && !isCorrect) {
-                          btnStyle =
-                            'bg-rose-950/70 border-rose-500 text-rose-200';
-                        }
-                      } else if (isSelected) {
-                        btnStyle =
-                          'bg-amber-950/60 border-amber-500 text-amber-200';
-                      }
+            <div className="space-y-5">
+              {DIAGNOSTIC_QUESTIONS.map((q, qIdx) => {
+                const userAns = answers[q.id];
+                const isAnswered = userAns !== undefined;
+                const isCorrect = userAns === q.correctIdx;
 
-                      return (
-                        <button
-                          key={idx}
-                          type="button"
-                          disabled={quizSubmitted}
-                          onClick={() =>
-                            setAnswers((prev) => ({ ...prev, [q.id]: idx }))
-                          }
-                          className={`w-full text-left px-3 py-2 rounded-lg border text-xs flex items-center justify-between gap-2 transition cursor-pointer ${btnStyle}`}
-                        >
-                          <span>{opt}</span>
-                          {quizSubmitted && isCorrect && (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                          )}
-                          {quizSubmitted && isSelected && !isCorrect && (
-                            <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {quizSubmitted && (
-                    <div className="p-2.5 rounded-lg bg-stone-900/90 border border-stone-800 text-xs text-amber-300">
-                      {q.explanation}
-                    </div>
-                  )}
-                </div>
-              ))}
-
-              {!quizSubmitted ? (
-                <button
-                  type="button"
-                  disabled={Object.keys(answers).length < 3}
-                  onClick={handleFinishQuiz}
-                  className="w-full py-2.5 rounded-xl bg-amber-500 disabled:bg-stone-800 disabled:text-stone-500 text-stone-950 font-extrabold text-xs transition cursor-pointer"
-                >
-                  Nộp Bài Kiểm Tra & Nhận Đánh Giá Từ Đại Sư
-                </button>
-              ) : (
-                <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-500/50 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h4 className="font-extrabold text-emerald-300 text-sm">
-                      Kết quả: {score}/3 câu đúng (+{score * 30 + 20} EXP)
+                return (
+                  <div
+                    key={q.id}
+                    className="p-4 rounded-xl bg-[#14100d] border border-[#382b20] space-y-3"
+                  >
+                    <h4 className="font-bold text-sm text-[#f4ece1] leading-snug">
+                      {q.question}
                     </h4>
-                    <p className="text-xs text-stone-300 mt-0.5">
-                      {score === 3
-                        ? 'Nền tảng tuyệt vời! Đại Sư khuyên bạn tiến thẳng vào Tầng 2 (10 Sát Pháp Cơ Bản).'
-                        : 'Hãy bắt đầu từ Tầng 1 (Nhập Môn & Cảm Giác Quân) để nắm chắc luật cản quân và tọa độ.'}
-                    </p>
+
+                    <div className="space-y-2">
+                      {q.options.map((opt, optIdx) => {
+                        const isChosen = userAns === optIdx;
+                        let optStyle =
+                          'bg-[#1e1713] border-[#382b20] text-[#cfc2b0] hover:bg-[#281f19]';
+
+                        if (quizSubmitted) {
+                          if (optIdx === q.correctIdx) {
+                            optStyle =
+                              'bg-[#192b1a] border-[#386b45] text-[#86efac] font-bold';
+                          } else if (isChosen && !isCorrect) {
+                            optStyle =
+                              'bg-[#3b1715] border-[#8c221e] text-[#fca5a5]';
+                          }
+                        } else if (isChosen) {
+                          optStyle =
+                            'bg-[#2d2218] border-[#dfb673] text-[#fae5a8] font-bold shadow-sm';
+                        }
+
+                        return (
+                          <button
+                            key={optIdx}
+                            type="button"
+                            disabled={quizSubmitted}
+                            onClick={() =>
+                              setAnswers((prev) => ({
+                                ...prev,
+                                [q.id]: optIdx,
+                              }))
+                            }
+                            className={`w-full text-left p-3 rounded-lg border text-xs sm:text-sm transition flex items-start gap-2.5 cursor-pointer disabled:cursor-default ${optStyle}`}
+                          >
+                            <span className="font-mono font-bold text-[#dfb673] shrink-0 mt-0.5">
+                              {String.fromCharCode(65 + optIdx)}.
+                            </span>
+                            <span className="leading-relaxed">{opt}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {quizSubmitted && (
+                      <div
+                        className={`p-3 rounded-lg text-xs leading-relaxed flex items-start gap-2 ${
+                          isCorrect
+                            ? 'bg-[#192b1a] border border-[#386b45] text-[#86efac]'
+                            : 'bg-[#3b1715] border border-[#8c221e] text-[#fca5a5]'
+                        }`}
+                      >
+                        {isCorrect ? (
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-[#86efac] mt-0.5" />
+                        ) : (
+                          <XCircle className="w-4 h-4 shrink-0 text-[#f87171] mt-0.5" />
+                        )}
+                        <div>{q.explanation}</div>
+                      </div>
+                    )}
                   </div>
+                );
+              })}
+
+              <div className="flex items-center justify-between pt-2">
+                {!quizSubmitted ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      if (score === 3) {
-                        onSelectTierLesson(2, 'T2-01');
-                      } else {
-                        onSelectTierLesson(1, 'T1-01');
-                      }
-                      onClose();
-                    }}
-                    className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-bold text-xs transition cursor-pointer"
+                    disabled={
+                      Object.keys(answers).length < DIAGNOSTIC_QUESTIONS.length
+                    }
+                    onClick={handleFinishQuiz}
+                    className="w-full py-3 bg-[#8c221e] hover:bg-[#a62b27] text-[#fcedc7] font-bold rounded-xl transition disabled:opacity-40 cursor-pointer shadow"
                   >
-                    Đến Bài Học Được Đề Xuất →
+                    Nộp Bài Khảo Thí (Chấm Điểm & Thưởng EXP)
                   </button>
-                </div>
-              )}
+                ) : (
+                  <div className="w-full p-4 rounded-xl bg-[#201813] border border-[#4a392b] flex flex-col sm:flex-row items-center justify-between gap-3">
+                    <div>
+                      <span className="font-bold text-base text-[#dfb673]">
+                        Kết quả: {score}/{DIAGNOSTIC_QUESTIONS.length} câu chính xác! (+{score * 30 + 20} EXP)
+                      </span>
+                      <p className="text-xs text-[#a89987] mt-0.5">
+                        {score === 3
+                          ? 'Xuất sắc! Kỳ lực của bạn đã đạt nền tảng Kiện Tướng.'
+                          : 'Tốt lắm! Hãy bắt đầu rèn luyện từ Tầng 1 để kiện toàn căn bản.'}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onSelectTierLesson(1, 'T1-01');
+                        onClose();
+                      }}
+                      className="px-5 py-2.5 bg-[#dfb673] hover:bg-[#fae5a8] text-[#1c140d] font-bold text-xs rounded-xl transition cursor-pointer shadow shrink-0"
+                    >
+                      Bắt đầu luyện tập →
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
           {mode === 'ascii' && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs text-stone-300">
-                  <Terminal className="w-4 h-4 text-amber-400" />
-                  <span>
-                    Sơ đồ ASCII thời gian thực của thế cờ:{' '}
-                    <strong className="text-amber-300">
-                      {currentLessonTitle}
-                    </strong>
-                  </span>
-                </div>
+                <span className="text-xs text-[#a89987]">
+                  Sa bàn đang học: <strong className="text-[#f4ece1]">{currentLessonTitle}</strong>
+                </span>
                 <button
                   type="button"
                   onClick={handleCopyAscii}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-stone-800 hover:bg-stone-700 text-xs font-semibold text-amber-300 transition cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#241c16] hover:bg-[#33271f] text-[#dfb673] border border-[#4a392b] text-xs font-bold transition cursor-pointer"
                 >
                   {copiedAscii ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      <span>Đã sao chép ASCII</span>
-                    </>
+                    <Check className="w-3.5 h-3.5 text-[#86efac]" />
                   ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Sao chép bàn cờ ASCII</span>
-                    </>
+                    <Copy className="w-3.5 h-3.5" />
                   )}
+                  <span>{copiedAscii ? 'Đã sao chép' : 'Sao chép ASCII'}</span>
                 </button>
               </div>
 
-              <pre className="p-4 rounded-xl bg-stone-950 border border-stone-800 text-[11px] sm:text-xs font-mono text-amber-200/95 overflow-x-auto leading-snug">
+              <pre className="p-4 rounded-xl bg-[#0d0a08] border border-[#33251a] font-mono text-xs sm:text-sm text-[#cfc2b0] overflow-x-auto leading-tight select-all">
                 {asciiString}
               </pre>
-              <p className="text-[11px] text-stone-400">
-                Chú thích: Chữ IN HOA (`TG, S, T, X, P, M, B`) là quân Đỏ
-                (Tiên); chữ thường (`tg, s, t, x, p, m, b`) là quân Đen (Hậu).
-              </p>
             </div>
           )}
         </div>
@@ -387,4 +385,3 @@ export const GrandmasterCoachModal: React.FC<GrandmasterCoachModalProps> = ({
     </div>
   );
 };
-
