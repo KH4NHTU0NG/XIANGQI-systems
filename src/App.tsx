@@ -15,6 +15,7 @@ import {
   evaluateMoveCoach,
   findBestMove,
   isCheckmateOrNoMoves,
+  isKingInCheck,
 } from './engine/xiangqiEngine';
 import {
   MASTERY_LESSONS,
@@ -29,6 +30,7 @@ import {
 import { MoveCoachPanel } from './components/MoveCoachPanel';
 import { GamificationBar } from './components/GamificationBar';
 import { GrandmasterCoachModal } from './components/GrandmasterCoachModal';
+import { soundEngine } from './audio/soundEngine';
 import {
   RotateCcw,
   Lightbulb,
@@ -42,6 +44,8 @@ import {
   Bot,
   Layers,
   Target,
+  Volume2,
+  VolumeX,
 } from 'lucide-react';
 
 interface MoveRecord {
@@ -111,6 +115,7 @@ export const App: React.FC = () => {
   // Display & Hint Controls (Default clean Vietnamese symbol mode)
   const [labelMode, setLabelMode] = useState<PieceLabelMode>('vn');
   const [showThreatRadar, setShowThreatRadar] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(() => soundEngine.getMuted());
   const [hintLevel, setHintLevel] = useState<0 | 1 | 2 | 3>(0);
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [isDailyChallengeMode, setIsDailyChallengeMode] =
@@ -222,7 +227,15 @@ export const App: React.FC = () => {
     setLegalMoves([]);
     setBlockedInfos([]);
 
+    const isCapture = Boolean(board[move.to.r][move.to.c]);
+
     if (isSparringBot) {
+      if (isCapture) {
+        soundEngine.playCapture();
+      } else {
+        soundEngine.playMove();
+      }
+
       const feedback = evaluateMoveCoach(board, move);
       const nextBoard = makeMoveOnBoard(board, move.from, move.to);
       setBoard(nextBoard);
@@ -239,7 +252,12 @@ export const App: React.FC = () => {
         },
       ]);
 
+      if (isKingInCheck(nextBoard, 'b')) {
+        soundEngine.playCheck();
+      }
+
       if (isCheckmateOrNoMoves(nextBoard, 'b')) {
+        soundEngine.playVictory();
         setLessonCompleted(true);
         awardExp(100);
         confetti({ particleCount: 70, spread: 60, origin: { y: 0.6 } });
@@ -250,6 +268,13 @@ export const App: React.FC = () => {
       window.setTimeout(() => {
         const { move: botMove } = findBestMove(nextBoard, 'b', 2);
         if (botMove) {
+          const isBotCapture = Boolean(nextBoard[botMove.to.r][botMove.to.c]);
+          if (isBotCapture) {
+            soundEngine.playCapture();
+          } else {
+            soundEngine.playMove();
+          }
+
           const afterBot = makeMoveOnBoard(nextBoard, botMove.from, botMove.to);
           setBoard(afterBot);
           setLastMove({ from: botMove.from, to: botMove.to });
@@ -261,6 +286,11 @@ export const App: React.FC = () => {
               notation: botMove.vnNotation,
             },
           ]);
+
+          if (isKingInCheck(afterBot, 'r')) {
+            soundEngine.playCheck();
+          }
+
           setTurn('r');
         }
       }, 350);
@@ -301,6 +331,12 @@ export const App: React.FC = () => {
       return;
     }
 
+    if (isCapture) {
+      soundEngine.playCapture();
+    } else {
+      soundEngine.playMove();
+    }
+
     const nextBoard = makeMoveOnBoard(board, move.from, move.to);
     setBoard(nextBoard);
     setLastMove({ from: move.from, to: move.to });
@@ -316,10 +352,21 @@ export const App: React.FC = () => {
       },
     ]);
 
+    if (isKingInCheck(nextBoard, 'b')) {
+      soundEngine.playCheck();
+    }
+
     if (expectedStep.opponentReply) {
       setTurn('b');
       const reply = expectedStep.opponentReply;
       window.setTimeout(() => {
+        const isReplyCapture = Boolean(nextBoard[reply.from.r][reply.from.c]);
+        if (isReplyCapture) {
+          soundEngine.playCapture();
+        } else {
+          soundEngine.playMove();
+        }
+
         const afterReply = makeMoveOnBoard(nextBoard, reply.from, reply.to);
         setBoard(afterReply);
         setLastMove({ from: reply.from, to: reply.to });
@@ -331,12 +378,18 @@ export const App: React.FC = () => {
             notation: reply.notation,
           },
         ]);
+
+        if (isKingInCheck(afterReply, 'r')) {
+          soundEngine.playCheck();
+        }
+
         setTurn('r');
         setStepIndex((prev) => prev + 1);
       }, 380);
     } else if (stepIndex + 1 < currentLesson.steps.length) {
       setStepIndex((prev) => prev + 1);
     } else {
+      soundEngine.playVictory();
       setLessonCompleted(true);
       if (!completedIds.includes(currentLesson.id)) {
         setCompletedIds((prev) => [...prev, currentLesson.id]);
@@ -439,18 +492,37 @@ export const App: React.FC = () => {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={() => setShowThreatRadar((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
-                showThreatRadar
-                  ? 'bg-[#8c221e] text-[#fcedc7] shadow-sm'
-                  : 'bg-[#261f1a] hover:bg-[#332a23] text-[#cfc2b0]'
-              }`}
-            >
-              <Eye className="w-4 h-4" />
-              <span>Radar Căn</span>
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const muted = soundEngine.toggleMute();
+                  setIsMuted(muted);
+                }}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
+                  !isMuted
+                    ? 'bg-[#2a221b] border border-[#4a3b2d] text-[#dfb673]'
+                    : 'bg-[#261f1a] text-[#806f5e]'
+                }`}
+                title={isMuted ? 'Bật âm thanh sa bàn' : 'Tắt âm thanh'}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4 text-[#8c221e]" /> : <Volume2 className="w-4 h-4 text-[#dfb673]" />}
+                <span className="hidden sm:inline">{isMuted ? 'Âm: Tắt' : 'Âm: Bật'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowThreatRadar((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
+                  showThreatRadar
+                    ? 'bg-[#8c221e] text-[#fcedc7] shadow-sm'
+                    : 'bg-[#261f1a] hover:bg-[#332a23] text-[#cfc2b0]'
+                }`}
+              >
+                <Eye className="w-4 h-4" />
+                <span>Radar Căn</span>
+              </button>
+            </div>
           </div>
         </section>
 
