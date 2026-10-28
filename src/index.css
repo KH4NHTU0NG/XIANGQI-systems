@@ -2,18 +2,50 @@
 
 @layer base {
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Serif", Georgia, serif;
+    background-color: #12100e;
+    color: #e6dfd5;
   }
 }
 
+/* Authentic Antique Wood Board Styling */
 .wood-board-bg {
-  background: radial-gradient(circle at 50% 45%, #ecd09c 0%, #dfb673 60%, #c8984e 100%);
+  background: 
+    radial-gradient(circle at 50% 48%, #e8ce9b 0%, #dab270 55%, #bd8c42 100%);
   box-shadow:
-    inset 0 0 28px rgba(87, 51, 13, 0.35),
-    0 20px 45px rgba(0, 0, 0, 0.65);
+    inset 0 0 35px rgba(65, 36, 9, 0.45),
+    inset 0 0 3px rgba(0, 0, 0, 0.5),
+    0 22px 50px rgba(0, 0, 0, 0.75);
 }
 
+/* Handcrafted Wood Inlay Border */
+.board-outer-frame {
+  background: linear-gradient(135deg, #3d220a 0%, #261405 50%, #46280d 100%);
+  border: 1px solid rgba(197, 155, 39, 0.25);
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.8),
+    inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Piece Shadows - Realistic Physical Depth */
 .piece-shadow {
-  filter: drop-shadow(0px 4px 5px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0px 3px 4px rgba(0, 0, 0, 0.55));
+  transition: transform 0.12s ease-out, filter 0.12s ease-out;
 }
 
+.piece-shadow:hover {
+  filter: drop-shadow(0px 5px 8px rgba(0, 0, 0, 0.7));
+}
+
+/* Classical Parchment & Dark Lacquer Panels */
+.lacquer-card {
+  background: linear-gradient(180deg, #1d1815 0%, #151210 100%);
+  border: 1px solid #362c24;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.parchment-badge {
+  background: #28211b;
+  border: 1px solid #4a3c30;
+  color: #dfb673;
+}

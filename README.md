@@ -62,3 +62,4 @@ npm run build
 - [1] World Xiangqi Federation (WXF) - Official World Xiangqi Rules: https://www.wxf.org
 - [2] Chess Programming Wiki - Chinese Chess Engine & Representation: https://www.chessprogramming.org/Chinese_Chess
 - [3] W3C Web Content Accessibility Guidelines (WCAG) 2.1: https://www.w3.org/WAI/WCAG21/
+

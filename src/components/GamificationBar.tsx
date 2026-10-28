@@ -1,11 +1,10 @@
 import React from 'react';
-import { Trophy, Flame, Sparkles, GraduationCap } from 'lucide-react';
+import { Award, Flame, ScrollText, UserCheck } from 'lucide-react';
 
 export interface RankTier {
   title: string;
   minExp: number;
   maxExp: number;
-  badgeColor: string;
   desc: string;
 }
 
@@ -14,35 +13,30 @@ export const RANK_TIERS: RankTier[] = [
     title: 'Tập Sự',
     minExp: 0,
     maxExp: 200,
-    badgeColor: 'bg-stone-800 text-stone-200 border-stone-600',
     desc: 'Nắm vững luật đi quân & ký hiệu tọa độ.',
   },
   {
     title: 'Kỳ Thủ',
     minExp: 200,
     maxExp: 500,
-    badgeColor: 'bg-emerald-900/80 text-emerald-200 border-emerald-500/50',
     desc: 'Thành thạo 10 Sát Pháp cơ bản.',
   },
   {
     title: 'Kiện Tướng',
     minExp: 500,
     maxExp: 900,
-    badgeColor: 'bg-sky-900/80 text-sky-200 border-sky-500/50',
     desc: 'Làm chủ Khai cuộc & Cờ Tàn thực dụng.',
   },
   {
     title: 'Quốc Thủ',
     minExp: 900,
     maxExp: 1400,
-    badgeColor: 'bg-purple-900/80 text-purple-200 border-purple-500/50',
     desc: 'Phế quân tranh tiên, giải cờ thế sâu.',
   },
   {
     title: 'Đại Sư',
     minExp: 1400,
     maxExp: 3000,
-    badgeColor: 'bg-amber-900/80 text-amber-200 border-amber-400/60',
     desc: 'Tinh thông Khai - Trung - Tàn cuộc.',
   },
 ];
@@ -88,68 +82,77 @@ export const GamificationBar: React.FC<GamificationBarProps> = ({
   const { current, progressPct } = getRankForExp(exp);
 
   return (
-    <header className="w-full bg-stone-900/90 border-b border-stone-800/80 px-4 py-2.5 sticky top-0 z-30 backdrop-blur-md">
-      <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-        {/* Minimal Brand */}
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-red-700 flex items-center justify-center font-serif font-bold text-lg text-amber-100 shadow-sm">
+    <header className="w-full bg-[#181411]/95 border-b border-[#362a20] px-4 py-3 sticky top-0 z-30 backdrop-blur-md shadow-md">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
+        {/* Traditional Seal & Title */}
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-md bg-[#8c221e] border border-[#b83833] flex items-center justify-center font-serif font-black text-xl text-[#fcedc7] shadow-inner">
             帥
           </div>
-          <span className="font-bold text-sm sm:text-base text-stone-100 tracking-tight">
-            Xiangqi Mastery
-          </span>
+          <div className="flex flex-col">
+            <span className="font-serif font-bold text-base sm:text-lg text-[#f0e6d6] tracking-wide leading-tight">
+              TƯỢNG KỲ QUAN
+            </span>
+            <span className="text-[10px] text-[#9c8975] uppercase tracking-widest font-mono">
+              Hệ Thống Luyện Tập & Kỳ Phổ
+            </span>
+          </div>
         </div>
 
-        {/* Clean Compact Status Pills */}
+        {/* Traditional Craft Status Display */}
         <div className="flex items-center gap-2 sm:gap-3 text-xs">
-          {/* Rank + EXP Pill */}
-          <div className="flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-full px-3 py-1">
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span className="font-bold text-stone-200">{current.title}</span>
-            <span className="text-stone-600">•</span>
-            <span className="text-amber-400 font-semibold">{exp} EXP</span>
-            <div className="hidden sm:block w-14 h-1.5 rounded-full bg-stone-800 overflow-hidden">
-              <div
-                className="h-full bg-amber-500 transition-all duration-500"
-                style={{ width: `${progressPct}%` }}
-              />
+          {/* Rank + EXP Badge */}
+          <div className="flex items-center gap-2 bg-[#201a15] border border-[#3d3227] rounded-lg px-3 py-1.5 shadow-sm">
+            <Award className="w-4 h-4 text-[#dfb673]" />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5 leading-none">
+                <span className="font-serif font-bold text-[#dfb673]">{current.title}</span>
+                <span className="text-[#6d5b4b] text-[10px]">•</span>
+                <span className="text-[#e2dad0] font-mono text-[11px]">{exp} EXP</span>
+              </div>
+              <div className="w-20 sm:w-24 h-1 rounded-full bg-[#33281f] overflow-hidden mt-1">
+                <div
+                  className="h-full bg-gradient-to-r from-[#b3883b] to-[#dfb673] transition-all duration-500"
+                  style={{ width: `${progressPct}%` }}
+                />
+              </div>
             </div>
           </div>
 
-          {/* Streak & Progress Pill */}
-          <div className="hidden md:flex items-center gap-2 bg-stone-950 border border-stone-800 rounded-full px-3 py-1 text-stone-300">
-            <Flame className="w-3.5 h-3.5 text-orange-400" />
-            <span className="font-semibold">{streakDays} ngày</span>
-            <span className="text-stone-700">|</span>
-            <span className="text-emerald-400 font-semibold">
-              {completedIds.length}/{totalLessons} bài
+          {/* Daily Streak & Progress */}
+          <div className="hidden md:flex items-center gap-2 bg-[#201a15] border border-[#3d3227] rounded-lg px-3 py-1.5 text-[#cfc5b8] shadow-sm">
+            <Flame className="w-4 h-4 text-[#d97706]" />
+            <span className="font-medium">{streakDays} ngày</span>
+            <span className="text-[#4d3e31]">|</span>
+            <span className="text-[#a3b899] font-medium">
+              {completedIds.length}/{totalLessons} phổ
             </span>
           </div>
 
-          {/* Daily Challenge Compact Button */}
+          {/* Daily Puzzle Button */}
           <button
             type="button"
             onClick={onStartDailyChallenge}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium transition cursor-pointer shadow-sm ${
               dailyChallengeCompleted
-                ? 'bg-emerald-950/60 border border-emerald-600/40 text-emerald-300'
-                : 'bg-amber-500 hover:bg-amber-400 text-stone-950'
+                ? 'bg-[#1e291e] border border-[#385238] text-[#86efac]'
+                : 'bg-[#8c221e] hover:bg-[#a62b27] border border-[#b83833] text-[#fcedc7]'
             }`}
           >
-            <Sparkles className="w-3.5 h-3.5" />
+            <ScrollText className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">
-              {dailyChallengeCompleted ? 'Đã xong hôm nay' : 'Thử thách ngày'}
+              {dailyChallengeCompleted ? 'Đã phá thế hôm nay' : 'Cờ thế nhật tụng'}
             </span>
           </button>
 
-          {/* 1-on-1 Coach Compact Button */}
+          {/* Grandmaster Coach Button */}
           <button
             type="button"
             onClick={onOpenGrandmasterCoach}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full font-semibold bg-stone-800 hover:bg-stone-700 text-amber-200 border border-stone-700 transition cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium bg-[#2a221b] hover:bg-[#382d24] text-[#dfb673] border border-[#4a3b2e] transition cursor-pointer shadow-sm"
           >
-            <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
-            <span>HLV 1-1</span>
+            <UserCheck className="w-4 h-4 text-[#dfb673]" />
+            <span>Đại Sư Chỉ Điểm</span>
           </button>
         </div>
       </div>

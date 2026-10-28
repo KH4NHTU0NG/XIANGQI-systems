@@ -385,7 +385,7 @@ export const App: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen flex flex-col bg-stone-950 text-stone-100">
+    <div className="min-h-screen flex flex-col bg-[#12100e] text-[#e6ded3]">
       {/* Compact Header */}
       <GamificationBar
         exp={exp}
@@ -415,9 +415,9 @@ export const App: React.FC = () => {
           />
 
           {/* Minimal Board Preferences Footer */}
-          <div className="w-full max-w-[660px] lg:max-w-[700px] flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-stone-900/80 border border-stone-800 text-xs sm:text-sm text-stone-300">
+          <div className="w-full max-w-[660px] lg:max-w-[700px] flex flex-wrap items-center justify-between gap-2 px-3.5 py-2 rounded-xl bg-[#1c1714] border border-[#382b20] text-xs sm:text-sm text-[#cfc2b0]">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-semibold text-stone-400">Chữ quân:</span>
+              <span className="font-serif font-semibold text-[#8f7e6d]">Chữ quân:</span>
               {[
                 { id: 'vn', label: 'Viết tắt (X, M, P)' },
                 { id: 'name', label: 'Tên đầy đủ (Xe, Mã)' },
@@ -428,10 +428,10 @@ export const App: React.FC = () => {
                   key={item.id}
                   type="button"
                   onClick={() => setLabelMode(item.id as PieceLabelMode)}
-                  className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
                     labelMode === item.id
-                      ? 'bg-amber-500 text-stone-950 shadow'
-                      : 'bg-stone-950/70 hover:bg-stone-800 text-stone-300'
+                      ? 'bg-[#dfb673] text-[#22170d] shadow-sm'
+                      : 'bg-[#261f1a] hover:bg-[#332a23] text-[#cfc2b0]'
                   }`}
                 >
                   {item.label}
@@ -442,10 +442,10 @@ export const App: React.FC = () => {
             <button
               type="button"
               onClick={() => setShowThreatRadar((prev) => !prev)}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
                 showThreatRadar
-                  ? 'bg-rose-600 text-white shadow'
-                  : 'bg-stone-950/70 hover:bg-stone-800 text-stone-300'
+                  ? 'bg-[#8c221e] text-[#fcedc7] shadow-sm'
+                  : 'bg-[#261f1a] hover:bg-[#332a23] text-[#cfc2b0]'
               }`}
             >
               <Eye className="w-4 h-4" />
@@ -455,32 +455,32 @@ export const App: React.FC = () => {
         </section>
 
         {/* RIGHT COLUMN (5 cols): Single Unified Card with 2 Tabs */}
-        <section className="lg:col-span-5 bg-stone-900/95 border border-stone-800 rounded-2xl shadow-xl overflow-hidden flex flex-col">
+        <section className="lg:col-span-5 bg-[#191411] border border-[#382b20] rounded-2xl shadow-xl overflow-hidden flex flex-col">
           {/* Top 2-Tab Switcher */}
-          <div className="grid grid-cols-2 border-b border-stone-800 bg-stone-950/60 p-1.5 gap-1.5">
+          <div className="grid grid-cols-2 border-b border-[#382b20] bg-[#14100d] p-1.5 gap-1.5 font-serif">
             <button
               type="button"
               onClick={() => setRightTab('train')}
               className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
                 rightTab === 'train'
-                  ? 'bg-stone-800 text-amber-300 shadow'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-[#2a211b] text-[#dfb673] shadow border border-[#4a3b2d]'
+                  : 'text-[#9c8975] hover:text-[#d6c7b2]'
               }`}
             >
-              <Target className="w-4 h-4" />
-              <span>Bài Đang Học</span>
+              <Target className="w-4 h-4 text-[#dfb673]" />
+              <span>Thế Cờ Đang Luyện</span>
             </button>
             <button
               type="button"
               onClick={() => setRightTab('roadmap')}
               className={`py-2 px-3 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition cursor-pointer ${
                 rightTab === 'roadmap'
-                  ? 'bg-stone-800 text-amber-300 shadow'
-                  : 'text-stone-400 hover:text-stone-200'
+                  ? 'bg-[#2a211b] text-[#dfb673] shadow border border-[#4a3b2d]'
+                  : 'text-[#9c8975] hover:text-[#d6c7b2]'
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>Lộ Trình 4 Cấp ({completedIds.length}/23)</span>
+              <Layers className="w-4 h-4 text-[#dfb673]" />
+              <span>Kỳ Phổ 4 Tầng ({completedIds.length}/{MASTERY_LESSONS.length})</span>
             </button>
           </div>
 
@@ -489,10 +489,10 @@ export const App: React.FC = () => {
             <div className="p-4 sm:p-5 space-y-4 sm:space-y-4.5">
               {/* Prev / Next Lesson Stepper Header */}
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs sm:text-sm font-bold px-3 py-1.5 rounded-lg bg-stone-950 border border-stone-800 text-amber-400">
+                <span className="text-xs sm:text-sm font-serif font-bold px-3 py-1.5 rounded-lg bg-[#221a15] border border-[#3d2f23] text-[#dfb673]">
                   {isSparringBot
-                    ? '🤖 Đấu Tập Tự Do Với Bot'
-                    : `Tầng ${currentLesson.tier} • Bài ${currentLessonIndex + 1}/23`}
+                    ? 'Kỳ Đạo Sa Bàn • Đối Kháng Tự Do'
+                    : `Tầng ${currentLesson.tier} • Bài ${currentLessonIndex + 1}/${MASTERY_LESSONS.length}`}
                 </span>
 
                 {!isSparringBot && (
@@ -501,7 +501,7 @@ export const App: React.FC = () => {
                       type="button"
                       disabled={currentLessonIndex <= 0}
                       onClick={handlePrevLesson}
-                      className="p-1.5 rounded-lg bg-stone-950 border border-stone-800 text-stone-300 hover:bg-stone-800 disabled:opacity-40 cursor-pointer"
+                      className="p-1.5 rounded-lg bg-[#221a15] border border-[#3d2f23] text-[#d6c7b2] hover:bg-[#2d221c] disabled:opacity-30 cursor-pointer"
                       title="Bài trước"
                     >
                       <ChevronLeft className="w-4 h-4" />
@@ -510,7 +510,7 @@ export const App: React.FC = () => {
                       type="button"
                       disabled={currentLessonIndex >= MASTERY_LESSONS.length - 1}
                       onClick={handleNextLesson}
-                      className="p-1.5 rounded-lg bg-stone-950 border border-stone-800 text-stone-300 hover:bg-stone-800 disabled:opacity-40 cursor-pointer"
+                      className="p-1.5 rounded-lg bg-[#221a15] border border-[#3d2f23] text-[#d6c7b2] hover:bg-[#2d221c] disabled:opacity-30 cursor-pointer"
                       title="Bài tiếp theo"
                     >
                       <ChevronRight className="w-4 h-4" />
@@ -521,12 +521,12 @@ export const App: React.FC = () => {
 
               {/* Lesson Title & Concise Objective */}
               <div>
-                <h2 className="font-black text-base sm:text-lg text-stone-100 leading-snug">
+                <h2 className="font-serif font-black text-base sm:text-lg text-[#f4ece1] leading-snug">
                   {isSparringBot
-                    ? 'Thực Chiến Với AI Bot (Có Move Coach)'
+                    ? 'Thực Chiến Sa Bàn (Có Bình Chú Nước Đi)'
                     : currentLesson.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-stone-300 mt-2 leading-relaxed bg-stone-950/70 p-3 sm:p-3.5 rounded-xl border border-stone-800/80">
+                <p className="text-xs sm:text-sm text-[#c7baa8] mt-2 leading-relaxed bg-[#14100d] p-3 sm:p-3.5 rounded-xl border border-[#382b20]">
                   {isSparringBot
                     ? 'Triển khai khai cuộc chuẩn và tránh đi sót nước mất quân.'
                     : currentLesson.objective}
@@ -544,10 +544,10 @@ export const App: React.FC = () => {
                           prev < 3 ? ((prev + 1) as 1 | 2 | 3) : 3
                         )
                       }
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-950/70 hover:bg-blue-900/80 border border-blue-500/40 text-blue-200 text-xs sm:text-sm font-bold transition cursor-pointer"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#222a22] hover:bg-[#2b382b] border border-[#3d593d] text-[#a3d9a5] text-xs sm:text-sm font-serif font-bold transition cursor-pointer"
                     >
-                      <Lightbulb className="w-4 h-4 text-amber-400" />
-                      <span>Gợi ý ({hintLevel}/3)</span>
+                      <Lightbulb className="w-4 h-4 text-[#dfb673]" />
+                      <span>Manh mối ({hintLevel}/3)</span>
                     </button>
                   )}
 
@@ -556,10 +556,10 @@ export const App: React.FC = () => {
                     onClick={() =>
                       resetCurrentBoard(currentLesson, isSparringBot)
                     }
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-800 text-stone-300 text-xs sm:text-sm font-bold transition cursor-pointer"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#221a15] hover:bg-[#2e231c] border border-[#3d2f23] text-[#cfc2b0] text-xs sm:text-sm font-serif font-bold transition cursor-pointer"
                   >
                     <RotateCcw className="w-4 h-4" />
-                    <span>Làm lại</span>
+                    <span>Lập lại cờ</span>
                   </button>
                 </div>
 
@@ -567,8 +567,8 @@ export const App: React.FC = () => {
                   <div
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border font-mono font-bold text-xs sm:text-sm ${
                       timeLeft <= 20
-                        ? 'bg-rose-950/80 border-rose-500 text-rose-300'
-                        : 'bg-stone-950 border-stone-800 text-amber-300'
+                        ? 'bg-[#3b1715] border-[#8c221e] text-[#fca5a5]'
+                        : 'bg-[#221a15] border-[#3d2f23] text-[#dfb673]'
                     }`}
                   >
                     <Timer className="w-4 h-4" />
@@ -580,42 +580,42 @@ export const App: React.FC = () => {
                 )}
               </div>
 
-              {/* Active Hint Display (Only shows latest unlocked hint to avoid clutter) */}
+              {/* Active Hint Display */}
               {!isSparringBot && hintLevel > 0 && (
-                <div className="p-3 sm:p-3.5 rounded-xl bg-blue-950/50 border border-blue-500/50 text-xs sm:text-sm text-blue-200 leading-relaxed font-medium">
-                  💡 {currentLesson.hints[hintLevel - 1]}
+                <div className="p-3.5 rounded-xl bg-[#1d261d] border border-[#3b543b] text-xs sm:text-sm text-[#bbf7d0] leading-relaxed font-serif">
+                  📜 {currentLesson.hints[hintLevel - 1]}
                 </div>
               )}
 
               {/* Blocked Piece Alert */}
               {blockedInfos.length > 0 && (
-                <div className="p-3 rounded-xl bg-rose-950/40 border border-rose-500/50 text-xs sm:text-sm text-rose-200 flex items-center gap-2 font-medium">
-                  <Shield className="w-4 h-4 text-rose-400 shrink-0" />
+                <div className="p-3 rounded-xl bg-[#2e1816] border border-[#5c2320] text-xs sm:text-sm text-[#fca5a5] flex items-center gap-2 font-serif">
+                  <Shield className="w-4 h-4 text-[#f87171] shrink-0" />
                   <span>{blockedInfos[0].description}</span>
                 </div>
               )}
 
               {/* Victory Banner */}
               {lessonCompleted && (
-                <div className="p-3.5 rounded-xl bg-emerald-950/70 border border-emerald-500/70 flex items-center justify-between gap-2">
+                <div className="p-3.5 rounded-xl bg-[#1d2e20] border border-[#386b45] flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-amber-400 shrink-0" />
-                    <span className="font-bold text-xs sm:text-sm text-emerald-200">
-                      Hoàn thành xuất sắc! (+{currentLesson.expReward} EXP)
+                    <Award className="w-5 h-5 text-[#dfb673] shrink-0" />
+                    <span className="font-serif font-bold text-xs sm:text-sm text-[#a7f3d0]">
+                      Phá giải hoàn tất! (+{currentLesson.expReward} EXP)
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={handleNextLesson}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-stone-950 font-black text-xs sm:text-sm shrink-0 transition cursor-pointer"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#dfb673] hover:bg-[#fae5a8] text-[#1c140d] font-serif font-black text-xs sm:text-sm shrink-0 transition cursor-pointer shadow"
                   >
-                    Bài tiếp →
+                    Cục tiếp theo →
                   </button>
                 </div>
               )}
 
               {/* Move Coach & Compact Notation */}
-              <div className="pt-2 border-t border-stone-800/80">
+              <div className="pt-2 border-t border-[#382b20]">
                 <MoveCoachPanel
                   latestFeedback={latestFeedback}
                   moveHistory={moveHistory}
@@ -630,7 +630,7 @@ export const App: React.FC = () => {
           {rightTab === 'roadmap' && (
             <div className="p-4 sm:p-5 space-y-3.5">
               {/* 4 Tier Pills */}
-              <div className="grid grid-cols-4 gap-1.5">
+              <div className="grid grid-cols-4 gap-1.5 font-serif">
                 {TIER_METADATA.map((t) => (
                   <button
                     key={t.tier}
@@ -638,16 +638,16 @@ export const App: React.FC = () => {
                     onClick={() => setActiveTier(t.tier)}
                     className={`py-2 px-2 rounded-xl border text-center text-xs sm:text-sm font-bold transition cursor-pointer ${
                       activeTier === t.tier
-                        ? 'bg-amber-500 text-stone-950 border-amber-400 shadow'
-                        : 'bg-stone-950 border-stone-800 text-stone-400 hover:text-stone-200'
+                        ? 'bg-[#dfb673] text-[#22170d] border-[#dfb673] shadow'
+                        : 'bg-[#1e1713] border-[#382b20] text-[#9c8975] hover:text-[#d6c7b2]'
                     }`}
                   >
-                    Cấp {t.tier}
+                    Tầng {t.tier}
                   </button>
                 ))}
               </div>
 
-              <p className="text-xs sm:text-sm text-stone-300 px-1">
+              <p className="text-xs sm:text-sm text-[#b8a794] px-1 font-serif">
                 {TIER_METADATA[activeTier - 1].goal}
               </p>
 
@@ -668,19 +668,19 @@ export const App: React.FC = () => {
                         setActiveLessonId(lesson.id);
                         setRightTab('train');
                       }}
-                      className={`w-full text-left px-3.5 py-3 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer ${
+                      className={`w-full text-left px-3.5 py-3 rounded-xl border transition flex items-center justify-between gap-2 cursor-pointer font-serif ${
                         isSelected
-                          ? 'bg-amber-500/15 border-amber-500/60 text-amber-200'
-                          : 'bg-stone-950/60 border-stone-800/80 text-stone-300 hover:bg-stone-800/60'
+                          ? 'bg-[#2d2219] border-[#dfb673]/60 text-[#fae5a8]'
+                          : 'bg-[#191411] border-[#33261c] text-[#cfc2b0] hover:bg-[#251d18]'
                       }`}
                     >
                       <span className="font-semibold text-xs sm:text-sm line-clamp-1">
                         {lesson.title}
                       </span>
                       {isDone ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-[#86efac] shrink-0" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-stone-500 shrink-0" />
+                        <ChevronRight className="w-4 h-4 text-[#6e5d4d] shrink-0" />
                       )}
                     </button>
                   );
@@ -688,47 +688,47 @@ export const App: React.FC = () => {
               </div>
 
               {/* Extra Tools: Bot Sparring & Piece Value Table */}
-              <div className="pt-2 border-t border-stone-800 flex items-center gap-2">
+              <div className="pt-2 border-t border-[#382b20] flex items-center gap-2 font-serif">
                 <button
                   type="button"
                   onClick={() => {
                     setIsSparringBot(true);
                     setRightTab('train');
                   }}
-                  className="flex-1 py-2.5 px-3 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-800 text-xs sm:text-sm font-bold text-amber-300 flex items-center justify-center gap-2 transition cursor-pointer"
+                  className="flex-1 py-2.5 px-3 rounded-xl bg-[#221a15] hover:bg-[#2e231c] border border-[#3d2f23] text-xs sm:text-sm font-bold text-[#dfb673] flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <Bot className="w-4 h-4" />
-                  <span>Đấu Với Bot</span>
+                  <span>Kỳ Đạo Sa Bàn</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowPieceValueTable((prev) => !prev)}
-                  className="py-2.5 px-3 rounded-xl bg-stone-950 hover:bg-stone-800 border border-stone-800 text-xs sm:text-sm font-bold text-stone-300 transition cursor-pointer"
+                  className="py-2.5 px-3 rounded-xl bg-[#221a15] hover:bg-[#2e231c] border border-[#3d2f23] text-xs sm:text-sm font-bold text-[#cfc2b0] transition cursor-pointer"
                 >
-                  {showPieceValueTable ? 'Ẩn Bảng Điểm' : 'Bảng Điểm Quân'}
+                  {showPieceValueTable ? 'Ẩn Kỳ Biểu' : 'Biểu Điểm Quân'}
                 </button>
               </div>
 
               {showPieceValueTable && (
-                <div className="rounded-xl bg-stone-950 border border-stone-800 p-3 text-xs sm:text-sm">
+                <div className="rounded-xl bg-[#14100d] border border-[#382b20] p-3 text-xs sm:text-sm font-serif">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="border-b border-stone-800 text-stone-400">
-                        <th className="pb-1.5">Quân</th>
+                      <tr className="border-b border-[#382b20] text-[#8c7a68]">
+                        <th className="pb-1.5">Quân cờ</th>
                         <th className="pb-1.5">Khai/Trung</th>
                         <th className="pb-1.5">Cờ Tàn</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-stone-900">
+                    <tbody className="divide-y divide-[#221a14]">
                       {Object.values(PIECE_VALUES).map((pv) => (
                         <tr key={pv.codeVn}>
-                          <td className="py-1.5 font-semibold text-stone-200">
+                          <td className="py-1.5 font-semibold text-[#e2dad0]">
                             {pv.nameVi} ({pv.codeVn})
                           </td>
-                          <td className="py-1.5 text-emerald-400 font-bold">
+                          <td className="py-1.5 text-[#86efac] font-bold">
                             {pv.basePoints === 1000 ? 'Vô giá' : `${pv.basePoints}đ`}
                           </td>
-                          <td className="py-1.5 text-cyan-400 font-bold">
+                          <td className="py-1.5 text-[#93c5fd] font-bold">
                             {pv.endgamePoints === 1000
                               ? 'Vô giá'
                               : `${pv.endgamePoints}đ`}
