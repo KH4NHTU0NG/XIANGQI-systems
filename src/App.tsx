@@ -27,7 +27,7 @@ import {
   PieceLabelMode,
   ArrowGuide,
 } from './components/XiangqiBoard';
-import { MoveCoachPanel } from './components/MoveCoachPanel';
+import { MoveCoachPanel, MoveRecord } from './components/MoveCoachPanel';
 import { GamificationBar } from './components/GamificationBar';
 import { GrandmasterCoachModal } from './components/GrandmasterCoachModal';
 import { FenExportModal } from './components/FenExportModal';
@@ -49,14 +49,6 @@ import {
   VolumeX,
   Share2,
 } from 'lucide-react';
-
-interface MoveRecord {
-  ply: number;
-  side: 'r' | 'b';
-  notation: string;
-  quality?: MoveQuality;
-  feedback?: MoveCoachFeedback;
-}
 
 export const App: React.FC = () => {
   // Persistent Gamification State
@@ -113,6 +105,7 @@ export const App: React.FC = () => {
   const [latestFeedback, setLatestFeedback] =
     useState<MoveCoachFeedback | null>(null);
   const [moveHistory, setMoveHistory] = useState<MoveRecord[]>([]);
+  const [activePlyIndex, setActivePlyIndex] = useState<number | null>(null);
   const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
 
   // Display & Hint Controls (Default clean Vietnamese symbol mode)
@@ -145,6 +138,7 @@ export const App: React.FC = () => {
       setLastMove(null);
       setLatestFeedback(null);
       setMoveHistory([]);
+      setActivePlyIndex(null);
       setLessonCompleted(false);
       setHintLevel(0);
       setTimeLeft(
@@ -198,6 +192,10 @@ export const App: React.FC = () => {
   }, [currentLesson, stepIndex, hintLevel, isSparringBot, lessonCompleted]);
 
   const handleSquareClick = (r: number, c: number) => {
+    if (activePlyIndex !== null) {
+      setActivePlyIndex(null); // Click anywhere to return to live position
+      return;
+    }
     if (lessonCompleted || turn !== 'r') return;
     if (timeLeft === 0 && !isSparringBot) return;
 
@@ -244,6 +242,7 @@ export const App: React.FC = () => {
       setBoard(nextBoard);
       setLastMove({ from: move.from, to: move.to });
       setLatestFeedback(feedback);
+      setActivePlyIndex(null);
       setMoveHistory((prev) => [
         ...prev,
         {
@@ -252,6 +251,9 @@ export const App: React.FC = () => {
           notation: move.vnNotation,
           quality: feedback.quality,
           feedback,
+          boardSnapshot: nextBoard,
+          from: move.from,
+          to: move.to,
         },
       ]);
 
@@ -281,12 +283,16 @@ export const App: React.FC = () => {
           const afterBot = makeMoveOnBoard(nextBoard, botMove.from, botMove.to);
           setBoard(afterBot);
           setLastMove({ from: botMove.from, to: botMove.to });
+          setActivePlyIndex(null);
           setMoveHistory((prev) => [
             ...prev,
             {
               ply: prev.length + 1,
               side: 'b',
               notation: botMove.vnNotation,
+              boardSnapshot: afterBot,
+              from: botMove.from,
+              to: botMove.to,
             },
           ]);
 
@@ -344,6 +350,7 @@ export const App: React.FC = () => {
     setBoard(nextBoard);
     setLastMove({ from: move.from, to: move.to });
     setLatestFeedback(feedback);
+    setActivePlyIndex(null);
     setMoveHistory((prev) => [
       ...prev,
       {
@@ -352,6 +359,9 @@ export const App: React.FC = () => {
         notation: move.vnNotation,
         quality: feedback.quality,
         feedback,
+        boardSnapshot: nextBoard,
+        from: move.from,
+        to: move.to,
       },
     ]);
 
@@ -373,12 +383,16 @@ export const App: React.FC = () => {
         const afterReply = makeMoveOnBoard(nextBoard, reply.from, reply.to);
         setBoard(afterReply);
         setLastMove({ from: reply.from, to: reply.to });
+        setActivePlyIndex(null);
         setMoveHistory((prev) => [
           ...prev,
           {
             ply: prev.length + 1,
             side: 'b',
             notation: reply.notation,
+            boardSnapshot: afterReply,
+            from: reply.from,
+            to: reply.to,
           },
         ]);
 
@@ -440,6 +454,21 @@ export const App: React.FC = () => {
     [activeTier]
   );
 
+  const displayBoard =
+    activePlyIndex !== null && moveHistory[activePlyIndex]?.boardSnapshot
+      ? moveHistory[activePlyIndex].boardSnapshot!
+      : board;
+
+  const displayLastMove =
+    activePlyIndex !== null &&
+    moveHistory[activePlyIndex]?.from &&
+    moveHistory[activePlyIndex]?.to
+      ? {
+          from: moveHistory[activePlyIndex].from!,
+          to: moveHistory[activePlyIndex].to!,
+        }
+      : lastMove;
+
   return (
     <div className="min-h-screen flex flex-col bg-[#12100e] text-[#e6ded3]">
       {/* Compact Header */}
@@ -458,12 +487,12 @@ export const App: React.FC = () => {
         {/* LEFT COLUMN (7 cols): Clean, Spacious Chessboard + Subtle Footer Controls */}
         <section className="lg:col-span-7 flex flex-col items-center gap-3">
           <XiangqiBoard
-            board={board}
+            board={displayBoard}
             turn={turn}
             selectedSquare={selectedSquare}
             legalMoves={legalMoves}
             blockedInfos={blockedInfos}
-            lastMove={lastMove}
+            lastMove={displayLastMove}
             arrowGuides={arrowGuides}
             labelMode={labelMode}
             showThreatRadar={showThreatRadar}
@@ -704,6 +733,8 @@ export const App: React.FC = () => {
                 <MoveCoachPanel
                   latestFeedback={latestFeedback}
                   moveHistory={moveHistory}
+                  activePlyIndex={activePlyIndex}
+                  onSelectPly={setActivePlyIndex}
                   lessonTheory={currentLesson.theory}
                   lessonCitation={currentLesson.citation}
                 />

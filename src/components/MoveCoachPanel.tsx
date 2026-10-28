@@ -1,24 +1,33 @@
 import React, { useState } from 'react';
-import { MoveCoachFeedback, MoveQuality } from '../engine/xiangqiEngine';
+import { MoveCoachFeedback, MoveQuality, BoardMatrix, Coord } from '../engine/xiangqiEngine';
 import {
   Feather,
   CheckCircle,
   AlertCircle,
   HelpCircle,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from 'lucide-react';
 
-interface MoveRecord {
+export interface MoveRecord {
   ply: number;
   side: 'r' | 'b';
   notation: string;
   quality?: MoveQuality;
   feedback?: MoveCoachFeedback;
+  boardSnapshot?: BoardMatrix;
+  from?: Coord;
+  to?: Coord;
 }
 
 interface MoveCoachPanelProps {
   latestFeedback: MoveCoachFeedback | null;
   moveHistory: MoveRecord[];
+  activePlyIndex: number | null; // null = live board
+  onSelectPly: (plyIndex: number | null) => void;
   lessonTheory?: string;
   lessonCitation?: string;
 }
@@ -66,11 +75,33 @@ const QUALITY_THEMES: Record<
 export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
   latestFeedback,
   moveHistory,
+  activePlyIndex,
+  onSelectPly,
   lessonTheory,
   lessonCitation,
 }) => {
   const [showWhy, setShowWhy] = useState<boolean>(false);
   const [showTheory, setShowTheory] = useState<boolean>(false);
+
+  const currentViewingIndex = activePlyIndex !== null ? activePlyIndex : moveHistory.length - 1;
+
+  const handlePrevPly = () => {
+    if (moveHistory.length === 0) return;
+    if (activePlyIndex === null) {
+      if (moveHistory.length > 1) onSelectPly(moveHistory.length - 2);
+    } else if (activePlyIndex > 0) {
+      onSelectPly(activePlyIndex - 1);
+    }
+  };
+
+  const handleNextPly = () => {
+    if (moveHistory.length === 0 || activePlyIndex === null) return;
+    if (activePlyIndex < moveHistory.length - 1) {
+      onSelectPly(activePlyIndex + 1);
+    } else {
+      onSelectPly(null); // return to live
+    }
+  };
 
   return (
     <div className="space-y-3.5">
@@ -134,39 +165,97 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
         </div>
       )}
 
-      {/* Classical Move History Notation Line */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-        <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm">
-          <span className="text-[#8c7a68] font-serif font-semibold">Biên bản:</span>
-          {moveHistory.length === 0 ? (
-            <span className="text-[#635546] italic font-serif">Chưa khởi động</span>
-          ) : (
-            moveHistory.map((m) => (
-              <span
-                key={m.ply}
-                className={`px-2.5 py-1 rounded font-mono text-xs font-bold border ${
-                  m.side === 'r'
-                    ? 'bg-[#3b1715] border-[#6b2521] text-[#fca5a5]'
-                    : 'bg-[#221c17] border-[#423528] text-[#e0d6c8]'
-                }`}
-              >
-                {m.notation}
-              </span>
-            ))
-          )}
+      {/* Replay Controls & Notation History */}
+      <div className="p-3 bg-[#16120f] border border-[#382a20] rounded-xl space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              disabled={moveHistory.length === 0 || activePlyIndex === 0}
+              onClick={() => onSelectPly(0)}
+              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              title="Về đầu ván"
+            >
+              <ChevronsLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              disabled={moveHistory.length === 0 || activePlyIndex === 0}
+              onClick={handlePrevPly}
+              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              title="Nước trước"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              disabled={moveHistory.length === 0 || activePlyIndex === null}
+              onClick={handleNextPly}
+              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              title="Nước sau"
+            >
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+            <button
+              type="button"
+              disabled={moveHistory.length === 0 || activePlyIndex === null}
+              onClick={() => onSelectPly(null)}
+              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#dfb673] disabled:opacity-30 cursor-pointer text-[11px] font-bold px-1.5"
+              title="Về hiện tại"
+            >
+              <ChevronsRight className="w-3.5 h-3.5 inline" />
+            </button>
+          </div>
+
+          <div className="text-[11px] font-mono text-[#a89987]">
+            {activePlyIndex !== null ? (
+              <span className="text-[#dfb673]">Đang xem: Nước {activePlyIndex + 1}/{moveHistory.length}</span>
+            ) : (
+              <span>Thực chiến ({moveHistory.length} nước)</span>
+            )}
+          </div>
         </div>
 
-        {lessonTheory && (
+        {/* Move History Pills */}
+        <div className="flex flex-wrap items-center gap-1.5 max-h-[72px] overflow-y-auto">
+          {moveHistory.length === 0 ? (
+            <span className="text-[#635546] italic font-serif text-xs">Chưa có nước đi</span>
+          ) : (
+            moveHistory.map((m, idx) => {
+              const isViewing = currentViewingIndex === idx;
+              return (
+                <button
+                  key={m.ply}
+                  type="button"
+                  onClick={() => onSelectPly(idx)}
+                  className={`px-2 py-0.5 rounded font-mono text-xs font-bold border cursor-pointer transition ${
+                    isViewing
+                      ? 'ring-2 ring-[#dfb673] bg-[#422e1b] text-[#fae5a8] border-[#dfb673]'
+                      : m.side === 'r'
+                      ? 'bg-[#3b1715] border-[#6b2521] text-[#fca5a5]'
+                      : 'bg-[#221c17] border-[#423528] text-[#e0d6c8]'
+                  }`}
+                >
+                  {m.notation}
+                </button>
+              );
+            })
+          )}
+        </div>
+      </div>
+
+      {lessonTheory && (
+        <div className="flex justify-end pt-1">
           <button
             type="button"
             onClick={() => setShowTheory((prev) => !prev)}
-            className="flex items-center gap-1.5 text-xs sm:text-sm text-[#dfb673] hover:text-[#fae5a8] font-serif font-medium cursor-pointer"
+            className="flex items-center gap-1.5 text-xs text-[#dfb673] hover:text-[#fae5a8] font-serif font-medium cursor-pointer"
           >
             <BookOpen className="w-3.5 h-3.5" />
             <span>{showTheory ? 'Đóng kỳ lý' : 'Xem kỳ lý'}</span>
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {showTheory && lessonTheory && (
         <div className="rounded-xl p-4 bg-[#1a1512] border border-[#3b2e23] text-xs sm:text-sm text-[#cfc2b0] space-y-2 leading-relaxed font-serif shadow-inner">
