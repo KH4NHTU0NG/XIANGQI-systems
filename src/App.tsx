@@ -30,6 +30,7 @@ import {
 import { MoveCoachPanel } from './components/MoveCoachPanel';
 import { GamificationBar } from './components/GamificationBar';
 import { GrandmasterCoachModal } from './components/GrandmasterCoachModal';
+import { FenExportModal } from './components/FenExportModal';
 import { soundEngine } from './audio/soundEngine';
 import {
   RotateCcw,
@@ -46,6 +47,7 @@ import {
   Target,
   Volume2,
   VolumeX,
+  Share2,
 } from 'lucide-react';
 
 interface MoveRecord {
@@ -82,6 +84,7 @@ export const App: React.FC = () => {
   const [showPieceValueTable, setShowPieceValueTable] =
     useState<boolean>(false);
   const [isGrandmasterOpen, setIsGrandmasterOpen] = useState<boolean>(false);
+  const [isFenModalOpen, setIsFenModalOpen] = useState<boolean>(false);
 
   // Board & Gameplay State
   const currentLesson: MasteryLesson = useMemo(
@@ -512,6 +515,16 @@ export const App: React.FC = () => {
 
               <button
                 type="button"
+                onClick={() => setIsFenModalOpen(true)}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer bg-[#261f1a] hover:bg-[#332a23] text-[#dfb673]"
+                title="Xuất / Nhập chuỗi FEN và Kỳ Lục"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>FEN</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setShowThreatRadar((prev) => !prev)}
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg font-serif font-bold transition cursor-pointer ${
                   showThreatRadar
@@ -829,6 +842,25 @@ export const App: React.FC = () => {
           setRightTab('train');
         }}
         onAwardExp={awardExp}
+      />
+
+      <FenExportModal
+        isOpen={isFenModalOpen}
+        onClose={() => setIsFenModalOpen(false)}
+        board={board}
+        turn={turn}
+        moveHistory={moveHistory}
+        onLoadCustomFen={(customBoard, customTurn) => {
+          setBoard(customBoard);
+          setTurn(customTurn);
+          setSelectedSquare(null);
+          setLegalMoves([]);
+          setBlockedInfos([]);
+          setLastMove(null);
+          setMoveHistory([]);
+          setIsSparringBot(true);
+          setRightTab('train');
+        }}
       />
     </div>
   );
