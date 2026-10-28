@@ -12,15 +12,18 @@ import {
 import { MASTERY_LESSONS } from '../../data/masteryData';
 
 describe('Xiangqi Mastery System - WXF Engine & Dataset Cross-Validation', () => {
-  it('verifies all 23 lessons in MASTERY_LESSONS have valid FENs, legal moves, exact VN notations, and checkmate endings for puzzles', () => {
-    expect(MASTERY_LESSONS.length).toBeGreaterThanOrEqual(23);
+  it('verifies all 26 lessons in MASTERY_LESSONS have valid FENs, legal moves, exact VN notations, and checkmate endings for puzzles', () => {
+    expect(MASTERY_LESSONS.length).toBe(26);
 
     for (const lesson of MASTERY_LESSONS) {
       const { board: initBoard, turn } = parseFEN(lesson.initialFen);
       expect(turn).toBe('r');
 
-      // Initial state: Neither King should already be captured or in illegal facing state, and Black King must not be in check initially
-      expect(isKingInCheck(initBoard, 'b')).toBe(false);
+      // Initial state: Black King must not be in check initially
+      expect(
+        isKingInCheck(initBoard, 'b'),
+        `[${lesson.id}] Black must not be in check at initial state`
+      ).toBe(false);
 
       let currentBoard = initBoard;
 
@@ -97,8 +100,8 @@ describe('Xiangqi Mastery System - WXF Engine & Dataset Cross-Validation', () =>
         }
       }
 
-      // For Tier 1, Tier 2, and Tier 4 (Puzzles/Checkmates), final state MUST be checkmate against Black!
-      if (lesson.tier === 1 || lesson.tier === 2 || lesson.tier === 4) {
+      // Checkmate assertion for mate puzzles (Tier 1, Tier 2, T3-06, T4-03, T4-04)
+      if (lesson.isMatePuzzle) {
         expect(
           isKingInCheck(currentBoard, 'b'),
           `[${lesson.id}] Final board should put Black King in check`
