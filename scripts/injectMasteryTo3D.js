@@ -483,3 +483,4 @@ console.log('Successfully updated public/xiangqi-3d.html! Size:', html.length);
 const desktopPath = '/Users/trankhanhtuong/Desktop/xiangqi-3d-masterpiece.html';
 fs.writeFileSync(desktopPath, html);
 console.log('Successfully updated', desktopPath);
+

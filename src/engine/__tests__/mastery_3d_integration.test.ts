@@ -7,13 +7,28 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
   const htmlPath = path.resolve(__dirname, '../../../public/xiangqi-3d.html');
   const desktopPath = '/Users/trankhanhtuong/Desktop/xiangqi-3d-masterpiece.html';
 
-  it('contains the complete standalone 3D file with inlined mastery data', () => {
+  it('contains the complete standalone 3D file with upgraded organic ink UI and mastery data', () => {
     expect(fs.existsSync(htmlPath)).toBe(true);
     const content = fs.readFileSync(htmlPath, 'utf8');
 
-    // UI elements
-    expect(content).toContain('id="seal-mastery"');
-    expect(content).toContain('id="btn-top-mastery"');
+    // Cleaned up elements: No black river banner and no top black status pill
+    expect(content).not.toContain('楚河漢界 • SỞ HÀ HÁN GIỚI');
+    expect(content).not.toContain('id="turn-badge"');
+
+    // Upgraded Organic Ink UI elements
+    expect(content).toContain('id="btn-mastery"');
+    expect(content).toContain('id="btn-sound"');
+    expect(content).toContain('id="btn-undo"');
+    expect(content).toContain('id="btn-restart"');
+    expect(content).toContain('id="btn-camera"');
+
+    // 3D & Procedural 4K elements
+    expect(content).toContain('generate4KProceduralBoardTexture');
+    expect(content).toContain('楚 河');
+    expect(content).toContain('漢 界');
+    expect(content).toContain('triggerGoldenCaptureGodRays');
+
+    // Roadmap Drawer & Lesson HUD
     expect(content).toContain('id="mastery-drawer"');
     expect(content).toContain('id="lesson-card"');
     expect(content).toContain('id="lesson-victory-banner"');
@@ -45,7 +60,8 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
   it('verifies Desktop standalone file is synchronized', () => {
     expect(fs.existsSync(desktopPath)).toBe(true);
     const desktopContent = fs.readFileSync(desktopPath, 'utf8');
-    expect(desktopContent).toContain('id="seal-mastery"');
+    expect(desktopContent).toContain('id="btn-mastery"');
     expect(desktopContent).toContain('id="mastery-drawer"');
+    expect(desktopContent).not.toContain('楚河漢界 • SỞ HÀ HÁN GIỚI');
   });
 });
