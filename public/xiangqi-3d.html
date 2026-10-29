@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CỜ TƯỚNG 3D NHÂN VẬT SỐNG — Chinese Chess 3D Invincible</title>
+  <title>TIÊN HIỆP KỲ TRẬN 3D — Xianxia Cel-Shaded 3D Xiangqi (Shan Shui Edition)</title>
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- GSAP 3.12 CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <!-- Google Fonts: Noto Serif SC & Cinzel -->
-  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@600;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <!-- Google Fonts: Ma Shan Zheng, Zhi Mang Xing & Noto Serif SC -->
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Zhi+Mang+Xing&family=Noto+Serif+SC:wght@600;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <!-- Three.js ES Module ImportMap -->
   <script type="importmap">
     {
@@ -27,66 +27,111 @@
     body {
       margin: 0;
       overflow: hidden;
-      background-color: #d6c6b2;
+      background-color: #e4d5be;
+      background-image: url('./Xianxia_Xiangqi_3D_Assets/xianxia-sumie-bg.jpg'), url('./assets/xianxia-sumie-bg.jpg');
+      background-size: cover;
+      background-position: center;
       font-family: 'Noto Serif', Georgia, serif;
-      color: #2b1f17;
+      color: #231811;
     }
     .calligraphy-font {
-      font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
+      font-family: 'Ma Shan Zheng', 'Zhi Mang Xing', 'Noto Serif SC', serif;
     }
-    .hanzi-font {
-      font-family: 'Noto Serif SC', 'Songti SC', serif;
+    /* Hanging Parchment Scroll on the Right Side (宣紙卷軸) */
+    .hanging-scroll {
+      position: relative;
+      background: linear-gradient(180deg, #dcc7a1 0%, #eadbc0 18%, #e5d4b4 82%, #cfb68c 100%);
+      border-left: 2.5px solid #3b2313;
+      border-right: 2.5px solid #3b2313;
+      box-shadow: -8px 14px 32px rgba(15, 10, 5, 0.55), inset 0 0 24px rgba(120, 82, 40, 0.28);
     }
-    /* Ink Seal Glassmorphism Buttons */
-    .ink-seal-btn {
-      width: 54px;
-      height: 54px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(28, 20, 15, 0.88) 0%, rgba(10, 7, 5, 0.96) 80%, rgba(0, 0, 0, 0.95) 100%);
-      border: 2px solid rgba(212, 175, 55, 0.65);
-      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(212, 175, 55, 0.25);
-      color: #fce7b2;
+    .scroll-roller {
+      height: 14px;
+      width: calc(100% + 20px);
+      margin-left: -10px;
+      background: linear-gradient(90deg, #271509 0%, #5c3419 18%, #381e0c 50%, #5c3419 82%, #271509 100%);
+      border: 2px solid #140b05;
+      border-radius: 999px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.6);
+    }
+    /* Traditional Black Ink-Blot Calligraphy UI Buttons (墨跡按鈕) */
+    .ink-blot-btn {
+      position: relative;
+      width: 62px;
+      height: 62px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+      color: #fdf6e3;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease;
+      filter: drop-shadow(0 4px 8px rgba(15, 10, 5, 0.45));
+      z-index: 1;
     }
-    .ink-seal-btn:hover {
-      transform: scale(1.1);
-      border-color: #facc15;
-      box-shadow: 0 8px 25px rgba(234, 179, 8, 0.45), inset 0 0 14px rgba(250, 204, 21, 0.4);
+    .ink-blot-btn::before {
+      content: '';
+      position: absolute;
+      inset: 2px;
+      background: radial-gradient(circle at 48% 48%, #1a1412 0%, #0d0907 68%, transparent 73%),
+                  radial-gradient(circle at 20% 28%, #140f0c 0%, transparent 28%),
+                  radial-gradient(circle at 80% 24%, #140f0c 0%, transparent 25%),
+                  radial-gradient(circle at 82% 74%, #140f0c 0%, transparent 28%),
+                  radial-gradient(circle at 22% 78%, #140f0c 0%, transparent 26%),
+                  radial-gradient(circle at 50% 12%, #140f0c 0%, transparent 24%),
+                  radial-gradient(circle at 50% 88%, #140f0c 0%, transparent 24%);
+      border-radius: 54% 46% 58% 42% / 46% 56% 44% 54%;
+      border: 1.5px solid rgba(245, 158, 11, 0.5);
+      z-index: -1;
+      transition: all 0.22s ease;
     }
-    .ink-seal-btn:active {
-      transform: scale(0.96);
+    .ink-blot-btn::after {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      background: radial-gradient(circle at 12% 18%, #140e0a 2.5px, transparent 3.5px),
+                  radial-gradient(circle at 88% 16%, #140e0a 3px, transparent 4px),
+                  radial-gradient(circle at 90% 84%, #140e0a 2.5px, transparent 3.5px),
+                  radial-gradient(circle at 14% 86%, #140e0a 2px, transparent 3px);
+      pointer-events: none;
+      z-index: -1;
     }
-    .glass-hud {
-      background: rgba(30, 22, 16, 0.78);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
-      border: 1px solid rgba(212, 175, 55, 0.35);
-      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+    .ink-blot-btn:hover {
+      transform: scale(1.1) rotate(-3deg);
+      filter: drop-shadow(0 0 12px rgba(245, 158, 11, 0.75));
+    }
+    .ink-blot-btn:hover::before {
+      border-color: #fde047;
+      box-shadow: inset 0 0 12px rgba(251, 191, 36, 0.4);
+    }
+    .ink-blot-btn:active {
+      transform: scale(0.94);
+    }
+    .xianxia-hud {
+      background: linear-gradient(135deg, rgba(24, 18, 14, 0.88) 0%, rgba(15, 11, 9, 0.94) 100%);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid #b47b32;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.55), inset 0 0 16px rgba(217, 155, 67, 0.15);
     }
     /* Check Vignette Alert */
     #check-vignette {
       pointer-events: none;
       opacity: 0;
-      background: radial-gradient(circle, transparent 40%, rgba(185, 28, 28, 0.72) 100%);
-      transition: opacity 0.15s ease;
+      background: radial-gradient(circle, transparent 38%, rgba(220, 38, 38, 0.65) 85%, rgba(250, 204, 21, 0.5) 100%);
+      transition: opacity 0.18s ease;
     }
     #check-banner {
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.5);
-      text-shadow: 0 0 35px rgba(239, 68, 68, 0.95), 0 8px 25px rgba(0, 0, 0, 0.9);
+      text-shadow: 0 0 40px rgba(250, 204, 21, 0.98), 0 0 18px rgba(220, 38, 38, 0.95), 0 8px 24px rgba(0, 0, 0, 0.95);
     }
-    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 4px;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(212, 175, 55, 0.4);
+      background: rgba(180, 123, 50, 0.55);
       border-radius: 4px;
     }
   </style>
@@ -99,124 +144,154 @@
   <!-- Screen Alert Vignette & Calligraphy Check Banner -->
   <div id="check-vignette" class="fixed inset-0 z-20"></div>
   <div id="check-banner" class="fixed top-1/2 left-1/2 z-30 flex flex-col items-center">
-    <span class="calligraphy-font text-8xl sm:text-9xl font-black text-red-600 tracking-widest drop-shadow-2xl">將！</span>
-    <span class="mt-2 px-6 py-1.5 rounded-full bg-stone-950/90 border border-red-500/80 text-amber-200 font-bold text-lg tracking-[0.4em] uppercase">
-      CHIẾU TƯỚNG TRẢM THÀNH
+    <span class="calligraphy-font text-8xl sm:text-9xl font-black text-amber-300 tracking-widest drop-shadow-2xl">劍氣斬將！</span>
+    <span class="mt-2 px-6 py-1.5 rounded-full bg-stone-950/90 border-2 border-amber-400 text-amber-200 font-bold text-base tracking-[0.35em] uppercase">
+      KIM QUANG KIẾM KHÍ • CHIẾU TƯỚNG
     </span>
   </div>
 
-  <!-- TOP HUD BAR: Title & Mode Info -->
-  <header class="fixed top-3 left-4 right-4 z-30 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-2xl glass-hud text-amber-100">
+  <!-- TOP HUD BAR: Xianxia Shan Shui Cel-Shaded Header -->
+  <header class="fixed top-3 left-4 right-32 z-30 flex flex-wrap items-center justify-between gap-2 px-4 py-2 rounded-2xl xianxia-hud text-amber-100">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-700 via-amber-600 to-amber-900 border border-amber-300 flex items-center justify-center calligraphy-font text-2xl text-amber-100 shadow-md">
-        無
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 via-red-700 to-stone-900 border-2 border-amber-300 flex items-center justify-center calligraphy-font text-2xl text-amber-100 shadow-lg">
+        仙
       </div>
       <div>
         <div class="flex items-center gap-2">
           <h1 class="calligraphy-font text-xl sm:text-2xl tracking-wider text-amber-200 font-bold">
-            CHINESE CHESS 3D INVINCIBLE
+            TIÊN HIỆP KỲ TRẬN 3D • SHAN SHUI CEL-SHADER
           </h1>
-          <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-500/25 text-amber-300 border border-amber-400/40">
-            Sống Động 3D
+          <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-500/25 text-amber-300 border border-amber-400/50">
+            UE5 Toon Outline • Bát Quái Trận
           </span>
         </div>
-        <p class="text-[11px] text-amber-200/80 hidden sm:block">
-          Mỗi quân cờ là một chiến tướng/binh chủng sống • Ngai vàng, Kỵ binh, Nỏ chiến, Pháo thủ & Đao binh
+        <p class="text-[11px] text-amber-200/80 hidden md:block">
+          Đỏ Chu Vũ (Crimson-Gold) đối Lam Thanh Vân (Cyan-Blue) • Bát Quái Kim Quang & Kiếm Khí Tung Hoành
         </p>
       </div>
     </div>
 
-    <!-- Active Turn & AI Toggle -->
-    <div class="flex items-center gap-3 text-xs">
-      <div id="turn-badge" class="px-3 py-1.5 rounded-xl bg-red-950/90 border border-red-500/60 text-amber-100 font-black shadow-inner">
-        🔴 ĐỎ: HÁN VƯƠNG TIÊN THỦ
+    <!-- Active Turn & Mode Controls -->
+    <div class="flex items-center gap-2.5 text-xs">
+      <div id="turn-badge" class="px-3.5 py-1.5 rounded-xl bg-red-950/90 border border-red-400/70 text-amber-100 font-black shadow-inner">
+        🔴 CHU VŨ (RED FACTION) TIÊN THỦ
       </div>
 
-      <button id="btn-toggle-ai" class="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-400/50 text-emerald-200 font-bold hover:bg-emerald-900 transition cursor-pointer">
+      <button id="btn-toggle-ai" class="px-3 py-1.5 rounded-xl bg-emerald-950/85 border border-emerald-400/60 text-emerald-200 font-bold hover:bg-emerald-900 transition cursor-pointer">
         🤖 Đấu AI: BẬT
       </button>
 
-      <button id="btn-piece-style" class="px-3 py-1.5 rounded-xl bg-amber-950/80 border border-amber-400/50 text-amber-200 font-bold hover:bg-amber-900 transition cursor-pointer" title="Chuyển đổi giữa Nhân vật sống 3D và Quân ngọc PBR">
-        Tạo Hình: Tướng Sống 3D
+      <button id="btn-piece-style" class="px-3 py-1.5 rounded-xl bg-amber-950/85 border border-amber-400/60 text-amber-200 font-bold hover:bg-amber-900 transition cursor-pointer" title="Chuyển đổi giữa Tu Tiên Nhân Vật Sống 3D và Đĩa Ngọc Cổ Điển">
+        ⚔️ Tướng Sống Cel-3D
       </button>
     </div>
   </header>
 
-  <!-- LEFT HUD: Real-Time Evaluation Bar + Ink Wash Seals -->
-  <aside class="fixed left-4 top-24 bottom-4 z-20 flex items-center gap-3 pointer-events-none">
+  <!-- LEFT HUD: Real-Time Evaluation Bar (Red vs Cyan-Blue) & Move Log -->
+  <aside class="fixed left-4 top-20 bottom-4 z-20 flex items-center gap-3 pointer-events-none">
     <!-- Real-time Vertical Evaluation Bar -->
-    <div class="pointer-events-auto h-[480px] w-7 rounded-2xl glass-hud p-1 flex flex-col justify-between items-center relative overflow-hidden shadow-2xl" title="Thanh đánh giá thế trận">
-      <div class="w-full h-full rounded-xl overflow-hidden flex flex-col bg-stone-900 relative">
-        <div id="eval-black-bar" class="w-full bg-gradient-to-b from-slate-900 via-slate-800 to-cyan-950 transition-all duration-700" style="height: 50%;"></div>
-        <div id="eval-red-bar" class="w-full bg-gradient-to-t from-red-900 via-red-700 to-amber-500 transition-all duration-700" style="height: 50%;"></div>
-        <div class="absolute top-1/2 left-0 right-0 h-[2px] bg-amber-300 z-10"></div>
+    <div class="pointer-events-auto h-[430px] w-7 rounded-2xl xianxia-hud p-1 flex flex-col justify-between items-center relative overflow-hidden shadow-2xl" title="Thanh cân bằng Linh Khí (Đỏ Chu Vũ vs Lam Thanh Vân)">
+      <div class="w-full h-full rounded-xl overflow-hidden flex flex-col bg-stone-950 relative">
+        <div id="eval-black-bar" class="w-full bg-gradient-to-b from-sky-900 via-cyan-600 to-sky-400 transition-all duration-700" style="height: 50%;"></div>
+        <div id="eval-red-bar" class="w-full bg-gradient-to-t from-red-950 via-red-600 to-amber-400 transition-all duration-700" style="height: 50%;"></div>
+        <div class="absolute top-1/2 left-0 right-0 h-[2px] bg-amber-200 z-10"></div>
       </div>
-      <span id="eval-score-text" class="absolute top-1/2 -translate-y-1/2 px-1 py-0.5 rounded bg-black/90 text-[10px] font-mono font-black text-amber-300 border border-amber-400/40 z-20">
+      <span id="eval-score-text" class="absolute top-1/2 -translate-y-1/2 px-1 py-0.5 rounded bg-black/90 text-[10px] font-mono font-black text-amber-300 border border-amber-400/50 z-20">
         0.0
       </span>
     </div>
 
-    <!-- Floating Camera View Seal -->
-    <div class="pointer-events-auto flex flex-col gap-3">
-      <button id="seal-camera" class="ink-seal-btn" title="Đổi góc máy điện ảnh / từ trên xuống / 360 độ">
-        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-        <span class="text-[10px] font-bold">Góc Nhìn</span>
-      </button>
-
-      <button id="seal-hint" class="ink-seal-btn" title="Đại sư gợi ý nước đi tiếp theo">
-        <span class="calligraphy-font text-lg text-amber-300">策</span>
-        <span class="text-[9px] font-bold">Kỳ Sách</span>
-      </button>
-    </div>
-  </aside>
-
-  <!-- RIGHT HUD: Traditional Ink Wash Circle Seals (Sound, Undo, Restart) & History Drawer -->
-  <aside class="fixed right-4 top-24 bottom-4 z-20 flex flex-col items-end justify-between pointer-events-none">
-    <!-- Traditional Ink Circle Seals (Sound, Undo, Restart) -->
-    <div class="pointer-events-auto flex flex-col items-center gap-3.5">
-      <!-- Sound Seal -->
-      <button id="seal-sound" class="ink-seal-btn" title="Bật/Tắt âm thanh trận chiến">
-        <span class="calligraphy-font text-xl text-amber-300">聲音</span>
-        <span class="text-[9px] font-bold">Âm Thanh</span>
-      </button>
-
-      <!-- Undo Seal (悔棋) -->
-      <button id="seal-undo" class="ink-seal-btn" title="Đi lại nước cờ (Hối Kỳ)">
-        <span class="calligraphy-font text-xl text-amber-300">悔棋</span>
-        <span class="text-[9px] font-bold">Đi Lại</span>
-      </button>
-
-      <!-- Restart Seal (重玩) -->
-      <button id="seal-restart" class="ink-seal-btn" title="Xếp lại ván mới (Trùng Ngoạn)">
-        <span class="calligraphy-font text-xl text-amber-300">重玩</span>
-        <span class="text-[9px] font-bold">Ván Mới</span>
-      </button>
-    </div>
-
-    <!-- Move History & Commentary Glass Drawer -->
-    <div class="pointer-events-auto w-64 rounded-2xl glass-hud p-3.5 flex flex-col text-xs text-amber-100 gap-2">
-      <div class="flex items-center justify-between border-b border-amber-500/25 pb-1.5">
-        <span class="font-bold text-amber-200">⚔️ CHIẾN TRƯỜNG KỲ LỤC</span>
-        <span id="move-count-badge" class="text-[11px] font-mono text-amber-300">0 Nước</span>
+    <!-- Compact Battle Chronicle -->
+    <div class="pointer-events-auto hidden xl:flex w-52 rounded-2xl xianxia-hud p-3 flex-col text-xs text-amber-100 gap-2 self-end">
+      <div class="flex items-center justify-between border-b border-amber-500/30 pb-1.5">
+        <span class="font-bold text-amber-300">📜 TIÊN KIẾM KỲ PHỔ</span>
+        <span id="move-count-badge" class="text-[11px] font-mono text-amber-200">0 Nước</span>
       </div>
-      <div id="history-box" class="h-44 overflow-y-auto space-y-1 bg-black/40 p-2 rounded-xl border border-amber-500/15 text-[11px]">
-        <div class="text-stone-400 italic text-center py-6">Hai quân đang dàn trận...</div>
+      <div id="history-box" class="h-36 overflow-y-auto space-y-1 bg-black/45 p-2 rounded-xl border border-amber-500/20 text-[11px]">
+        <div class="text-stone-400 italic text-center py-5">Bát Quái trận đồ đã khai mở...</div>
       </div>
     </div>
   </aside>
 
-  <!-- MAIN 3D APPLICATION WITH LIVING PROCEDURAL CHARACTERS -->
+  <!-- RIGHT HUD: Hanging Parchment Scroll with Black Ink-Blot Calligraphy UI Buttons -->
+  <aside class="fixed right-4 top-3 bottom-3 z-30 flex items-center gap-3 pointer-events-none">
+    <!-- Cultivator Faction Badges (Top Red / Bottom Cyan-Blue) -->
+    <div class="hidden sm:flex flex-col justify-between h-[86%] py-2 pointer-events-auto">
+      <div class="px-2.5 py-2 rounded-xl bg-red-950/90 border-2 border-amber-400/80 text-center shadow-xl">
+        <div class="calligraphy-font text-lg text-amber-300 leading-none">劍心 • CHU VŨ</div>
+        <div class="text-[10px] font-mono text-red-200 mt-0.5">Hồng Liên Kiếm Tông</div>
+      </div>
+      <div class="px-2.5 py-2 rounded-xl bg-sky-950/90 border-2 border-cyan-400/80 text-center shadow-xl">
+        <div class="calligraphy-font text-lg text-cyan-300 leading-none">青雲 • THANH VÂN</div>
+        <div class="text-[10px] font-mono text-cyan-200 mt-0.5">Thiên Lam Tiên Phái</div>
+      </div>
+    </div>
+
+    <!-- Hanging Scroll (宣紙卷軸) -->
+    <div class="pointer-events-auto flex flex-col items-center">
+      <div class="scroll-roller"></div>
+      <div class="hanging-scroll px-3 py-4 flex flex-col items-center gap-2.5">
+        <!-- New Game / Restart Seal (新局) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-restart" class="ink-blot-btn" title="Khởi tạo lại trận địa (Tân Cục)">
+            <span class="calligraphy-font text-2xl text-amber-200 leading-none">新局</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">New Game</span>
+        </div>
+
+        <!-- Undo Seal (悔棋) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-undo" class="ink-blot-btn" title="Đi lại nước cờ trước (Hối Kỳ)">
+            <span class="calligraphy-font text-2xl text-amber-200 leading-none">悔棋</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">Undo</span>
+        </div>
+
+        <!-- Tactical Hint Seal (仙策) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-hint" class="ink-blot-btn" title="Tiên nhân chỉ lộ (Gợi ý nước đi tối ưu)">
+            <span class="calligraphy-font text-2xl text-cyan-200 leading-none">仙策</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">Hints</span>
+        </div>
+
+        <!-- Sword-Qi Burst Seal (劍氣) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-swordqi" class="ink-blot-btn" title="Kích hoạt Bát Quái Kim Quang Kiếm Khí">
+            <span class="calligraphy-font text-2xl text-yellow-300 leading-none">劍氣</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">Sword-Qi</span>
+        </div>
+
+        <!-- Camera View Seal (視角) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-camera" class="ink-blot-btn" title="Chuyển góc nhìn Isometric Cao / Trực diện / Xoay 360">
+            <span class="calligraphy-font text-2xl text-amber-200 leading-none">視角</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">Camera</span>
+        </div>
+
+        <!-- Sound Seal (聲音) -->
+        <div class="flex flex-col items-center">
+          <button id="seal-sound" class="ink-blot-btn" title="Bật/Tắt âm thanh cổ cầm & kiếm khí">
+            <span class="calligraphy-font text-2xl text-amber-200 leading-none">聲音</span>
+          </button>
+          <span class="text-[11px] font-black text-stone-900 mt-0.5">Sound</span>
+        </div>
+      </div>
+      <div class="scroll-roller"></div>
+    </div>
+  </aside>
+
+  <!-- MAIN XIANXIA CEL-SHADED 3D APPLICATION -->
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     /**********************************************************************
-     * 1. BATTLE SOUND SYNTHESIZER (Web Audio API)
+     * 1. XIANXIA SWORD-QI & GUQIN BATTLE SYNTHESIZER (Web Audio API)
      **********************************************************************/
-    class BattleSoundSynth {
+    class XianxiaSoundSynth {
       constructor() {
         this.ctx = null;
         this.muted = false;
@@ -228,22 +303,23 @@
         }
         if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
       }
-      playSelect() {
+      playBaguaSelect() {
         if (this.muted) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(440, now);
-        osc.frequency.exponentialRampToValueAtTime(660, now + 0.08);
-        gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.1);
+        [523.25, 659.25, 1046.5].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = i === 2 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.025);
+          gain.gain.setValueAtTime(0.14, now + i * 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28 + i * 0.04);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.025);
+          osc.stop(now + 0.34);
+        });
       }
       playStepImpact(type) {
         if (this.muted) return;
@@ -253,55 +329,47 @@
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'sine';
-        const isCavalry = type === 'H';
-        const isChariot = type === 'R';
-        osc.frequency.setValueAtTime(isChariot ? 120 : isCavalry ? 180 : 220, now);
-        osc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
-        gain.gain.setValueAtTime(0.5, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+        osc.frequency.setValueAtTime(type === 'R' ? 135 : type === 'H' ? 190 : 240, now);
+        osc.frequency.exponentialRampToValueAtTime(48, now + 0.14);
+        gain.gain.setValueAtTime(0.42, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.14);
+        osc.stop(now + 0.16);
       }
-      playCombatExplosion(type) {
+      playSwordQiExplosion() {
         if (this.muted) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        // Deep Cannon / Sword Clang Explosion
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(type === 'C' ? 95 : 150, now);
-        osc.frequency.exponentialRampToValueAtTime(30, now + 0.32);
-        gain.gain.setValueAtTime(0.8, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        osc.start(now);
-        osc.stop(now + 0.36);
-      }
-      playCheckHorns() {
-        if (this.muted) return;
-        this.init();
-        if (!this.ctx) return;
-        const now = this.ctx.currentTime;
-        [220, 277.18, 329.63, 440].forEach((freq, idx) => {
+        [880, 1318.5, 1760].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
-          gain.gain.setValueAtTime(0.18, now + idx * 0.06);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.5);
+          osc.frequency.setValueAtTime(freq, now + idx * 0.03);
+          osc.frequency.exponentialRampToValueAtTime(freq * 0.45, now + 0.38);
+          gain.gain.setValueAtTime(0.12, now + idx * 0.03);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.06);
-          osc.stop(now + idx * 0.06 + 0.52);
+          osc.start(now + idx * 0.03);
+          osc.stop(now + 0.42);
         });
+        const sub = this.ctx.createOscillator();
+        const subGain = this.ctx.createGain();
+        sub.type = 'triangle';
+        sub.frequency.setValueAtTime(140, now);
+        sub.frequency.exponentialRampToValueAtTime(32, now + 0.36);
+        subGain.gain.setValueAtTime(0.65, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        sub.connect(subGain);
+        subGain.connect(this.ctx.destination);
+        sub.start(now);
+        sub.stop(now + 0.4);
       }
     }
-    const sound = new BattleSoundSynth();
+    const sound = new XianxiaSoundSynth();
 
     /**********************************************************************
      * 2. COMPLETE WXF XIANGQI RULE ENGINE
@@ -466,7 +534,7 @@
         if (!isKingInCheck(next, p.side)) {
           const f1 = p.side === 'r' ? 9 - c : c + 1;
           const f2 = p.side === 'r' ? 9 - to.c : to.c + 1;
-          const notation = `${PIECE_META[p.type].nameVi} ${f1} -> ${f2}`;
+          const notation = `${PIECE_META[p.type].nameVi} ${f1} → ${f2}`;
           legal.push({ from: { r, c }, to, piece: p, captured, notation });
         }
       }
@@ -491,7 +559,7 @@
           const p = board[r][c];
           if (!p) continue;
           let val = PIECE_META[p.type].value;
-          if (p.type === 'P' && (p.side === 'r' ? r <= 4 : r >= 5)) val += 12;
+          if (p.type === 'P' && (p.side === 'r' ? r <= 4 : r >= 5)) val += 14;
           score += p.side === 'r' ? val : -val;
         }
       }
@@ -507,7 +575,7 @@
         const next = cloneBoard(board);
         next[m.to.r][m.to.c] = m.piece;
         next[m.from.r][m.from.c] = null;
-        const val = evaluateBoard(next);
+        const val = evaluateBoard(next) + (Math.random() - 0.5) * 4;
         if ((side === 'r' && val > bestVal) || (side === 'b' && val < bestVal)) {
           bestVal = val;
           bestMove = m;
@@ -517,7 +585,7 @@
     }
 
     /**********************************************************************
-     * 3. THREE.JS SCENE, SKYBOX & INK WASH ENVIRONMENT
+     * 3. THREE.JS SCENE, SUMI-E XIANGYUN PARCHMENT & CEL-SHADER SETUP
      **********************************************************************/
     const CELL_SIZE = 1.08;
     const gridToWorld = (r, c) => ({
@@ -534,19 +602,18 @@
 
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xd6c6b2);
-    scene.fog = new THREE.FogExp2(0xd6c6b2, 0.022);
 
-    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 11.5, 9.5);
+    // High-Angle 3D Isometric Camera View (Matching Concept Art)
+    const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 120);
+    camera.position.set(0, 12.2, 9.2);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
+    renderer.toneMappingExposure = 1.18;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
@@ -557,53 +624,89 @@
     controls.maxDistance = 24;
     controls.enabled = false;
 
-    // Golden Sunlight & Ambient
-    const ambientLight = new THREE.AmbientLight(0xfff3e0, 0.95);
+    // Vibrant Cel-Shader Lighting
+    const ambientLight = new THREE.AmbientLight(0xfff6e5, 1.18);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfff7ed, 2.4);
-    dirLight.position.set(7, 15, 8);
+    const dirLight = new THREE.DirectionalLight(0xfffbeb, 2.5);
+    dirLight.position.set(8, 16, 9);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
     dirLight.shadow.mapSize.height = 2048;
-    dirLight.shadow.camera.left = -8;
-    dirLight.shadow.camera.right = 8;
-    dirLight.shadow.camera.top = 8;
-    dirLight.shadow.camera.bottom = -8;
-    dirLight.shadow.bias = -0.0004;
+    dirLight.shadow.camera.left = -8.5;
+    dirLight.shadow.camera.right = 8.5;
+    dirLight.shadow.camera.top = 8.5;
+    dirLight.shadow.camera.bottom = -8.5;
+    dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
 
-    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.85);
-    rimLight.position.set(-8, 8, -9);
-    scene.add(rimLight);
+    const cyanRimLight = new THREE.DirectionalLight(0x38bdf8, 0.95);
+    cyanRimLight.position.set(-9, 9, -9);
+    scene.add(cyanRimLight);
 
     /**********************************************************************
-     * 4. PROCEDURAL BOARD WITH SPLATTERED INK BANNER & FAIRY CLOUDS
+     * 4. 4K ORTHOGRAPHIC WARM SANDALWOOD BOARD + BRASS CORNERS + SEAL SCRIPT
      **********************************************************************/
-    function generateInkBoardTexture() {
+    function generateSandalwoodBoardTexture() {
       const canvas = document.createElement('canvas');
       canvas.width = 2048;
       canvas.height = 2240;
       const ctx = canvas.getContext('2d');
 
-      // Light pine/ash wood surface
-      const grad = ctx.createRadialGradient(1024, 1120, 150, 1024, 1120, 1450);
-      grad.addColorStop(0, '#e8cf9b');
-      grad.addColorStop(0.7, '#d6b170');
-      grad.addColorStop(1, '#b88b48');
+      // Warm polished sandalwood base gradient
+      const grad = ctx.createRadialGradient(1024, 1120, 120, 1024, 1120, 1480);
+      grad.addColorStop(0, '#ecc58c');
+      grad.addColorStop(0.55, '#d89e5c');
+      grad.addColorStop(0.88, '#b87634');
+      grad.addColorStop(1, '#8c521c');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Fine wood fibers
-      ctx.strokeStyle = 'rgba(74, 44, 15, 0.04)';
-      ctx.lineWidth = 1.5;
-      for (let i = 0; i < 200; i++) {
-        const y = (i / 200) * canvas.height;
+      // Cel-shaded hand-painted wood grain fibers
+      for (let i = 0; i < 260; i++) {
+        const y = (i / 260) * canvas.height;
+        ctx.strokeStyle = i % 5 === 0 ? 'rgba(68, 34, 8, 0.085)' : 'rgba(92, 48, 12, 0.045)';
+        ctx.lineWidth = i % 7 === 0 ? 2.8 : 1.4;
         ctx.beginPath();
         ctx.moveTo(0, y);
-        ctx.bezierCurveTo(680, y - 15, 1360, y + 15, canvas.width, y);
+        ctx.bezierCurveTo(
+          canvas.width * 0.33, y + Math.sin(i * 0.5) * 18,
+          canvas.width * 0.66, y - Math.cos(i * 0.4) * 18,
+          canvas.width, y
+        );
         ctx.stroke();
       }
+
+      // Antique Carved Brass Corner Brackets (銅角花) at all 4 corners
+      const drawBrassCorner = (cx, cy, sx, sy) => {
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.scale(sx, sy);
+        ctx.fillStyle = '#4a381d';
+        ctx.strokeStyle = '#140c06';
+        ctx.lineWidth = 6;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(190, 0);
+        ctx.lineTo(190, 62);
+        ctx.quadraticCurveTo(95, 62, 62, 95);
+        ctx.lineTo(62, 190);
+        ctx.lineTo(0, 190);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Brass geometric cloud fretwork
+        ctx.strokeStyle = '#c29b52';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(18, 18, 120, 26);
+        ctx.strokeRect(18, 18, 26, 120);
+        ctx.restore();
+      };
+      drawBrassCorner(0, 0, 1, 1);
+      drawBrassCorner(canvas.width, 0, -1, 1);
+      drawBrassCorner(0, canvas.height, 1, -1);
+      drawBrassCorner(canvas.width, canvas.height, -1, -1);
 
       const padX = 184;
       const padY = 182;
@@ -612,13 +715,16 @@
       const toX = (c) => padX + c * stepX;
       const toY = (r) => padY + r * stepY;
 
-      // Outer Inscribed Frame
-      ctx.strokeStyle = '#381f08';
-      ctx.lineWidth = 9;
-      ctx.strokeRect(padX - 24, padY - 24, stepX * 8 + 48, stepY * 9 + 48);
+      // Outer Heavy Black Ink Frame + Inner Hairline
+      ctx.strokeStyle = '#140c06';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(padX - 28, padY - 28, stepX * 8 + 56, stepY * 9 + 56);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(padX - 14, padY - 14, stepX * 8 + 28, stepY * 9 + 28);
 
-      // 10 Horizontal Ranks & 9 Vertical Files
-      ctx.lineWidth = 3.5;
+      // Crisp Black Ink Grid Lines
+      ctx.strokeStyle = '#180f08';
+      ctx.lineWidth = 5;
       for (let r = 0; r < 10; r++) {
         ctx.beginPath();
         ctx.moveTo(toX(0), toY(r));
@@ -643,9 +749,8 @@
         }
       }
 
-      // Nine Palace Diagonals
-      ctx.lineWidth = 3;
-      ctx.setLineDash([14, 10]);
+      // Nine Palace Diagonals (九宮斜線)
+      ctx.lineWidth = 4.5;
       [
         [3, 0, 5, 2], [5, 0, 3, 2],
         [3, 7, 5, 9], [5, 7, 3, 9],
@@ -655,57 +760,69 @@
         ctx.lineTo(toX(c2), toY(r2));
         ctx.stroke();
       });
-      ctx.setLineDash([]);
 
-      // Center River Splattered Ink Banner (From User Screenshot)
+      // Fiducial L-Bracket Star Markers for Cannons & Soldiers
+      const drawStarMarker = (r, c) => {
+        const cx = toX(c);
+        const cy = toY(r);
+        const gap = 14;
+        const len = 28;
+        ctx.lineWidth = 4;
+        const dirs = [];
+        if (c > 0) dirs.push([-1, -1], [-1, 1]);
+        if (c < 8) dirs.push([1, -1], [1, 1]);
+        dirs.forEach(([dx, dy]) => {
+          ctx.beginPath();
+          ctx.moveTo(cx + dx * gap, cy + dy * (gap + len));
+          ctx.lineTo(cx + dx * gap, cy + dy * gap);
+          ctx.lineTo(cx + dx * (gap + len), cy + dy * gap);
+          ctx.stroke();
+        });
+      };
+      [[2, 1], [2, 7], [7, 1], [7, 7], [3, 0], [3, 2], [3, 4], [3, 6], [3, 8], [6, 0], [6, 2], [6, 4], [6, 6], [6, 8]].forEach(
+        ([r, c]) => drawStarMarker(r, c)
+      );
+
+      // Carved Seal Script Calligraphy "楚 河" and "漢 界" in the Middle River Section
       const riverCenterY = (toY(4) + toY(5)) / 2;
       ctx.save();
-      ctx.fillStyle = 'rgba(15, 10, 8, 0.88)';
-      ctx.beginPath();
-      ctx.ellipse(canvas.width / 2, riverCenterY, 520, 85, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Splattered ink drops
-      for (let i = 0; i < 45; i++) {
-        const rx = canvas.width / 2 + (Math.random() - 0.5) * 1100;
-        const ry = riverCenterY + (Math.random() - 0.5) * 160;
-        const rRad = 4 + Math.random() * 16;
-        ctx.beginPath();
-        ctx.arc(rx, ry, rRad, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Gold River Calligraphy
-      ctx.fillStyle = '#fce7b2';
-      ctx.shadowColor = '#d97706';
-      ctx.shadowBlur = 10;
-      ctx.font = '900 62px "Ma Shan Zheng", serif';
+      ctx.font = '900 112px "Noto Serif SC", "Ma Shan Zheng", serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText('楚河漢界 • SỞ HÀ HÁN GIỚI', canvas.width / 2, riverCenterY);
+
+      // Carved wood bevel highlight
+      ctx.fillStyle = 'rgba(255, 228, 168, 0.6)';
+      ctx.fillText('楚 河', toX(2.0) + 4, riverCenterY + 4);
+      ctx.fillText('漢 界', toX(6.0) + 4, riverCenterY + 4);
+
+      // Deep carved black-brown ink recess
+      ctx.fillStyle = '#1b0f05';
+      ctx.fillText('楚 河', toX(2.0), riverCenterY);
+      ctx.fillText('漢 界', toX(6.0), riverCenterY);
       ctx.restore();
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      tex.colorSpace = THREE.SRGBColorSpace;
       return tex;
     }
 
     const boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
-    const boardWidth = CELL_SIZE * 8 + 1.8;
-    const boardDepth = CELL_SIZE * 9 + 1.8;
-    const boardThick = 0.65;
+    const boardWidth = CELL_SIZE * 8 + 1.85;
+    const boardDepth = CELL_SIZE * 9 + 1.85;
+    const boardThick = 0.68;
 
     const boardMat = new THREE.MeshStandardMaterial({
-      map: generateInkBoardTexture(),
-      roughness: 0.28,
-      metalness: 0.15,
+      map: generateSandalwoodBoardTexture(),
+      roughness: 0.32,
+      metalness: 0.1,
     });
     const frameMat = new THREE.MeshStandardMaterial({
-      color: 0x3d2009,
+      color: 0x5c3010,
       roughness: 0.4,
-      metalness: 0.2,
+      metalness: 0.18,
     });
 
     const boardMesh = new THREE.Mesh(
@@ -716,6 +833,45 @@
     boardMesh.receiveShadow = true;
     boardGroup.add(boardMesh);
 
+    // Cel-Shaded Black Ink Outline around the 3D Board
+    const boardEdges = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(boardWidth + 0.03, boardThick + 0.03, boardDepth + 0.03)),
+      new THREE.LineBasicMaterial({ color: 0x120b07 })
+    );
+    boardEdges.position.y = -boardThick / 2;
+    boardGroup.add(boardEdges);
+
+    // Imperial Command Throne Platforms jutting out at Red & Cyan-Blue back ranks (Matching Concept Art)
+    [1, -1].forEach((dir) => {
+      const plat = new THREE.Mesh(
+        new THREE.BoxGeometry(2.3, boardThick * 0.82, 1.3),
+        frameMat
+      );
+      plat.position.set(0, -boardThick / 2 - 0.04, dir * (boardDepth / 2 + 0.42));
+      plat.receiveShadow = true;
+      boardGroup.add(plat);
+
+      const platOutline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(new THREE.BoxGeometry(2.33, boardThick * 0.85, 1.33)),
+        new THREE.LineBasicMaterial({ color: 0x120b07 })
+      );
+      platOutline.position.copy(plat.position);
+      boardGroup.add(platOutline);
+
+      // Glowing Golden Square Aura under General's Throne
+      const auraBox = new THREE.Mesh(
+        new THREE.BoxGeometry(1.15, 0.35, 1.15),
+        new THREE.MeshBasicMaterial({
+          color: dir === 1 ? 0xfacc15 : 0x38bdf8,
+          transparent: true,
+          opacity: 0.24,
+          blending: THREE.AdditiveBlending,
+        })
+      );
+      auraBox.position.set(0, 0.18, dir * (4.5 * CELL_SIZE));
+      boardGroup.add(auraBox);
+    });
+
     // Hit plane for raycasting
     const hitPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(boardWidth, boardDepth),
@@ -725,287 +881,354 @@
     hitPlane.position.y = 0.01;
     scene.add(hitPlane);
 
-    // Floating Celestial Cloud Sea beneath the board
-    const cloudGeo = new THREE.DodecahedronGeometry(2.4, 1);
-    const cloudMat = new THREE.MeshStandardMaterial({
-      color: 0xf5ebd9,
-      roughness: 0.9,
-      metalness: 0.1,
-      transparent: true,
-      opacity: 0.72,
-    });
-    for (let i = 0; i < 28; i++) {
-      const cloud = new THREE.Mesh(cloudGeo, cloudMat);
-      const ang = (i / 28) * Math.PI * 2;
-      const dist = 7.5 + Math.random() * 5.5;
-      cloud.position.set(Math.cos(ang) * dist, -2.4 + Math.random() * 1.5, Math.sin(ang) * dist);
-      cloud.scale.set(1.4 + Math.random(), 0.6 + Math.random() * 0.4, 1.4 + Math.random());
-      scene.add(cloud);
-    }
-
-    // Swirling Peach Blossom Petals
-    const petalCount = 130;
+    // Falling Pink Peach Blossom Petals (桃花瓣)
+    const petalCount = 160;
     const petalGeo = new THREE.BufferGeometry();
     const petalPos = new Float32Array(petalCount * 3);
-    const petalRot = new Float32Array(petalCount * 3);
     for (let i = 0; i < petalCount; i++) {
-      petalPos[i * 3] = (Math.random() - 0.5) * 18;
-      petalPos[i * 3 + 1] = 0.5 + Math.random() * 8;
-      petalPos[i * 3 + 2] = (Math.random() - 0.5) * 18;
-      petalRot[i * 3] = Math.random() * 0.03;
-      petalRot[i * 3 + 1] = Math.random() * 0.03;
-      petalRot[i * 3 + 2] = Math.random() * 0.03;
+      petalPos[i * 3] = (Math.random() - 0.5) * 20;
+      petalPos[i * 3 + 1] = 0.5 + Math.random() * 9;
+      petalPos[i * 3 + 2] = (Math.random() - 0.5) * 20;
     }
     petalGeo.setAttribute('position', new THREE.BufferAttribute(petalPos, 3));
+
+    const petalCanvas = document.createElement('canvas');
+    petalCanvas.width = 64;
+    petalCanvas.height = 64;
+    const pCtx = petalCanvas.getContext('2d');
+    pCtx.fillStyle = '#f472b6';
+    pCtx.beginPath();
+    pCtx.ellipse(32, 32, 24, 14, Math.PI / 4, 0, Math.PI * 2);
+    pCtx.fill();
+    pCtx.fillStyle = '#fbcfe8';
+    pCtx.beginPath();
+    pCtx.ellipse(28, 28, 12, 7, Math.PI / 4, 0, Math.PI * 2);
+    pCtx.fill();
+
     const petalMat = new THREE.PointsMaterial({
-      color: 0xf472b6,
-      size: 0.18,
+      map: new THREE.CanvasTexture(petalCanvas),
+      size: 0.34,
       transparent: true,
-      opacity: 0.85,
+      alphaTest: 0.1,
+      opacity: 0.92,
     });
     const petalParticles = new THREE.Points(petalGeo, petalMat);
     scene.add(petalParticles);
 
     /**********************************************************************
-     * 5. HIGH-CRAFT PROCEDURAL LIVING 3D CHARACTERS & SIEGE UNITS
+     * 5. CEL-SHADED ANIME TOON MATERIALS + BLACK INK OUTLINES
+     *    (Red Faction vs Cyan-Blue Faction)
      **********************************************************************/
-    // Materials
-    const redCloth = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.35, metalness: 0.15 });
-    const redGold = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.85 });
-    const blackCloth = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.2 });
-    const blackSilver = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.85 });
-    const fleshMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 });
-    const steelMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.2 });
-    const bronzeMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.8, roughness: 0.3 });
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0x543110, roughness: 0.6 });
+    const toonSteps = new Uint8Array([70, 140, 205, 255]);
+    const toonGradTex = new THREE.DataTexture(toonSteps, 4, 1, THREE.RedFormat);
+    toonGradTex.minFilter = THREE.NearestFilter;
+    toonGradTex.magFilter = THREE.NearestFilter;
+    toonGradTex.needsUpdate = true;
 
-    // Procedural 3D Character Unit Factory
+    const makeToonMat = (hex) =>
+      new THREE.MeshToonMaterial({
+        color: hex,
+        gradientMap: toonGradTex,
+      });
+
+    // Red Faction (Crimson Vermilion + Imperial Gold)
+    const redMainMat = makeToonMat(0xdc2626);
+    const redTrimMat = makeToonMat(0xfbbf24);
+    const redDarkMat = makeToonMat(0x7f1d1d);
+
+    // Cyan-Blue Faction (Xianxia Azure Cyan-Blue + Deep Indigo/Silver)
+    const cyanMainMat = makeToonMat(0x0ea5e9);
+    const cyanTrimMat = makeToonMat(0xe0f2fe);
+    const cyanAccentMat = makeToonMat(0x1d4ed8);
+
+    // Shared Cel-Shaded Materials
+    const fleshMat = makeToonMat(0xfde68a);
+    const hairMat = makeToonMat(0x1c1917);
+    const steelMat = makeToonMat(0xcbd5e1);
+    const bronzeMat = makeToonMat(0xd97706);
+    const woodMat = makeToonMat(0x78350f);
+    const goldQiMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+    const blackOutlineMat = new THREE.MeshBasicMaterial({
+      color: 0x0f0a07,
+      side: THREE.BackSide,
+    });
+
+    function applyBlackToonOutlines(group, thickness = 1.065) {
+      const meshes = [];
+      group.traverse((child) => {
+        if (child.isMesh && !child.userData.isOutline && !child.userData.noOutline) {
+          meshes.push(child);
+        }
+      });
+      meshes.forEach((mesh) => {
+        const outline = new THREE.Mesh(mesh.geometry, blackOutlineMat);
+        outline.scale.set(thickness, thickness, thickness);
+        outline.userData.isOutline = true;
+        mesh.add(outline);
+      });
+    }
+
+    function buildClassicDiscUnit(type, side) {
+      const root = new THREE.Group();
+      const isRed = side === 'r';
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = isRed ? '#991b1b' : '#0369a1';
+      ctx.beginPath();
+      ctx.arc(128, 128, 120, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = isRed ? '#fbbf24' : '#7dd3fc';
+      ctx.lineWidth = 10;
+      ctx.stroke();
+      ctx.fillStyle = '#fffbeb';
+      ctx.font = '900 112px "Noto Serif SC", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(isRed ? PIECE_META[type].hanRed : PIECE_META[type].hanBlack, 128, 132);
+
+      const capTex = new THREE.CanvasTexture(canvas);
+      const bodyMat = makeToonMat(isRed ? 0xb91c1c : 0x0284c7);
+      const topMat = new THREE.MeshBasicMaterial({ map: capTex });
+      const cyl = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.45, 0.24, 32),
+        [bodyMat, topMat, bodyMat]
+      );
+      cyl.position.y = 0.12;
+      root.add(cyl);
+      applyBlackToonOutlines(root, 1.05);
+      return root;
+    }
+
     function buildLiving3DUnit(type, side) {
       const root = new THREE.Group();
       const isRed = side === 'r';
-      const mainMat = isRed ? redCloth : blackCloth;
-      const armorMat = isRed ? redGold : blackSilver;
+      const mainMat = isRed ? redMainMat : cyanMainMat;
+      const armorMat = isRed ? redTrimMat : cyanTrimMat;
+      const subMat = isRed ? redDarkMat : cyanAccentMat;
 
-      // 1. Lotus Jade Pedestal Disc with Faction Glow Ring
+      // 1. Cel-Shaded Wooden/Jade Pedestal with Black Ink Outline
       const pedestal = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.42, 0.44, 0.09, 32),
-        new THREE.MeshStandardMaterial({
-          color: isRed ? 0x7f1d1d : 0x0f172a,
-          metalness: 0.5,
-          roughness: 0.3,
-        })
+        new THREE.CylinderGeometry(0.41, 0.45, 0.1, 28),
+        woodMat
       );
-      pedestal.position.y = 0.045;
+      pedestal.position.y = 0.05;
       pedestal.receiveShadow = true;
       root.add(pedestal);
 
       const ringGlow = new THREE.Mesh(
-        new THREE.RingGeometry(0.39, 0.43, 32),
+        new THREE.RingGeometry(0.37, 0.42, 32),
         new THREE.MeshBasicMaterial({
           color: isRed ? 0xfacc15 : 0x38bdf8,
           side: THREE.DoubleSide,
         })
       );
       ringGlow.rotation.x = -Math.PI / 2;
-      ringGlow.position.y = 0.092;
+      ringGlow.position.y = 0.102;
+      ringGlow.userData.noOutline = true;
       root.add(ringGlow);
 
-      // Character Group that breathes & bobs
       const body = new THREE.Group();
-      body.position.y = 0.09;
+      body.position.y = 0.1;
+      body.rotation.y = isRed ? Math.PI : 0;
       root.add(body);
       root.userData.bobGroup = body;
 
       if (type === 'K') {
-        // TƯỚNG (Emperor on Dragon Throne / Hegemon Warlord)
-        if (isRed) {
-          // Imperial Dragon Throne
-          const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.75, 0.12), armorMat);
-          throneBack.position.set(0, 0.55, -0.16);
-          body.add(throneBack);
-          const throneSeat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.22, 0.44), armorMat);
-          throneSeat.position.set(0, 0.22, 0);
-          body.add(throneSeat);
+        // GENERALS ON GOLDEN THRONES (Tướng ngồi Ngai Vàng Chạm Rồng)
+        const throneBase = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.24, 0.48), redTrimMat);
+        throneBase.position.set(0, 0.14, 0);
+        body.add(throneBase);
 
-          // Seated Emperor Figure in Imperial Long Robes
-          const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.45, 16), mainMat);
-          torso.position.set(0, 0.55, 0);
-          body.add(torso);
-          const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), fleshMat);
-          head.position.set(0, 0.88, 0);
-          body.add(head);
-          // Imperial Mianguan Beaded Crown
-          const crown = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.22), armorMat);
-          crown.position.set(0, 1.04, 0);
-          body.add(crown);
-          // Golden Imperial Scepter / Sword
-          const scepter = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.75, 8), armorMat);
-          scepter.position.set(0.24, 0.55, 0.16);
-          scepter.rotation.x = 0.3;
-          body.add(scepter);
-        } else {
-          // Black Hegemon King (Hạng Vũ)
-          const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.55, 16), mainMat);
-          torso.position.set(0, 0.45, 0);
-          body.add(torso);
-          const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.34, 0.32), armorMat);
-          cuirass.position.set(0, 0.48, 0);
-          body.add(cuirass);
-          const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
-          head.position.set(0, 0.82, 0);
-          body.add(head);
-          // Warlord Helmet with Red Plume
-          const helm = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.24, 16), armorMat);
-          helm.position.set(0, 0.98, 0);
-          body.add(helm);
-          // Giant Greatsword
-          const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.85, 0.12), steelMat);
-          sword.position.set(0.24, 0.48, 0.15);
-          body.add(sword);
-        }
-      } else if (type === 'A') {
-        // SĨ (Female Imperial Swordswoman / Elite Bodyguard)
-        const dress = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.65, 16), mainMat);
-        dress.position.set(0, 0.35, 0);
-        body.add(dress);
-        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.32, 16), armorMat);
-        torso.position.set(0, 0.65, 0);
+        const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.82, 0.12), redTrimMat);
+        throneBack.position.set(0, 0.54, -0.18);
+        body.add(throneBack);
+
+        const armL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 0.44), redTrimMat);
+        armL.position.set(-0.26, 0.3, 0.02);
+        body.add(armL);
+        const armR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.36, 0.44), redTrimMat);
+        armR.position.set(0.26, 0.3, 0.02);
+        body.add(armR);
+
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.48, 16), mainMat);
+        torso.position.set(0, 0.52, 0.02);
         body.add(torso);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), fleshMat);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.125, 16, 16), fleshMat);
+        head.position.set(0, 0.86, 0.02);
+        body.add(head);
+
+        const crown = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.07, 0.22), redTrimMat);
+        crown.position.set(0, 1.02, 0.02);
+        body.add(crown);
+
+        const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.78, 0.09), goldQiMat);
+        sword.position.set(0.3, 0.62, 0.18);
+        sword.rotation.x = 0.25;
+        body.add(sword);
+      } else if (type === 'A') {
+        // FEMALE SWORD CULTIVATORS (Nữ Kiếm Tu Tiên Hiệp)
+        const skirt = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.64, 16), mainMat);
+        skirt.position.set(0, 0.34, 0);
+        body.add(skirt);
+
+        const waist = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.32, 16), armorMat);
+        waist.position.set(0, 0.64, 0);
+        body.add(waist);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.105, 16, 16), fleshMat);
         head.position.set(0, 0.88, 0);
         body.add(head);
-        // Twin Dao Blades
-        const bladeL = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.55, 8), steelMat);
-        bladeL.position.set(-0.22, 0.55, 0.12);
-        bladeL.rotation.z = 0.45;
+
+        const bun = new THREE.Mesh(new THREE.SphereGeometry(0.065, 12, 12), hairMat);
+        bun.position.set(0, 1.01, -0.02);
+        body.add(bun);
+
+        const bladeL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.62, 0.06), steelMat);
+        bladeL.position.set(-0.24, 0.58, 0.12);
+        bladeL.rotation.z = 0.42;
         body.add(bladeL);
-        const bladeR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.55, 8), steelMat);
-        bladeR.position.set(0.22, 0.55, 0.12);
-        bladeR.rotation.z = -0.45;
+        const bladeR = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.62, 0.06), steelMat);
+        bladeR.position.set(0.24, 0.58, 0.12);
+        bladeR.rotation.z = -0.42;
         body.add(bladeR);
       } else if (type === 'E') {
-        // TƯỢNG (Hulking Chancellor / Armored War Titan)
-        const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.6, 16), mainMat);
-        robe.position.set(0, 0.38, 0);
+        // DHARMA GUARDIAN TITANS (Tượng - Hộ Pháp Trọng Giáp)
+        const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.62, 16), mainMat);
+        robe.position.set(0, 0.36, 0);
         body.add(robe);
-        const pauldrons = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.22, 0.34), armorMat);
-        pauldrons.position.set(0, 0.65, 0);
+
+        const pauldrons = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.22, 0.36), armorMat);
+        pauldrons.position.set(0, 0.64, 0);
         body.add(pauldrons);
+
         const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
         head.position.set(0, 0.86, 0);
         body.add(head);
-        // Heavy Ceremonial War Shield
-        const shield = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.55, 0.08), armorMat);
-        shield.position.set(0.26, 0.48, 0.18);
+
+        const topknot = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.08, 0.14, 12), hairMat);
+        topknot.position.set(0, 1.0, 0);
+        body.add(topknot);
+
+        const shield = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.56, 0.09), redTrimMat);
+        shield.position.set(0.26, 0.46, 0.18);
         body.add(shield);
       } else if (type === 'H') {
-        // MÃ (Armored War Horse + Cavalry Rider)
-        // Horse Torso
-        const horseBody = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.65), armorMat);
+        // MOUNTED LANCER CAVALRY (Mã - Thiết Kỵ Chiến Mã)
+        const horseBody = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.64), armorMat);
         horseBody.position.set(0, 0.36, 0);
         body.add(horseBody);
-        // Horse Neck & Head
-        const horseNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.36, 12), armorMat);
-        horseNeck.position.set(0, 0.56, 0.26);
-        horseNeck.rotation.x = 0.65;
+
+        const horseNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.38, 12), armorMat);
+        horseNeck.position.set(0, 0.56, 0.25);
+        horseNeck.rotation.x = 0.62;
         body.add(horseNeck);
-        const horseHead = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 0.26), armorMat);
-        horseHead.position.set(0, 0.72, 0.36);
+
+        const horseHead = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 0.28), armorMat);
+        horseHead.position.set(0, 0.72, 0.35);
         body.add(horseHead);
-        // Mounted Armored Cavalry Lancer
+
         const rider = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.38, 12), mainMat);
         rider.position.set(0, 0.68, -0.04);
         body.add(rider);
-        const riderHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+
+        const riderHead = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 12), fleshMat);
         riderHead.position.set(0, 0.94, -0.04);
         body.add(riderHead);
-        // Pennant Battle Spear
-        const lance = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 1.15, 8), steelMat);
-        lance.position.set(0.22, 0.72, 0.22);
-        lance.rotation.x = 0.35;
-        body.add(lance);
-        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.26), mainMat);
-        flag.position.set(0.22, 1.15, 0.14);
-        body.add(flag);
+
+        const spear = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, 1.18, 8), steelMat);
+        spear.position.set(0.22, 0.72, 0.2);
+        spear.rotation.x = 0.38;
+        body.add(spear);
       } else if (type === 'R') {
-        // XE (Heavy Siege Ballista War Chariot)
-        // Chassis Frame
-        const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.18, 0.68), woodMat);
+        // GIANT MECHANICAL BALLISTAE AS ROOKS (Xe - Cự Nỏ Cơ Giới)
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.2, 0.68), woodMat);
         chassis.position.set(0, 0.24, 0);
         body.add(chassis);
-        // 2 Large Iron Spoked Wheels
-        const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 16), steelMat);
+
+        const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.09, 16), bronzeMat);
         wheelL.rotation.z = Math.PI / 2;
         wheelL.position.set(-0.3, 0.22, 0);
         body.add(wheelL);
-        const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 16), steelMat);
+        const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.09, 16), bronzeMat);
         wheelR.rotation.z = Math.PI / 2;
         wheelR.position.set(0.3, 0.22, 0);
         body.add(wheelR);
-        // Giant Mounted Crossbow Arms
-        const bow = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.08, 0.08), steelMat);
-        bow.position.set(0, 0.44, 0.15);
-        body.add(bow);
-        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.65), armorMat);
-        rail.position.set(0, 0.38, 0);
-        body.add(rail);
-        // Battle Standard Flag
-        const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 8), woodMat);
-        flagPole.position.set(-0.2, 0.62, -0.25);
-        body.add(flagPole);
-        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.32), mainMat);
-        flag.position.set(-0.2, 0.88, -0.15);
-        body.add(flag);
+
+        const bowArms = new THREE.Mesh(new THREE.BoxGeometry(0.86, 0.09, 0.1), steelMat);
+        bowArms.position.set(0, 0.46, 0.16);
+        body.add(bowArms);
+
+        const bolt = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.035, 0.72, 8), redTrimMat);
+        bolt.rotation.x = Math.PI / 2;
+        bolt.position.set(0, 0.48, 0.12);
+        body.add(bolt);
+
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.88, 8), woodMat);
+        pole.position.set(-0.2, 0.6, -0.25);
+        body.add(pole);
+        const banner = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.3, 0.02), mainMat);
+        banner.position.set(-0.1, 0.86, -0.25);
+        body.add(banner);
       } else if (type === 'C') {
-        // PHÁO (Heavy Bronze Cannon + Standing Artillery Gunner)
-        // Gun Carriage
-        const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.2, 0.54), woodMat);
-        carriage.position.set(-0.1, 0.2, 0);
+        // MUSCULAR CANNONEERS + BRONZE CANNON (Pháo - Pháo Thủ Lực Lưỡng)
+        const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.52), woodMat);
+        carriage.position.set(-0.12, 0.2, 0);
         body.add(carriage);
-        // Cannon Barrel elevated 22 degrees
-        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 0.68, 16), bronzeMat);
-        barrel.rotation.x = -0.38;
-        barrel.position.set(-0.1, 0.38, 0.08);
+
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.095, 0.145, 0.68, 16), bronzeMat);
+        barrel.rotation.x = -0.4;
+        barrel.position.set(-0.12, 0.4, 0.08);
         body.add(barrel);
-        // Muscular Standing Artilleryman
-        const gunner = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.48, 12), mainMat);
-        gunner.position.set(0.24, 0.32, -0.08);
-        body.add(gunner);
-        const gunnerHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
-        gunnerHead.position.set(0.24, 0.62, -0.08);
-        body.add(gunnerHead);
-        // Ignition Torch
-        const torch = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 8), woodMat);
-        torch.position.set(0.32, 0.48, 0.12);
-        body.add(torch);
+
+        const legs = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.15, 0.26, 12), mainMat);
+        legs.position.set(0.22, 0.22, -0.06);
+        body.add(legs);
+        const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.12, 0.26, 12), fleshMat);
+        chest.position.set(0.22, 0.46, -0.06);
+        body.add(chest);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 12), fleshMat);
+        head.position.set(0.22, 0.66, -0.06);
+        body.add(head);
+        const headband = new THREE.Mesh(new THREE.CylinderGeometry(0.098, 0.098, 0.04, 12), mainMat);
+        headband.position.set(0.22, 0.7, -0.06);
+        body.add(headband);
       } else {
-        // TỐT / BINH (Foot Infantry Soldier with Dao & Shield)
-        const soldierTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.42, 12), mainMat);
-        soldierTorso.position.set(0, 0.32, 0);
-        body.add(soldierTorso);
-        const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.22, 0.22), armorMat);
-        cuirass.position.set(0, 0.34, 0);
-        body.add(cuirass);
-        const soldierHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
-        soldierHead.position.set(0, 0.6, 0);
-        body.add(soldierHead);
-        const helm = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.16, 12), armorMat);
-        helm.position.set(0, 0.72, 0);
+        // SABRE INFANTRY (Tốt / Binh - Đao Binh Võ Giả)
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.44, 12), mainMat);
+        torso.position.set(0, 0.32, 0);
+        body.add(torso);
+
+        const belt = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.18, 0.22), armorMat);
+        belt.position.set(0, 0.34, 0);
+        body.add(belt);
+
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 12, 12), fleshMat);
+        head.position.set(0, 0.62, 0);
+        body.add(head);
+
+        const helm = new THREE.Mesh(new THREE.ConeGeometry(0.13, 0.16, 12), armorMat);
+        helm.position.set(0, 0.74, 0);
         body.add(helm);
-        // Dao Broadsword in Right Hand
-        const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.48, 0.08), steelMat);
-        sword.position.set(0.22, 0.38, 0.12);
-        sword.rotation.z = -0.35;
-        body.add(sword);
-        // Round Shield in Left Hand
-        const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 16), armorMat);
+
+        const sabre = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.54, 0.09), steelMat);
+        sabre.position.set(0.22, 0.42, 0.14);
+        sabre.rotation.z = -0.38;
+        sabre.rotation.x = 0.25;
+        body.add(sabre);
+
+        const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 16), subMat);
         shield.rotation.x = Math.PI / 2;
-        shield.position.set(-0.2, 0.34, 0.1);
+        shield.position.set(-0.2, 0.35, 0.12);
         body.add(shield);
       }
 
+      applyBlackToonOutlines(root, 1.065);
+
       root.traverse((child) => {
-        if (child.isMesh) {
+        if (child.isMesh && !child.userData.isOutline) {
           child.castShadow = true;
           child.receiveShadow = true;
         }
@@ -1015,7 +1238,7 @@
     }
 
     /**********************************************************************
-     * 6. SCENE OBJECTS & VISUAL FX MANAGERS
+     * 6. GLOWING GOLDEN BAGUA MAGIC CIRCLE & SWORD-QI + INK SPLATTER VFX
      **********************************************************************/
     const unitsRoot = new THREE.Group();
     scene.add(unitsRoot);
@@ -1029,84 +1252,203 @@
     const vfxRoot = new THREE.Group();
     scene.add(vfxRoot);
 
-    // Glowing selection halo ring on selected unit
-    const selHalo = new THREE.Mesh(
-      new THREE.RingGeometry(0.48, 0.62, 36),
-      new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide })
-    );
-    selHalo.rotation.x = -Math.PI / 2;
-    selHalo.position.y = 0.02;
-    selHalo.visible = false;
-    scene.add(selHalo);
+    function createGoldenBaguaTexture() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 1024;
+      canvas.height = 1024;
+      const ctx = canvas.getContext('2d');
+      const cx = 512;
+      const cy = 512;
+
+      const aura = ctx.createRadialGradient(cx, cy, 40, cx, cy, 490);
+      aura.addColorStop(0, 'rgba(254, 240, 138, 0.65)');
+      aura.addColorStop(0.55, 'rgba(245, 158, 11, 0.38)');
+      aura.addColorStop(0.88, 'rgba(217, 119, 6, 0.18)');
+      aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = aura;
+      ctx.fillRect(0, 0, 1024, 1024);
+
+      ctx.strokeStyle = '#fef08a';
+      ctx.fillStyle = '#fef08a';
+      ctx.shadowColor = '#f59e0b';
+      ctx.shadowBlur = 18;
+
+      // Outer Octagon (八卦外環)
+      ctx.lineWidth = 10;
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4 + Math.PI / 8;
+        const x = cx + Math.cos(ang) * 460;
+        const y = cy + Math.sin(ang) * 460;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.stroke();
+
+      [420, 315, 225, 120].forEach((r, idx) => {
+        ctx.lineWidth = idx === 0 ? 7 : 4;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      const baguaNames = ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'];
+      const baguaBars = [
+        [1, 1, 1], [0, 1, 1], [1, 0, 1], [0, 0, 1],
+        [1, 1, 0], [0, 1, 0], [1, 0, 0], [0, 0, 0],
+      ];
+      ctx.font = '900 54px "Noto Serif SC", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ang);
+
+        const bars = baguaBars[i];
+        ctx.lineWidth = 10;
+        bars.forEach((solid, bIdx) => {
+          const yOffset = -345 - bIdx * 18;
+          if (solid) {
+            ctx.beginPath();
+            ctx.moveTo(-42, yOffset);
+            ctx.lineTo(42, yOffset);
+            ctx.stroke();
+          } else {
+            ctx.beginPath();
+            ctx.moveTo(-42, yOffset);
+            ctx.lineTo(-8, yOffset);
+            ctx.moveTo(8, yOffset);
+            ctx.lineTo(42, yOffset);
+            ctx.stroke();
+          }
+        });
+
+        ctx.fillText(baguaNames[i], 0, -268);
+        ctx.restore();
+      }
+
+      return new THREE.CanvasTexture(canvas);
+    }
+
+    const baguaGroup = new THREE.Group();
+    const baguaMat = new THREE.MeshBasicMaterial({
+      map: createGoldenBaguaTexture(),
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+    const baguaOuterMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.75, 1.75), baguaMat);
+    baguaOuterMesh.rotation.x = -Math.PI / 2;
+    baguaGroup.add(baguaOuterMesh);
+
+    const baguaInnerMesh = new THREE.Mesh(new THREE.PlaneGeometry(1.18, 1.18), baguaMat);
+    baguaInnerMesh.rotation.x = -Math.PI / 2;
+    baguaInnerMesh.position.y = 0.01;
+    baguaGroup.add(baguaInnerMesh);
+
+    baguaGroup.position.y = 0.025;
+    baguaGroup.visible = false;
+    scene.add(baguaGroup);
 
     function clearGroup(grp) {
       while (grp.children.length > 0) grp.remove(grp.children[0]);
     }
 
-    function add3DArrow(from, to, hex = 0xfacc15) {
+    function add3DArrow(from, to, hex = 0xfef08a) {
       if (from.r === to.r && from.c === to.c) return;
       const p1 = gridToWorld(from.r, from.c);
       const p2 = gridToWorld(to.r, to.c);
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
       const len = Math.hypot(dx, dz);
-      const headLen = 0.35;
+      const headLen = 0.36;
       const shaftLen = Math.max(0.1, len - headLen);
 
       const grp = new THREE.Group();
-      const mat = new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.9 });
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, shaftLen, 12), mat);
+      const mat = new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.92 });
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, shaftLen, 12), mat);
       shaft.rotation.x = Math.PI / 2;
       shaft.position.z = shaftLen / 2;
       grp.add(shaft);
 
-      const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, headLen, 16), mat);
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.17, headLen, 16), mat);
       head.rotation.x = Math.PI / 2;
       head.position.z = shaftLen + headLen / 2;
       grp.add(head);
 
-      grp.position.set(p1.x, 0.15, p1.z);
+      grp.position.set(p1.x, 0.16, p1.z);
       grp.rotation.y = Math.atan2(dx, dz);
       arrowsRoot.add(grp);
     }
 
-    function triggerCaptureCombatVFX(coord, capturedPiece, attackerPiece) {
+    // EXPLOSIVE GOLDEN SWORD-QI LIGHT RAYS + BLACK SUMI-E INK SPLATTER BURST
+    function triggerSwordQiBurstVFX(coord, isMassive = false) {
       const { x, z } = gridToWorld(coord.r, coord.c);
-      sound.playCombatExplosion(attackerPiece?.type);
+      sound.playSwordQiExplosion();
 
-      // Expanding Shockwave Ring
-      const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.1, 0.3, 36),
-        new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.95 })
-      );
-      ring.rotation.x = -Math.PI / 2;
-      ring.position.set(x, 0.03, z);
-      vfxRoot.add(ring);
-      gsap.to(ring.scale, { x: 5, y: 5, duration: 0.5, ease: 'power2.out' });
-      gsap.to(ring.material, { opacity: 0, duration: 0.5, onComplete: () => vfxRoot.remove(ring) });
+      // 1. Expanding Golden Bagua Array on the board
+      const baguaBurst = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.25), baguaMat.clone());
+      baguaBurst.rotation.x = -Math.PI / 2;
+      baguaBurst.position.set(x, 0.04, z);
+      vfxRoot.add(baguaBurst);
+      gsap.to(baguaBurst.scale, {
+        x: isMassive ? 6.5 : 3.8,
+        y: isMassive ? 6.5 : 3.8,
+        duration: 0.65,
+        ease: 'power2.out',
+      });
+      gsap.to(baguaBurst.rotation, { z: Math.PI * 1.5, duration: 0.65 });
+      gsap.to(baguaBurst.material, {
+        opacity: 0,
+        duration: 0.65,
+        onComplete: () => vfxRoot.remove(baguaBurst),
+      });
 
-      // Spark / Shard Particles
-      for (let i = 0; i < 40; i++) {
-        const shard = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.06, 0),
-          new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xfacc15 : 0xef4444, transparent: true })
-        );
-        shard.position.set(x, 0.4, z);
-        vfxRoot.add(shard);
-        const ang = Math.random() * Math.PI * 2;
-        const dist = 0.6 + Math.random() * 1.4;
-        gsap.to(shard.position, {
-          x: x + Math.cos(ang) * dist,
-          y: 0.2 + Math.random() * 1.2,
-          z: z + Math.sin(ang) * dist,
-          duration: 0.48,
+      // 2. Explosive Golden Sword-Qi Light Rays + Black Ink Splatter Shards (Matching Concept Art)
+      const rayCount = isMassive ? 28 : 18;
+      for (let i = 0; i < rayCount; i++) {
+        const isInkSplash = i % 4 === 0;
+        const rayMat = new THREE.MeshBasicMaterial({
+          color: isInkSplash ? 0x110b08 : i % 2 === 0 ? 0xfef08a : 0xf59e0b,
+          transparent: true,
+          opacity: 0.96,
+          blending: isInkSplash ? THREE.NormalBlending : THREE.AdditiveBlending,
         });
-        gsap.to(shard.material, { opacity: 0, duration: 0.48, onComplete: () => vfxRoot.remove(shard) });
+        const rayLen = 1.7 + Math.random() * (isMassive ? 3.4 : 2.0);
+        const ray = new THREE.Mesh(new THREE.ConeGeometry(isInkSplash ? 0.11 : 0.08, rayLen, 6), rayMat);
+        const ang = (i / rayCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+        const tilt = 0.35 + Math.random() * 0.85;
+
+        ray.position.set(x, 0.25, z);
+        ray.rotation.y = ang;
+        ray.rotation.z = Math.cos(ang) * tilt;
+        ray.rotation.x = Math.sin(ang) * tilt;
+        vfxRoot.add(ray);
+
+        const burstDist = (isMassive ? 3.8 : 2.2) + Math.random() * 1.5;
+        gsap.to(ray.position, {
+          x: x + Math.cos(ang) * burstDist,
+          y: 0.9 + Math.random() * 2.4,
+          z: z + Math.sin(ang) * burstDist,
+          duration: 0.54,
+          ease: 'power3.out',
+        });
+        gsap.to(ray.scale, { x: 0.1, y: 1.85, z: 0.1, duration: 0.54 });
+        gsap.to(ray.material, {
+          opacity: 0,
+          duration: 0.54,
+          onComplete: () => vfxRoot.remove(ray),
+        });
       }
     }
 
     /**********************************************************************
-     * 7. GAME STATE & PARABOLIC TROOP MARCH ANIMATION
+     * 7. GAME STATE & PARABOLIC SWORD-FLIGHT ANIMATION
      **********************************************************************/
     let boardState = parseFEN(INITIAL_FEN).board;
     let currentTurn = 'r';
@@ -1115,6 +1457,7 @@
     let moveHistory = [];
     let isAnimating = false;
     let vsAI = true;
+    let pieceStyle = 'living';
 
     const unitMeshes = new Map();
 
@@ -1122,16 +1465,19 @@
       clearGroup(unitsRoot);
       clearGroup(indicatorsRoot);
       unitMeshes.clear();
-      selHalo.visible = false;
+      baguaGroup.visible = false;
 
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           const p = board[r][c];
           if (p) {
-            const unit = buildLiving3DUnit(p.type, p.side);
+            const unit =
+              pieceStyle === 'living'
+                ? buildLiving3DUnit(p.type, p.side)
+                : buildClassicDiscUnit(p.type, p.side);
             const pos = gridToWorld(r, c);
             unit.position.set(pos.x, 0, pos.z);
-            unit.userData = { isUnit: true, r, c, type: p.type, side: p.side };
+            unit.userData = { ...unit.userData, isUnit: true, r, c, type: p.type, side: p.side };
             unitsRoot.add(unit);
             unitMeshes.set(`${r},${c}`, unit);
           }
@@ -1155,32 +1501,45 @@
       if (p && p.side === currentTurn) {
         selectedCoord = { r, c };
         currentLegalMoves = getLegalMoves(boardState, r, c);
-        sound.playSelect();
+        sound.playBaguaSelect();
 
         const pos = gridToWorld(r, c);
-        selHalo.position.set(pos.x, 0.02, pos.z);
-        selHalo.visible = true;
+        baguaGroup.position.set(pos.x, 0.028, pos.z);
+        baguaGroup.visible = true;
+        gsap.fromTo(
+          baguaGroup.scale,
+          { x: 0.3, y: 0.3, z: 0.3 },
+          { x: 1, y: 1, z: 1, duration: 0.32, ease: 'back.out(1.8)' }
+        );
 
-        // Render legal moves
         clearGroup(indicatorsRoot);
         currentLegalMoves.forEach((m) => {
           const pt = gridToWorld(m.to.r, m.to.c);
           const isCap = Boolean(boardState[m.to.r][m.to.c]);
-          const orb = new THREE.Mesh(
-            new THREE.SphereGeometry(isCap ? 0.22 : 0.14, 16, 16),
-            new THREE.MeshStandardMaterial({
-              color: isCap ? 0xef4444 : 0x10b981,
-              emissive: isCap ? 0xb91c1c : 0x059669,
-              emissiveIntensity: 0.9,
-            })
-          );
-          orb.position.set(pt.x, 0.22, pt.y || pt.z);
-          indicatorsRoot.add(orb);
+          if (isCap) {
+            const targetRing = new THREE.Mesh(
+              new THREE.RingGeometry(0.46, 0.58, 24),
+              new THREE.MeshBasicMaterial({
+                color: 0xef4444,
+                side: THREE.DoubleSide,
+              })
+            );
+            targetRing.rotation.x = -Math.PI / 2;
+            targetRing.position.set(pt.x, 0.04, pt.z);
+            indicatorsRoot.add(targetRing);
+          } else {
+            const orb = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.14, 0),
+              new THREE.MeshBasicMaterial({ color: 0xfef08a })
+            );
+            orb.position.set(pt.x, 0.22, pt.z);
+            indicatorsRoot.add(orb);
+          }
         });
       } else {
         selectedCoord = null;
         currentLegalMoves = [];
-        selHalo.visible = false;
+        baguaGroup.visible = false;
         clearGroup(indicatorsRoot);
       }
     }
@@ -1189,7 +1548,7 @@
       isAnimating = true;
       selectedCoord = null;
       currentLegalMoves = [];
-      selHalo.visible = false;
+      baguaGroup.visible = false;
       clearGroup(indicatorsRoot);
       clearGroup(arrowsRoot);
 
@@ -1210,32 +1569,29 @@
       boardState[move.to.r][move.to.c] = move.piece;
       boardState[move.from.r][move.from.c] = null;
 
-      // Parabolic Bézier Troop Movement
       const proxy = { t: 0 };
       gsap.to(proxy, {
         t: 1,
-        duration: 0.45,
+        duration: 0.44,
         ease: 'power2.inOut',
         onUpdate: () => {
           const t = proxy.t;
           if (mover) {
             mover.position.x = start.x + (end.x - start.x) * t;
             mover.position.z = start.z + (end.z - start.z) * t;
-            mover.position.y = 4 * 1.35 * t * (1 - t);
-            mover.rotation.y = Math.atan2(end.x - start.x, end.z - start.z);
+            mover.position.y = 4 * 1.45 * t * (1 - t);
           }
         },
         onComplete: () => {
           if (mover) {
             mover.position.set(end.x, 0, end.z);
-            mover.rotation.set(0, 0, 0);
             mover.userData.r = move.to.r;
             mover.userData.c = move.to.c;
           }
 
           if (target && move.captured) {
             unitsRoot.remove(target);
-            triggerCaptureCombatVFX(move.to, move.captured, move.piece);
+            triggerSwordQiBurstVFX(move.to, false);
           } else {
             sound.playStepImpact(move.piece.type);
           }
@@ -1246,24 +1602,30 @@
           currentTurn = currentTurn === 'r' ? 'b' : 'r';
           updateHUD(move);
 
-          // Check Alert
           if (isKingInCheck(boardState, currentTurn)) {
-            sound.playCheckHorns();
+            const kingCoord = findKing(boardState, currentTurn);
+            if (kingCoord) triggerSwordQiBurstVFX(kingCoord, true);
             const vig = document.getElementById('check-vignette');
             const ban = document.getElementById('check-banner');
             vig.style.opacity = '1';
-            gsap.fromTo(ban, { opacity: 0, scale: 0.4 }, {
-              opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.8)',
-              onComplete: () => {
-                gsap.to(ban, { opacity: 0, scale: 1.3, delay: 0.7, duration: 0.35 });
-                setTimeout(() => vig.style.opacity = '0', 800);
+            gsap.fromTo(
+              ban,
+              { opacity: 0, scale: 0.4 },
+              {
+                opacity: 1,
+                scale: 1,
+                duration: 0.35,
+                ease: 'back.out(1.8)',
+                onComplete: () => {
+                  gsap.to(ban, { opacity: 0, scale: 1.3, delay: 0.85, duration: 0.35 });
+                  setTimeout(() => (vig.style.opacity = '0'), 900);
+                },
               }
-            });
+            );
           }
 
           isAnimating = false;
 
-          // AI Auto-Move
           if (vsAI && currentTurn === 'b') {
             setTimeout(() => {
               const aiMove = findBestAIMove(boardState, 'b');
@@ -1274,17 +1636,16 @@
       });
     }
 
-    function updateHUD(latest = null) {
+    function updateHUD() {
       const badge = document.getElementById('turn-badge');
       if (currentTurn === 'r') {
-        badge.textContent = '🔴 ĐỎ: HÁN VƯƠNG TIÊN THỦ';
-        badge.className = 'px-3 py-1.5 rounded-xl bg-red-950/90 border border-red-500/60 text-amber-100 font-black shadow-inner';
+        badge.textContent = '🔴 CHU VŨ (RED FACTION) TIÊN THỦ';
+        badge.className = 'px-3.5 py-1.5 rounded-xl bg-red-950/90 border border-red-400/70 text-amber-100 font-black shadow-inner';
       } else {
-        badge.textContent = '⚫ ĐEN: SỞ BÁ VƯƠNG HẬU THỦ';
-        badge.className = 'px-3 py-1.5 rounded-xl bg-slate-900 border border-cyan-400/60 text-cyan-100 font-black shadow-inner';
+        badge.textContent = '🔵 THANH VÂN (CYAN-BLUE) HẬU THỦ';
+        badge.className = 'px-3.5 py-1.5 rounded-xl bg-sky-950/90 border border-cyan-400/70 text-cyan-100 font-black shadow-inner';
       }
 
-      // Eval Bar
       const score = evaluateBoard(boardState);
       const clamped = Math.max(-250, Math.min(250, score));
       const redPct = Math.round(50 + (clamped / 250) * 45);
@@ -1292,24 +1653,30 @@
       document.getElementById('eval-black-bar').style.height = `${100 - redPct}%`;
       document.getElementById('eval-score-text').textContent = (score / 10).toFixed(1);
 
-      // History
-      document.getElementById('move-count-badge').textContent = `${moveHistory.length} Nước`;
+      const countEl = document.getElementById('move-count-badge');
+      if (countEl) countEl.textContent = `${moveHistory.length} Nước`;
       const historyEl = document.getElementById('history-box');
-      if (moveHistory.length === 0) {
-        historyEl.innerHTML = '<div class="text-stone-400 italic text-center py-6">Hai quân đang dàn trận...</div>';
-      } else {
-        historyEl.innerHTML = moveHistory.map((h, i) => `
-          <div class="flex items-center justify-between px-2 py-1 rounded bg-white/5 font-mono">
-            <span class="text-amber-400/70">#${i + 1}</span>
-            <span class="${h.move.piece.side === 'r' ? 'text-red-300' : 'text-cyan-300'} font-bold">${h.move.notation}</span>
-          </div>
-        `).join('');
-        historyEl.scrollTop = historyEl.scrollHeight;
+      if (historyEl) {
+        if (moveHistory.length === 0) {
+          historyEl.innerHTML = '<div class="text-stone-400 italic text-center py-5">Bát Quái trận đồ đã khai mở...</div>';
+        } else {
+          historyEl.innerHTML = moveHistory
+            .map(
+              (h, i) => `
+            <div class="flex items-center justify-between px-2 py-1 rounded bg-white/5 font-mono">
+              <span class="text-amber-400/70">#${i + 1}</span>
+              <span class="${h.move.piece.side === 'r' ? 'text-red-300' : 'text-cyan-300'} font-bold">${h.move.notation}</span>
+            </div>
+          `
+            )
+            .join('');
+          historyEl.scrollTop = historyEl.scrollHeight;
+        }
       }
     }
 
     /**********************************************************************
-     * 8. RAYCASTING, CAMERA & BUTTON EVENT LISTENERS
+     * 8. RAYCASTING, CAMERA & INK-BLOT BUTTON LISTENERS
      **********************************************************************/
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
@@ -1339,16 +1706,29 @@
       }
     });
 
-    // Ink Seals
     let camStep = 0;
     document.getElementById('seal-camera').addEventListener('click', () => {
       camStep = (camStep + 1) % 3;
       if (camStep === 0) {
         controls.enabled = false;
-        gsap.to(camera.position, { x: 0, y: 11.5, z: 9.5, duration: 0.8, onUpdate: () => camera.lookAt(0, 0, 0) });
+        gsap.to(camera.position, {
+          x: 0,
+          y: 12.2,
+          z: 9.2,
+          duration: 0.85,
+          ease: 'power3.inOut',
+          onUpdate: () => camera.lookAt(0, 0, 0),
+        });
       } else if (camStep === 1) {
         controls.enabled = false;
-        gsap.to(camera.position, { x: 0, y: 14.5, z: 0.5, duration: 0.8, onUpdate: () => camera.lookAt(0, 0, 0) });
+        gsap.to(camera.position, {
+          x: 0,
+          y: 15.2,
+          z: 0.4,
+          duration: 0.85,
+          ease: 'power3.inOut',
+          onUpdate: () => camera.lookAt(0, 0, 0),
+        });
       } else {
         controls.enabled = true;
       }
@@ -1372,14 +1752,20 @@
       currentTurn = 'r';
       moveHistory = [];
       renderBoardUnits(boardState);
+      triggerSwordQiBurstVFX({ r: 4, c: 4 }, true);
+    });
+
+    document.getElementById('seal-swordqi').addEventListener('click', () => {
+      const center = selectedCoord || { r: 4, c: 4 };
+      triggerSwordQiBurstVFX(center, true);
     });
 
     document.getElementById('seal-hint').addEventListener('click', () => {
       const best = findBestAIMove(boardState, currentTurn);
       if (best) {
         clearGroup(arrowsRoot);
-        add3DArrow(best.from, best.to, 0xfacc15);
-        sound.playSelect();
+        add3DArrow(best.from, best.to, 0xfef08a);
+        selectSquare(best.from.r, best.from.c);
       }
     });
 
@@ -1388,13 +1774,18 @@
       e.target.textContent = vsAI ? '🤖 Đấu AI: BẬT' : '👥 2 Người: TẮT AI';
     });
 
+    document.getElementById('btn-piece-style').addEventListener('click', (e) => {
+      pieceStyle = pieceStyle === 'living' ? 'disc' : 'living';
+      e.target.textContent = pieceStyle === 'living' ? '⚔️ Tướng Sống Cel-3D' : '💎 Đĩa Ngọc Cổ Điển';
+      renderBoardUnits(boardState);
+    });
+
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // 60FPS Animation Loop with Living Character Idle Breathing
     const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
@@ -1402,21 +1793,28 @@
 
       if (controls.enabled) controls.update();
 
-      // Living Character Idle Breathing & Weapon Sway
+      if (baguaGroup.visible) {
+        baguaOuterMesh.rotation.z = elapsed * 1.1;
+        baguaInnerMesh.rotation.z = -elapsed * 1.8;
+      }
+
+      indicatorsRoot.children.forEach((orb) => {
+        orb.rotation.y = elapsed * 2.5;
+      });
+
       unitsRoot.children.forEach((u, i) => {
         if (u.userData?.bobGroup) {
-          u.userData.bobGroup.position.y = 0.09 + Math.sin(elapsed * 2.5 + i * 0.4) * 0.015;
+          u.userData.bobGroup.position.y = 0.1 + Math.sin(elapsed * 2.8 + i * 0.45) * 0.016;
         }
       });
 
-      // Swirling Peach Blossom Petals
       const posAttr = petalGeo.attributes.position;
       for (let i = 0; i < petalCount; i++) {
-        let y = posAttr.getY(i) - 0.015;
-        let x = posAttr.getX(i) + Math.sin(elapsed + i) * 0.008;
-        if (y < -1) y = 7;
-        posAttr.setY(i, y);
-        posAttr.setX(i, x);
+        let y = posAttr.getY(i) - 0.018;
+        let x = posAttr.getX(i) + Math.sin(elapsed * 1.2 + i) * 0.009;
+        let z = posAttr.getZ(i) + Math.cos(elapsed * 0.9 + i) * 0.006;
+        if (y < -1.5) y = 8.5;
+        posAttr.setXYZ(i, x, y, z);
       }
       posAttr.needsUpdate = true;
 
@@ -1425,6 +1823,7 @@
 
     camera.lookAt(0, 0, 0);
     renderBoardUnits(boardState);
+    setTimeout(() => selectSquare(7, 1), 300);
     animate();
   </script>
 </body>

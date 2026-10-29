@@ -322,82 +322,75 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
     return tex;
   };
 
-  // Helper to build living 3D character unit (Chinese Chess 3D Invincible Edition)
+  // Helper to build living 3D character unit (Xianxia Cel-Shaded Shan Shui Edition: Red vs Cyan-Blue + Black Toon Outlines)
   const buildLivingUnit3D = (type: PieceType, side: Side) => {
     const root = new THREE.Group();
     const isRed = side === 'r';
-    const redCloth = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.35, metalness: 0.15 });
-    const redGold = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.85 });
-    const blackCloth = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.2 });
-    const blackSilver = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.85 });
-    const fleshMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 });
-    const steelMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.2 });
-    const bronzeMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.8, roughness: 0.3 });
-    const woodMat = new THREE.MeshStandardMaterial({ color: 0x543110, roughness: 0.6 });
 
-    const mainMat = isRed ? redCloth : blackCloth;
-    const armorMat = isRed ? redGold : blackSilver;
+    const toonSteps = new Uint8Array([70, 140, 205, 255]);
+    const toonGradTex = new THREE.DataTexture(toonSteps, 4, 1, THREE.RedFormat);
+    toonGradTex.minFilter = THREE.NearestFilter;
+    toonGradTex.magFilter = THREE.NearestFilter;
+    toonGradTex.needsUpdate = true;
 
-    // Lotus Pedestal
+    const makeToon = (hex: number) => new THREE.MeshToonMaterial({ color: hex, gradientMap: toonGradTex });
+
+    const redCloth = makeToon(0xdc2626);
+    const redGold = makeToon(0xfbbf24);
+    const cyanCloth = makeToon(0x0ea5e9);
+    const cyanSilver = makeToon(0xe0f2fe);
+    const fleshMat = makeToon(0xfde68a);
+    const steelMat = makeToon(0xcbd5e1);
+    const bronzeMat = makeToon(0xd97706);
+    const woodMat = makeToon(0x78350f);
+    const outlineMat = new THREE.MeshBasicMaterial({ color: 0x0f0a07, side: THREE.BackSide });
+
+    const mainMat = isRed ? redCloth : cyanCloth;
+    const armorMat = isRed ? redGold : cyanSilver;
+
+    // Wooden/Jade Lotus Pedestal
     const pedestal = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.42, 0.44, 0.08, 32),
-      new THREE.MeshStandardMaterial({
-        color: isRed ? 0x7f1d1d : 0x0f172a,
-        metalness: 0.5,
-        roughness: 0.3,
-      })
+      new THREE.CylinderGeometry(0.41, 0.44, 0.08, 28),
+      woodMat
     );
     pedestal.position.y = 0.04;
     pedestal.receiveShadow = true;
     root.add(pedestal);
 
     const ringGlow = new THREE.Mesh(
-      new THREE.RingGeometry(0.38, 0.42, 32),
+      new THREE.RingGeometry(0.37, 0.42, 32),
       new THREE.MeshBasicMaterial({ color: isRed ? 0xfacc15 : 0x38bdf8, side: THREE.DoubleSide })
     );
     ringGlow.rotation.x = -Math.PI / 2;
     ringGlow.position.y = 0.082;
+    ringGlow.userData.noOutline = true;
     root.add(ringGlow);
 
     const body = new THREE.Group();
     body.position.y = 0.08;
+    body.rotation.y = isRed ? Math.PI : 0;
     root.add(body);
     root.userData.bobGroup = body;
 
     if (type === 'K') {
-      if (isRed) {
-        const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.72, 0.12), armorMat);
-        throneBack.position.set(0, 0.52, -0.15);
-        body.add(throneBack);
-        const throneSeat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.4), armorMat);
-        throneSeat.position.set(0, 0.2, 0);
-        body.add(throneSeat);
-        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.44, 16), mainMat);
-        torso.position.set(0, 0.52, 0);
-        body.add(torso);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), fleshMat);
-        head.position.set(0, 0.84, 0);
-        body.add(head);
-        const crown = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.2), armorMat);
-        crown.position.set(0, 1.0, 0);
-        body.add(crown);
-      } else {
-        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.52, 16), mainMat);
-        torso.position.set(0, 0.42, 0);
-        body.add(torso);
-        const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.32, 0.3), armorMat);
-        cuirass.position.set(0, 0.45, 0);
-        body.add(cuirass);
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
-        head.position.set(0, 0.78, 0);
-        body.add(head);
-        const helm = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.22, 16), armorMat);
-        helm.position.set(0, 0.94, 0);
-        body.add(helm);
-        const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.8, 0.12), steelMat);
-        sword.position.set(0.22, 0.45, 0.15);
-        body.add(sword);
-      }
+      const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.76, 0.12), redGold);
+      throneBack.position.set(0, 0.52, -0.16);
+      body.add(throneBack);
+      const throneSeat = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.22, 0.44), redGold);
+      throneSeat.position.set(0, 0.2, 0);
+      body.add(throneSeat);
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.46, 16), mainMat);
+      torso.position.set(0, 0.52, 0);
+      body.add(torso);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), fleshMat);
+      head.position.set(0, 0.84, 0);
+      body.add(head);
+      const crown = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.06, 0.2), redGold);
+      crown.position.set(0, 1.0, 0);
+      body.add(crown);
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.75, 0.09), redGold);
+      sword.position.set(0.26, 0.55, 0.16);
+      body.add(sword);
     } else if (type === 'A') {
       const dress = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.6, 16), mainMat);
       dress.position.set(0, 0.32, 0);
@@ -408,10 +401,14 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), fleshMat);
       head.position.set(0, 0.84, 0);
       body.add(head);
-      const blade = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.5, 8), steelMat);
-      blade.position.set(0.2, 0.5, 0.12);
-      blade.rotation.z = -0.4;
-      body.add(blade);
+      const bladeL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.56, 0.06), steelMat);
+      bladeL.position.set(-0.22, 0.52, 0.12);
+      bladeL.rotation.z = 0.4;
+      body.add(bladeL);
+      const bladeR = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.56, 0.06), steelMat);
+      bladeR.position.set(0.22, 0.52, 0.12);
+      bladeR.rotation.z = -0.4;
+      body.add(bladeR);
     } else if (type === 'E') {
       const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.58, 16), mainMat);
       robe.position.set(0, 0.35, 0);
@@ -422,7 +419,7 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
       head.position.set(0, 0.82, 0);
       body.add(head);
-      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.08), armorMat);
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.08), redGold);
       shield.position.set(0.25, 0.45, 0.16);
       body.add(shield);
     } else if (type === 'H') {
@@ -450,18 +447,18 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.18, 0.65), woodMat);
       chassis.position.set(0, 0.22, 0);
       body.add(chassis);
-      const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), steelMat);
+      const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), bronzeMat);
       wheelL.rotation.z = Math.PI / 2;
       wheelL.position.set(-0.28, 0.2, 0);
       body.add(wheelL);
-      const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), steelMat);
+      const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), bronzeMat);
       wheelR.rotation.z = Math.PI / 2;
       wheelR.position.set(0.28, 0.2, 0);
       body.add(wheelR);
       const bow = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, 0.08), steelMat);
       bow.position.set(0, 0.42, 0.14);
       body.add(bow);
-      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.62), armorMat);
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.62), redGold);
       rail.position.set(0, 0.36, 0);
       body.add(rail);
     } else if (type === 'C') {
@@ -472,11 +469,14 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       barrel.rotation.x = -0.38;
       barrel.position.set(-0.1, 0.36, 0.08);
       body.add(barrel);
-      const gunner = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.14, 0.45, 12), mainMat);
-      gunner.position.set(0.22, 0.3, -0.08);
-      body.add(gunner);
+      const gunnerLegs = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.24, 12), mainMat);
+      gunnerLegs.position.set(0.22, 0.2, -0.08);
+      body.add(gunnerLegs);
+      const gunnerChest = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.11, 0.24, 12), fleshMat);
+      gunnerChest.position.set(0.22, 0.42, -0.08);
+      body.add(gunnerChest);
       const gunnerHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
-      gunnerHead.position.set(0.22, 0.58, -0.08);
+      gunnerHead.position.set(0.22, 0.6, -0.08);
       body.add(gunnerHead);
     } else {
       const soldierTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.4, 12), mainMat);
@@ -491,8 +491,8 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const helm = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.15, 12), armorMat);
       helm.position.set(0, 0.68, 0);
       body.add(helm);
-      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.08), steelMat);
-      sword.position.set(0.2, 0.35, 0.12);
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.48, 0.08), steelMat);
+      sword.position.set(0.2, 0.36, 0.12);
       sword.rotation.z = -0.35;
       body.add(sword);
       const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16), armorMat);
@@ -501,12 +501,22 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       body.add(shield);
     }
 
+    // Add Black Ink Inverted-Hull Toon Outlines
+    const toOutline: THREE.Mesh[] = [];
     root.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        child.castShadow = true;
-        child.receiveShadow = true;
+      const m = child as THREE.Mesh;
+      if (m.isMesh && !m.userData.noOutline) {
+        toOutline.push(m);
+        m.castShadow = true;
+        m.receiveShadow = true;
       }
     });
+    toOutline.forEach((m) => {
+      const outline = new THREE.Mesh(m.geometry, outlineMat);
+      outline.scale.set(1.065, 1.065, 1.065);
+      m.add(outline);
+    });
+
     return root;
   };
 
@@ -636,17 +646,56 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
     const vfxRoot = new THREE.Group();
     scene.add(piecesRoot, indicatorsRoot, arrowsRoot, trailRoot, checkRoot, vfxRoot);
 
+    // Generate Golden Bagua Magic Circle Texture for selected piece
+    const baguaCanvas = document.createElement('canvas');
+    baguaCanvas.width = 512;
+    baguaCanvas.height = 512;
+    const bCtx = baguaCanvas.getContext('2d')!;
+    const bGrad = bCtx.createRadialGradient(256, 256, 20, 256, 256, 245);
+    bGrad.addColorStop(0, 'rgba(254, 240, 138, 0.65)');
+    bGrad.addColorStop(0.6, 'rgba(245, 158, 11, 0.35)');
+    bGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    bCtx.fillStyle = bGrad;
+    bCtx.fillRect(0, 0, 512, 512);
+    bCtx.strokeStyle = '#fef08a';
+    bCtx.fillStyle = '#fef08a';
+    bCtx.lineWidth = 5;
+    bCtx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const a = (i * Math.PI) / 4 + Math.PI / 8;
+      const px = 256 + Math.cos(a) * 230;
+      const py = 256 + Math.sin(a) * 230;
+      if (i === 0) bCtx.moveTo(px, py);
+      else bCtx.lineTo(px, py);
+    }
+    bCtx.closePath();
+    bCtx.stroke();
+    [205, 150, 105].forEach((r) => {
+      bCtx.beginPath();
+      bCtx.arc(256, 256, r, 0, Math.PI * 2);
+      bCtx.stroke();
+    });
+    const baguaChars = ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'];
+    bCtx.font = 'bold 28px serif';
+    bCtx.textAlign = 'center';
+    bCtx.textBaseline = 'middle';
+    baguaChars.forEach((ch, i) => {
+      const a = (i * Math.PI) / 4;
+      bCtx.fillText(ch, 256 + Math.cos(a) * 178, 256 + Math.sin(a) * 178);
+    });
+
     const selectionHalo = new THREE.Mesh(
-      new THREE.RingGeometry(PIECE_RADIUS * 0.85, PIECE_RADIUS * 1.26, 40),
+      new THREE.PlaneGeometry(1.55, 1.55),
       new THREE.MeshBasicMaterial({
-        color: 0xfbbf24,
+        map: new THREE.CanvasTexture(baguaCanvas),
         side: THREE.DoubleSide,
         transparent: true,
-        opacity: 0.88,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
       })
     );
     selectionHalo.rotation.x = -Math.PI / 2;
-    selectionHalo.position.y = BOARD_TOP_Y + 0.02;
+    selectionHalo.position.y = BOARD_TOP_Y + 0.025;
     selectionHalo.visible = false;
     scene.add(selectionHalo);
 
