@@ -27,6 +27,7 @@ import {
   PieceLabelMode,
   ArrowGuide,
 } from './components/XiangqiBoard';
+import { XiangqiBoard3D } from './components/XiangqiBoard3D';
 import { MoveCoachPanel, MoveRecord } from './components/MoveCoachPanel';
 import { GamificationBar } from './components/GamificationBar';
 import { GrandmasterCoachModal } from './components/GrandmasterCoachModal';
@@ -48,6 +49,7 @@ import {
   Volume2,
   VolumeX,
   Share2,
+  Box,
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -108,7 +110,8 @@ export const App: React.FC = () => {
   const [activePlyIndex, setActivePlyIndex] = useState<number | null>(null);
   const [lessonCompleted, setLessonCompleted] = useState<boolean>(false);
 
-  // Display & Hint Controls (Default clean Vietnamese symbol mode)
+  // Display & Hint Controls (Default clean Vietnamese symbol mode + 3D WebGL Mode)
+  const [is3DMode, setIs3DMode] = useState<boolean>(true);
   const [labelMode, setLabelMode] = useState<PieceLabelMode>('vn');
   const [showThreatRadar, setShowThreatRadar] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(() => soundEngine.getMuted());
@@ -484,36 +487,65 @@ export const App: React.FC = () => {
 
       {/* Focused 2-Column Layout (Board Left, Unified Coach/Lesson Panel Right) */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-4 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN (7 cols): Clean, Spacious Chessboard + Subtle Footer Controls */}
+        {/* LEFT COLUMN (7 cols): Clean, Spacious Chessboard (3D PBR WebGL or 2D Classical) + Footer Controls */}
         <section className="lg:col-span-7 flex flex-col items-center gap-3">
-          <XiangqiBoard
-            board={displayBoard}
-            turn={turn}
-            selectedSquare={selectedSquare}
-            legalMoves={legalMoves}
-            blockedInfos={blockedInfos}
-            lastMove={displayLastMove}
-            arrowGuides={arrowGuides}
-            labelMode={labelMode}
-            showThreatRadar={showThreatRadar}
-            onSquareClick={handleSquareClick}
-          />
+          {is3DMode ? (
+            <XiangqiBoard3D
+              board={displayBoard}
+              turn={turn}
+              selectedSquare={selectedSquare}
+              legalMoves={legalMoves}
+              blockedInfos={blockedInfos}
+              lastMove={displayLastMove}
+              arrowGuides={arrowGuides}
+              labelMode={labelMode}
+              showThreatRadar={showThreatRadar}
+              onSquareClick={handleSquareClick}
+            />
+          ) : (
+            <XiangqiBoard
+              board={displayBoard}
+              turn={turn}
+              selectedSquare={selectedSquare}
+              legalMoves={legalMoves}
+              blockedInfos={blockedInfos}
+              lastMove={displayLastMove}
+              arrowGuides={arrowGuides}
+              labelMode={labelMode}
+              showThreatRadar={showThreatRadar}
+              onSquareClick={handleSquareClick}
+            />
+          )}
 
           {/* Minimal Board Preferences Footer */}
           <div className="w-full max-w-[660px] lg:max-w-[700px] flex flex-wrap items-center justify-between gap-2.5 px-4 py-2.5 rounded-xl bg-[#1c1714] border border-[#3d2f23] text-xs sm:text-sm text-[#e6ded2]">
             <div className="flex flex-wrap items-center gap-1.5">
-              <span className="font-serif font-bold text-[#b8a794]">Chữ quân:</span>
+              <button
+                type="button"
+                onClick={() => setIs3DMode((prev) => !prev)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-serif font-black transition cursor-pointer ${
+                  is3DMode
+                    ? 'bg-gradient-to-r from-[#b83833] to-[#8c221e] text-[#fcedc7] border border-[#dfb673]/50 shadow'
+                    : 'bg-[#241c17] hover:bg-[#33261e] text-[#f6d28b] border border-[#443528]'
+                }`}
+                title="Chuyển đổi giữa Sa bàn 3D PBR WebGL và Sa bàn 2D Cổ Điển"
+              >
+                <Box className="w-4 h-4" />
+                <span>{is3DMode ? 'Chế độ: 3D PBR' : 'Chế độ: 2D Phẳng'}</span>
+              </button>
+
+              <span className="font-serif font-bold text-[#b8a794] ml-1">Chữ:</span>
               {[
-                { id: 'vn', label: 'Viết tắt (X, M, P)' },
-                { id: 'name', label: 'Tên đầy đủ (Xe, Mã)' },
-                { id: 'hanzi', label: 'Chữ Hán (帥, 將)' },
+                { id: 'vn', label: 'X, M, P' },
+                { id: 'name', label: 'Xe, Mã' },
+                { id: 'hanzi', label: '帥, 將' },
                 { id: 'dual', label: 'R/X' },
               ].map((item) => (
                 <button
                   key={item.id}
                   type="button"
                   onClick={() => setLabelMode(item.id as PieceLabelMode)}
-                  className={`px-3 py-1.5 rounded-lg font-serif font-bold transition cursor-pointer ${
+                  className={`px-2.5 py-1.5 rounded-lg font-serif font-bold transition cursor-pointer ${
                     labelMode === item.id
                       ? 'bg-[#dfb673] text-[#1a1107] shadow-sm'
                       : 'bg-[#241c17] hover:bg-[#33261e] text-[#e6ded2] border border-[#3a2c20]'
