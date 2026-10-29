@@ -59,5 +59,27 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
     expect(desktopContent).toMatch(/id="seal-mastery"|id="btn-mastery"/);
     expect(desktopContent).toContain('id="mastery-drawer"');
     expect(desktopContent).toContain('胜利后可观看美女舞蹈');
+    expect(desktopContent).toContain('gltfLoader.setMeshoptDecoder(MeshoptDecoder)');
+  });
+
+  it('verifies Tripo PBR Meshopt GLB 3D model for Xe (Chariot) is integrated and valid glTF 2.0 binary', () => {
+    const glbPath = path.resolve(__dirname, '../../../public/models/xe_chariot.glb');
+    expect(fs.existsSync(glbPath)).toBe(true);
+
+    const buf = fs.readFileSync(glbPath);
+    const magic = buf.toString('ascii', 0, 4);
+    const version = buf.readUInt32LE(4);
+    const chunkLen = buf.readUInt32LE(12);
+    const json = JSON.parse(buf.toString('utf8', 20, 20 + chunkLen));
+
+    expect(magic).toBe('glTF');
+    expect(version).toBe(2);
+    expect(json.extensionsRequired).toContain('EXT_meshopt_compression');
+
+    const content = fs.readFileSync(htmlPath, 'utf8');
+    expect(content).toContain('MeshoptDecoder');
+    expect(content).toContain('gltfLoader.setMeshoptDecoder(MeshoptDecoder)');
+    expect(content).toContain("R: './models/xe_chariot.glb'");
+    expect(content).toContain('normalizeAndPrepareGLTF');
   });
 });

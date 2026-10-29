@@ -188,6 +188,11 @@
     <button id="btn-toggle-ai" class="hover:text-amber-300 transition cursor-pointer font-semibold">🤖 Đấu AI: BẬT</button>
     <span class="text-amber-500/50">|</span>
     <button id="btn-piece-style" class="hover:text-amber-300 transition cursor-pointer font-semibold">⚔️ Hình Khối: Nhân Vật 3D</button>
+    <span class="text-amber-500/50">|</span>
+    <button id="btn-upload-glb" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/70 text-emerald-300 font-bold transition cursor-pointer shadow" title="Model 3D Quân Xe (Tripo PBR Meshopt GLB) — Nhấn để đổi hoặc nạp file .glb/.gltf khác">
+      <span id="glb-status-badge">📦 Xe 3D: Đang nạp Tripo GLB...</span>
+    </button>
+    <input id="input-glb-file" type="file" accept=".glb,.gltf" class="hidden" />
   </div>
 
   <!-- 5. HUD OVERLAY — BÊN TRÁI BÀN CỜ: NÚT VẾT MỰC ICON MÁY ẢNH (ĐỔI GÓC NHÌN 2D/3D) -->
@@ -314,12 +319,16 @@
     </div>
   </div>
 
+  <!-- Preloaded Base64 GLB Bundle for file:// Zero-CORS Desktop Execution -->
+  <script src="./models/xe_chariot_inline.js" onerror="console.info('GLB inline bundle not used; loading via HTTP fetch')"></script>
+
   <!-- MAIN WEBGL + GLSL SHADER + OUTLINE EFFECT MODULE -->
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { OutlineEffect } from 'three/addons/effects/OutlineEffect.js';
     import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
 
     /**********************************************************************
      * MODULE 1: CUSTOM GLSL SHADERS (Bagua Magic Circle & Sword-Qi God-Rays)
@@ -966,18 +975,152 @@
      * 7. Tốt (Soldier): Infantry soldier in red/blue tunic & straw/iron hat, lunging with curved Dao
      **********************************************************************/
     const gltfLoader = new GLTFLoader();
+    gltfLoader.setMeshoptDecoder(MeshoptDecoder);
     const gltfCache = new Map();
+    const gltfLoadingPromises = new Map();
 
-    // Optional external GLTF/GLB model registry (falls back to stylized procedural 3D miniature)
+    // External GLTF/GLB model registry (with Tripo PBR Meshopt GLB enabled for Xe / Chariot)
     const OPTIONAL_GLTF_URLS = {
       K: null, // e.g. './models/general.glb'
       A: null, // e.g. './models/advisor.glb'
       E: null, // e.g. './models/elephant.glb'
-      R: null, // e.g. './models/chariot.glb'
+      R: './models/xe_chariot.glb', // Tripo PBR Meshopt 3D Model for Xe (Chariot)
       C: null, // e.g. './models/cannon.glb'
       H: null, // e.g. './models/horse.glb'
       P: null, // e.g. './models/soldier.glb'
     };
+
+    function base64ToArrayBuffer(b64) {
+      const binStr = atob(b64);
+      const len = binStr.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binStr.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    function normalizeAndPrepareGLTF(gltfScene) {
+      gltfScene.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(gltfScene);
+      const size = new THREE.Vector3();
+      const center = new THREE.Vector3();
+      box.getSize(size);
+      box.getCenter(center);
+
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const targetScale = 0.86 / maxDim;
+
+      const wrapper = new THREE.Group();
+      gltfScene.scale.setScalar(targetScale);
+      gltfScene.position.set(
+        -center.x * targetScale,
+        -box.min.y * targetScale,
+        -center.z * targetScale
+      );
+
+      gltfScene.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          // High-poly PBR mesh already has baked NormalGL + ORM + BaseColor;
+          // disable redundant OutlineEffect back-face pass to keep 60fps across all 4 Rooks
+          child.userData.outlineParameters = { visible: false };
+        }
+      });
+
+      wrapper.add(gltfScene);
+      return wrapper;
+    }
+
+    function instantiateGLTFForSide(normalizedWrapper, isRed, woodMaterial, redSilk, blueSilk) {
+      const instance = normalizedWrapper.clone(true);
+      instance.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+          child.userData.outlineParameters = { visible: false };
+          if (child.material) {
+            const matKey = isRed ? '__redClonedMat' : '__blueClonedMat';
+            if (!child.material.userData) child.material.userData = {};
+            if (!child.material.userData[matKey]) {
+              const clonedMat = child.material.clone();
+              if ('emissive' in clonedMat) {
+                clonedMat.emissive = new THREE.Color(isRed ? 0x3b0808 : 0x062c47);
+                clonedMat.emissiveIntensity = 0.22;
+              }
+              child.material.userData[matKey] = clonedMat;
+            }
+            child.material = child.material.userData[matKey];
+          }
+        }
+      });
+
+      // Add Faction War Banners (Cờ Lệnh Chiến Xa Đỏ / Lam) behind the 3D Chariot
+      const bannerSilkMat = isRed ? redSilk : blueSilk;
+      [-0.25, 0.25].forEach((bx) => {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.82, 8), woodMaterial);
+        pole.position.set(bx, 0.42, -0.32);
+        instance.add(pole);
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.26), bannerSilkMat);
+        flag.position.set(bx, 0.68, -0.24);
+        instance.add(flag);
+      });
+
+      return instance;
+    }
+
+    function loadGLTFModelOnce(type, url) {
+      if (gltfCache.has(type)) {
+        return Promise.resolve(gltfCache.get(type));
+      }
+      if (gltfLoadingPromises.has(type)) {
+        return gltfLoadingPromises.get(type);
+      }
+
+      const promise = new Promise((resolve, reject) => {
+        const onSuccess = (gltf) => {
+          const normalized = normalizeAndPrepareGLTF(gltf.scene);
+          gltfCache.set(type, normalized);
+          const badge = document.getElementById('glb-status-badge');
+          if (badge) {
+            badge.textContent = '✅ Xe 3D: Tripo PBR Meshopt GLB';
+          }
+          resolve(normalized);
+        };
+
+        // Zero-CORS Desktop file:// execution using preloaded Base64 ArrayBuffer
+        if (type === 'R' && window.__PRELOADED_XE_GLB_BASE64__) {
+          try {
+            const buffer = base64ToArrayBuffer(window.__PRELOADED_XE_GLB_BASE64__);
+            window.__PRELOADED_XE_GLB_BASE64__ = null;
+            gltfLoader.parse(
+              buffer,
+              './models/',
+              onSuccess,
+              (err) => {
+                console.warn('Preloaded GLB parse fallback to URL load:', err);
+                gltfLoader.load(url, onSuccess, undefined, reject);
+              }
+            );
+            return;
+          } catch (e) {
+            console.warn('Base64 decode fallback to URL load:', e);
+          }
+        }
+
+        gltfLoader.load(url, onSuccess, undefined, (err) => {
+          const badge = document.getElementById('glb-status-badge');
+          if (badge) {
+            badge.textContent = '📂 Nạp file .glb cho Quân Xe';
+          }
+          reject(err);
+        });
+      });
+
+      gltfLoadingPromises.set(type, promise);
+      return promise;
+    }
 
     const toonSteps = new Uint8Array([72, 145, 210, 255]);
     const toonGradTex = new THREE.DataTexture(toonSteps, 4, 1, THREE.RedFormat);
@@ -1043,23 +1186,19 @@
       root.add(body);
       root.userData.bobGroup = body;
 
-      // Support loading external GLB/GLTF if configured
-      if (OPTIONAL_GLTF_URLS[type]) {
-        const url = OPTIONAL_GLTF_URLS[type];
-        if (gltfCache.has(url)) {
-          body.add(gltfCache.get(url).clone());
+      // Support loading external GLB/GLTF if configured (with Meshopt & deduplicated caching)
+      if (OPTIONAL_GLTF_URLS[type] || gltfCache.has(type)) {
+        if (gltfCache.has(type)) {
+          body.add(instantiateGLTFForSide(gltfCache.get(type), isRed, woodMat, redSilkMat, blueSilkMat));
           return root;
         }
-        gltfLoader.load(
-          url,
-          (gltf) => {
-            gltfCache.set(url, gltf.scene);
+        const url = OPTIONAL_GLTF_URLS[type];
+        loadGLTFModelOnce(type, url)
+          .then((normalizedGroup) => {
             body.clear();
-            body.add(gltf.scene.clone());
-          },
-          undefined,
-          () => {}
-        );
+            body.add(instantiateGLTFForSide(normalizedGroup, isRed, woodMat, redSilkMat, blueSilkMat));
+          })
+          .catch(() => {});
       }
 
       if (type === 'K') {
@@ -3589,6 +3728,54 @@
       pieceStyle = pieceStyle === 'living' ? 'disc' : 'living';
       e.target.textContent = pieceStyle === 'living' ? '⚔️ Hình Khối: Nhân Vật 3D' : '💎 Hình Khối: Quân Tròn';
       renderBoardUnits(boardState);
+    });
+
+    function handleCustomGLBFile(file, targetPieceType = 'R') {
+      if (!file) return;
+      const badge = document.getElementById('glb-status-badge');
+      if (badge) badge.textContent = '⏳ Đang giải mã Meshopt GLB...';
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const buffer = ev.target.result;
+        gltfLoader.parse(
+          buffer,
+          '',
+          (gltf) => {
+            const normalized = normalizeAndPrepareGLTF(gltf.scene);
+            gltfCache.set(targetPieceType, normalized);
+            OPTIONAL_GLTF_URLS[targetPieceType] = 'custom://' + file.name;
+            if (badge) badge.textContent = '✅ Xe 3D: ' + file.name.slice(0, 22);
+            renderBoardUnits(boardState);
+            triggerSwordQiCaptureVFX({ r: 9, c: 0 });
+          },
+          (err) => {
+            console.error('Lỗi giải mã GLB:', err);
+            if (badge) badge.textContent = '❌ Lỗi nạp GLB';
+          }
+        );
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    document.getElementById('btn-upload-glb').addEventListener('click', () => {
+      document.getElementById('input-glb-file').click();
+    });
+
+    document.getElementById('input-glb-file').addEventListener('change', (e) => {
+      const file = e.target.files?.[0];
+      if (file) handleCustomGLBFile(file, 'R');
+    });
+
+    window.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    window.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const file = e.dataTransfer?.files?.[0];
+      if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
+        handleCustomGLBFile(file, 'R');
+      }
     });
 
     window.addEventListener('resize', () => {

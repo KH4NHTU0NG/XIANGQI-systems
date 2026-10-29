@@ -24,3 +24,7 @@ tsconfig.tsbuildinfo
 *.sln
 *.sw?
 
+# Local file:// Base64 GLB cache (generated from xe_chariot.glb)
+public/models/xe_chariot_inline.js
+
+

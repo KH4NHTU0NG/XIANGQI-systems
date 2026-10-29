@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OutlineEffect } from 'three/examples/jsm/effects/OutlineEffect.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { MeshoptDecoder } from 'three/examples/jsm/libs/meshopt_decoder.module.js';
 import gsap from 'gsap';
 import {
   BAGUA_VERTEX_SHADER,
@@ -44,6 +46,107 @@ const CELL_SIZE = 1.02;
 const PIECE_RADIUS = 0.42;
 const PIECE_HEIGHT = 0.23;
 const BOARD_TOP_Y = 0;
+
+// Shared GLTFLoader with MeshoptDecoder for Tripo PBR Meshopt GLB models
+const sharedGltfLoader = new GLTFLoader();
+sharedGltfLoader.setMeshoptDecoder(MeshoptDecoder);
+const sharedGltfCache = new Map<PieceType, THREE.Group>();
+const sharedGltfPromises = new Map<PieceType, Promise<THREE.Group>>();
+
+function normalizeChariotGLTF(gltfScene: THREE.Group): THREE.Group {
+  gltfScene.updateMatrixWorld(true);
+  const box = new THREE.Box3().setFromObject(gltfScene);
+  const size = new THREE.Vector3();
+  const center = new THREE.Vector3();
+  box.getSize(size);
+  box.getCenter(center);
+
+  const maxDim = Math.max(size.x, size.y, size.z) || 1;
+  const targetScale = 0.84 / maxDim;
+
+  const wrapper = new THREE.Group();
+  gltfScene.scale.setScalar(targetScale);
+  gltfScene.position.set(
+    -center.x * targetScale,
+    -box.min.y * targetScale,
+    -center.z * targetScale
+  );
+
+  gltfScene.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      child.castShadow = true;
+      child.receiveShadow = true;
+      child.userData.outlineParameters = { visible: false };
+    }
+  });
+
+  wrapper.add(gltfScene);
+  return wrapper;
+}
+
+function instantiateChariotForSide(
+  normalizedWrapper: THREE.Group,
+  isRed: boolean,
+  woodMat: THREE.Material,
+  bannerMat: THREE.Material
+): THREE.Group {
+  const instance = normalizedWrapper.clone(true);
+  instance.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (mesh.isMesh) {
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.userData.outlineParameters = { visible: false };
+      const origMat = mesh.material as THREE.MeshStandardMaterial;
+      if (origMat && !Array.isArray(origMat)) {
+        const matKey = isRed ? '__redClonedMat' : '__blueClonedMat';
+        if (!origMat.userData[matKey]) {
+          const cloned = origMat.clone();
+          if ('emissive' in cloned) {
+            cloned.emissive = new THREE.Color(isRed ? 0x3b0808 : 0x062c47);
+            cloned.emissiveIntensity = 0.22;
+          }
+          origMat.userData[matKey] = cloned;
+        }
+        mesh.material = origMat.userData[matKey];
+      }
+    }
+  });
+
+  [-0.24, 0.24].forEach((bx) => {
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.8, 8), woodMat);
+    pole.position.set(bx, 0.4, -0.3);
+    instance.add(pole);
+    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.25), bannerMat);
+    flag.position.set(bx, 0.65, -0.22);
+    instance.add(flag);
+  });
+
+  return instance;
+}
+
+function loadChariotGLTFOnce(): Promise<THREE.Group> {
+  if (sharedGltfCache.has('R')) {
+    return Promise.resolve(sharedGltfCache.get('R')!);
+  }
+  if (sharedGltfPromises.has('R')) {
+    return sharedGltfPromises.get('R')!;
+  }
+  const p = new Promise<THREE.Group>((resolve, reject) => {
+    sharedGltfLoader.load(
+      '/models/xe_chariot.glb',
+      (gltf) => {
+        const normalized = normalizeChariotGLTF(gltf.scene);
+        sharedGltfCache.set('R', normalized);
+        resolve(normalized);
+      },
+      undefined,
+      reject
+    );
+  });
+  sharedGltfPromises.set('R', p);
+  return p;
+}
 
 const THEME_CONFIG: Record<
   Board3DTheme,
@@ -487,7 +590,11 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       lance.rotation.x = 0.72;
       rearingGroup.add(lance);
     } else if (type === 'R') {
-      // XE (Chariot): Siege ballista war chariot, wooden frame, metallic giant crossbow & banners
+      // XE (Chariot): Load Tripo PBR Meshopt GLB model with procedural fallback while decoding
+      if (sharedGltfCache.has('R')) {
+        body.add(instantiateChariotForSide(sharedGltfCache.get('R')!, isRed, woodMat, mainMat));
+        return root;
+      }
       const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.18, 0.66), woodMat);
       chassis.position.set(0, 0.22, 0);
       body.add(chassis);
@@ -505,6 +612,13 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.64), redGold);
       rail.position.set(0, 0.36, 0);
       body.add(rail);
+
+      loadChariotGLTFOnce()
+        .then((normalizedGroup) => {
+          body.clear();
+          body.add(instantiateChariotForSide(normalizedGroup, isRed, woodMat, mainMat));
+        })
+        .catch(() => {});
     } else if (type === 'C') {
       // PHÁO (Cannon): Muscular warrior carrying massive silver-iron bombard cannon on shoulder, crouched stance
       const crouchGroup = new THREE.Group();
