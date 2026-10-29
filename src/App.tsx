@@ -596,6 +596,16 @@ export const App: React.FC = () => {
                 <Eye className="w-4 h-4" />
                 <span>Radar Căn</span>
               </button>
+
+              <a
+                href="/xiangqi-3d.html"
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-serif font-black transition cursor-pointer bg-gradient-to-r from-[#d97706] to-[#b45309] hover:from-[#f59e0b] hover:to-[#d97706] text-[#1c1209] shadow-md border border-[#fde68a]/60"
+                title="Mở Game Cờ Tướng 3D Tu Tiên Toàn Màn Hình (Chinese Chess 3D Invincible)"
+              >
+                <span>⚔️ 3D Tu Tiên Toàn Cảnh</span>
+              </a>
             </div>
           </div>
         </section>

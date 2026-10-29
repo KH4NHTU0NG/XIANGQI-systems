@@ -85,3 +85,4 @@ export const SHOCKWAVE_GODRAYS_FRAGMENT_SHADER = /* glsl */ `
     gl_FragColor = vec4(col, alpha);
   }
 `;
+
