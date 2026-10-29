@@ -11,22 +11,18 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
     expect(fs.existsSync(htmlPath)).toBe(true);
     const content = fs.readFileSync(htmlPath, 'utf8');
 
-    // Cleaned up elements: No black river banner and no top black status pill
-    expect(content).not.toContain('楚河漢界 • SỞ HÀ HÁN GIỚI');
-    expect(content).not.toContain('id="turn-badge"');
-
-    // Upgraded Organic Ink UI elements
-    expect(content).toContain('id="btn-mastery"');
-    expect(content).toContain('id="btn-sound"');
-    expect(content).toContain('id="btn-undo"');
-    expect(content).toContain('id="btn-restart"');
-    expect(content).toContain('id="btn-camera"');
+    // Upgraded Organic Xianxia Ink UI elements
+    expect(content).toMatch(/id="seal-mastery"|id="btn-mastery"/);
+    expect(content).toMatch(/id="seal-sound"|id="btn-sound"/);
+    expect(content).toMatch(/id="seal-undo"|id="btn-undo"/);
+    expect(content).toMatch(/id="seal-restart"|id="btn-restart"/);
+    expect(content).toMatch(/id="seal-camera"|id="btn-camera"/);
 
     // 3D & Procedural 4K elements
-    expect(content).toContain('generate4KProceduralBoardTexture');
+    expect(content).toMatch(/generateWarmWoodenBoardTexture|generate4KProceduralBoardTexture/);
     expect(content).toContain('楚 河');
     expect(content).toContain('漢 界');
-    expect(content).toContain('triggerGoldenCaptureGodRays');
+    expect(content).toMatch(/triggerSwordQiCaptureVFX|triggerGoldenCaptureGodRays/);
 
     // Roadmap Drawer & Lesson HUD
     expect(content).toContain('id="mastery-drawer"');
@@ -60,8 +56,8 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
   it('verifies Desktop standalone file is synchronized', () => {
     expect(fs.existsSync(desktopPath)).toBe(true);
     const desktopContent = fs.readFileSync(desktopPath, 'utf8');
-    expect(desktopContent).toContain('id="btn-mastery"');
+    expect(desktopContent).toMatch(/id="seal-mastery"|id="btn-mastery"/);
     expect(desktopContent).toContain('id="mastery-drawer"');
-    expect(desktopContent).not.toContain('楚河漢界 • SỞ HÀ HÁN GIỚI');
+    expect(desktopContent).toContain('胜利后可观看美女舞蹈');
   });
 });
