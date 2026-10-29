@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TƯỢNG KỲ 3D ĐẠI SƯ — Masterpiece 3D Xiangqi WebGL</title>
+  <title>CỜ TƯỚNG 3D NHÂN VẬT SỐNG — Chinese Chess 3D Invincible</title>
   <!-- TailwindCSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- GSAP 3.12 CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
   <!-- Google Fonts: Noto Serif SC & Cinzel -->
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@600;700;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
   <!-- Three.js ES Module ImportMap -->
   <script type="importmap">
     {
@@ -27,50 +27,66 @@
     body {
       margin: 0;
       overflow: hidden;
-      background-color: #090807;
+      background-color: #d6c6b2;
       font-family: 'Noto Serif', Georgia, serif;
-      color: #f5ede4;
+      color: #2b1f17;
+    }
+    .calligraphy-font {
+      font-family: 'Ma Shan Zheng', 'Noto Serif SC', serif;
     }
     .hanzi-font {
-      font-family: 'Noto Serif SC', 'Songti SC', 'SimSun', serif;
+      font-family: 'Noto Serif SC', 'Songti SC', serif;
     }
-    /* Glassmorphism Oriental Panels */
+    /* Ink Seal Glassmorphism Buttons */
+    .ink-seal-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(28, 20, 15, 0.88) 0%, rgba(10, 7, 5, 0.96) 80%, rgba(0, 0, 0, 0.95) 100%);
+      border: 2px solid rgba(212, 175, 55, 0.65);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), inset 0 0 10px rgba(212, 175, 55, 0.25);
+      color: #fce7b2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .ink-seal-btn:hover {
+      transform: scale(1.1);
+      border-color: #facc15;
+      box-shadow: 0 8px 25px rgba(234, 179, 8, 0.45), inset 0 0 14px rgba(250, 204, 21, 0.4);
+    }
+    .ink-seal-btn:active {
+      transform: scale(0.96);
+    }
     .glass-hud {
-      background: rgba(20, 16, 13, 0.76);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-      border: 1px solid rgba(223, 182, 115, 0.28);
-      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      background: rgba(30, 22, 16, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
     }
-    .glass-pill {
-      background: rgba(34, 26, 20, 0.82);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(223, 182, 115, 0.25);
-    }
-    /* Check Vignette Flash */
+    /* Check Vignette Alert */
     #check-vignette {
       pointer-events: none;
       opacity: 0;
-      background: radial-gradient(circle, transparent 45%, rgba(220, 38, 38, 0.68) 100%);
+      background: radial-gradient(circle, transparent 40%, rgba(185, 28, 28, 0.72) 100%);
       transition: opacity 0.15s ease;
     }
-    /* 3D Check Calligraphy Banner */
     #check-banner {
       pointer-events: none;
       opacity: 0;
       transform: translate(-50%, -50%) scale(0.5);
-      text-shadow: 0 0 30px rgba(239, 68, 68, 0.95), 0 6px 20px rgba(0, 0, 0, 0.9);
+      text-shadow: 0 0 35px rgba(239, 68, 68, 0.95), 0 8px 25px rgba(0, 0, 0, 0.9);
     }
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
-      width: 5px;
-      height: 5px;
-    }
-    ::-webkit-scrollbar-track {
-      background: rgba(18, 14, 11, 0.6);
+      width: 4px;
     }
     ::-webkit-scrollbar-thumb {
-      background: rgba(223, 182, 115, 0.35);
+      background: rgba(212, 175, 55, 0.4);
       border-radius: 4px;
     }
   </style>
@@ -80,210 +96,127 @@
   <!-- 3D WebGL Canvas Container -->
   <div id="canvas-container" class="absolute inset-0 z-0"></div>
 
-  <!-- Screen-Space Check Alert Vignette & 3D Calligraphy -->
+  <!-- Screen Alert Vignette & Calligraphy Check Banner -->
   <div id="check-vignette" class="fixed inset-0 z-20"></div>
   <div id="check-banner" class="fixed top-1/2 left-1/2 z-30 flex flex-col items-center">
-    <span class="hanzi-font text-7xl sm:text-8xl font-black text-red-500 tracking-widest drop-shadow-2xl">將！</span>
-    <span class="mt-2 px-5 py-1 rounded-full bg-red-950/90 border border-red-400/60 text-amber-200 font-bold text-lg tracking-[0.35em] uppercase">
-      CHIẾU TƯỚNG
+    <span class="calligraphy-font text-8xl sm:text-9xl font-black text-red-600 tracking-widest drop-shadow-2xl">將！</span>
+    <span class="mt-2 px-6 py-1.5 rounded-full bg-stone-950/90 border border-red-500/80 text-amber-200 font-bold text-lg tracking-[0.4em] uppercase">
+      CHIẾU TƯỚNG TRẢM THÀNH
     </span>
   </div>
 
-  <!-- TOP HUD BAR: Title, Camera Views, Theme Switcher, Audio & Training Mode -->
-  <header class="fixed top-3 left-3 right-3 z-30 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-2xl glass-hud">
-    <!-- Brand Identity -->
+  <!-- TOP HUD BAR: Title & Mode Info -->
+  <header class="fixed top-3 left-4 right-4 z-30 flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 rounded-2xl glass-hud text-amber-100">
     <div class="flex items-center gap-3">
-      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-700 to-red-950 border border-amber-400/60 flex items-center justify-center hanzi-font font-black text-2xl text-amber-100 shadow-lg">
-        帥
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-700 via-amber-600 to-amber-900 border border-amber-300 flex items-center justify-center calligraphy-font text-2xl text-amber-100 shadow-md">
+        無
       </div>
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="font-black text-base sm:text-lg tracking-wider text-amber-100">TƯỢNG KỲ ĐẠI SƯ 3D</h1>
-          <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-500/20 text-amber-300 border border-amber-400/30">
-            PBR WebGL
+          <h1 class="calligraphy-font text-xl sm:text-2xl tracking-wider text-amber-200 font-bold">
+            CHINESE CHESS 3D INVINCIBLE
+          </h1>
+          <span class="px-2 py-0.5 text-[10px] font-mono font-bold uppercase rounded bg-amber-500/25 text-amber-300 border border-amber-400/40">
+            Sống Động 3D
           </span>
         </div>
-        <p class="text-[11px] text-amber-200/75 hidden sm:block">
-          Chuẩn Luật WXF • Quỹ Đạo Bézier • Chuột Phải Kéo Mũi Tên Chiến Thuật
+        <p class="text-[11px] text-amber-200/80 hidden sm:block">
+          Mỗi quân cờ là một chiến tướng/binh chủng sống • Ngai vàng, Kỵ binh, Nỏ chiến, Pháo thủ & Đao binh
         </p>
       </div>
     </div>
 
-    <!-- Camera View Switcher (3 Angles with GSAP Lerp) -->
-    <div class="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-amber-500/20 text-xs">
-      <span class="px-2 text-amber-300/80 font-semibold hidden md:inline">Góc máy:</span>
-      <button id="cam-45" class="cam-btn px-2.5 py-1.5 rounded-lg font-bold bg-amber-400 text-stone-950 transition cursor-pointer">
-        1. Điện Ảnh 45°
-      </button>
-      <button id="cam-top" class="cam-btn px-2.5 py-1.5 rounded-lg font-bold text-amber-100/80 hover:text-amber-200 transition cursor-pointer">
-        2. Chiến Thuật 2.5D
-      </button>
-      <button id="cam-free" class="cam-btn px-2.5 py-1.5 rounded-lg font-bold text-amber-100/80 hover:text-amber-200 transition cursor-pointer">
-        3. Xoay 360°
-      </button>
-    </div>
+    <!-- Active Turn & AI Toggle -->
+    <div class="flex items-center gap-3 text-xs">
+      <div id="turn-badge" class="px-3 py-1.5 rounded-xl bg-red-950/90 border border-red-500/60 text-amber-100 font-black shadow-inner">
+        🔴 ĐỎ: HÁN VƯƠNG TIÊN THỦ
+      </div>
 
-    <!-- Theme Switcher (3 PBR Themes) & Quick Controls -->
-    <div class="flex items-center gap-2 text-xs">
-      <select id="theme-select" class="px-3 py-1.5 rounded-xl glass-pill text-amber-200 font-bold focus:outline-none cursor-pointer">
-        <option value="ebony">🏮 Hoàng Gia Cổ Điển (Gỗ Mun)</option>
-        <option value="jade">💎 Tiên Cảnh Ngọc Bích (Đá Trắng)</option>
-        <option value="cyber">⚡ Hologram Tương Lai (Neon)</option>
-      </select>
-
-      <button id="btn-label-mode" class="px-3 py-1.5 rounded-xl glass-pill text-amber-200 hover:bg-amber-500/20 font-bold transition cursor-pointer" title="Đổi chữ trên mặt quân cờ">
-        Chữ: Hán + Việt
-      </button>
-
-      <button id="btn-ai-toggle" class="px-3 py-1.5 rounded-xl bg-emerald-900/70 border border-emerald-400/40 text-emerald-200 font-bold hover:bg-emerald-800/80 transition cursor-pointer">
+      <button id="btn-toggle-ai" class="px-3 py-1.5 rounded-xl bg-emerald-950/80 border border-emerald-400/50 text-emerald-200 font-bold hover:bg-emerald-900 transition cursor-pointer">
         🤖 Đấu AI: BẬT
       </button>
 
-      <button id="btn-sound" class="px-2.5 py-1.5 rounded-xl glass-pill text-amber-200 hover:bg-amber-500/20 font-bold transition cursor-pointer" title="Âm thanh gỗ Web Audio API">
-        🔊 Âm
+      <button id="btn-piece-style" class="px-3 py-1.5 rounded-xl bg-amber-950/80 border border-amber-400/50 text-amber-200 font-bold hover:bg-amber-900 transition cursor-pointer" title="Chuyển đổi giữa Nhân vật sống 3D và Quân ngọc PBR">
+        Tạo Hình: Tướng Sống 3D
       </button>
     </div>
   </header>
 
-  <!-- LEFT HUD: Real-Time Evaluation Bar + Captured Pieces Tray -->
-  <aside class="fixed left-3 top-20 bottom-3 z-20 flex items-center gap-2.5 pointer-events-none">
-    <!-- Vertical Evaluation Bar (Smooth Water-Flow Lerp) -->
-    <div class="pointer-events-auto h-[460px] w-7 rounded-2xl glass-hud p-1 flex flex-col justify-between items-center relative overflow-hidden shadow-2xl" title="Thanh đánh giá ưu thế thế trận theo thời gian thực">
+  <!-- LEFT HUD: Real-Time Evaluation Bar + Ink Wash Seals -->
+  <aside class="fixed left-4 top-24 bottom-4 z-20 flex items-center gap-3 pointer-events-none">
+    <!-- Real-time Vertical Evaluation Bar -->
+    <div class="pointer-events-auto h-[480px] w-7 rounded-2xl glass-hud p-1 flex flex-col justify-between items-center relative overflow-hidden shadow-2xl" title="Thanh đánh giá thế trận">
       <div class="w-full h-full rounded-xl overflow-hidden flex flex-col bg-stone-900 relative">
-        <!-- Black Advantage Portion (Top) -->
         <div id="eval-black-bar" class="w-full bg-gradient-to-b from-slate-900 via-slate-800 to-cyan-950 transition-all duration-700" style="height: 50%;"></div>
-        <!-- Red Advantage Portion (Bottom) -->
         <div id="eval-red-bar" class="w-full bg-gradient-to-t from-red-900 via-red-700 to-amber-500 transition-all duration-700" style="height: 50%;"></div>
-        <!-- Center River Equilibrium Tick -->
-        <div class="absolute top-1/2 left-0 right-0 h-[2px] bg-amber-300/80 z-10"></div>
+        <div class="absolute top-1/2 left-0 right-0 h-[2px] bg-amber-300 z-10"></div>
       </div>
-      <span id="eval-score-text" class="absolute top-1/2 -translate-y-1/2 px-1 py-0.5 rounded bg-black/85 text-[10px] font-mono font-black text-amber-300 border border-amber-400/40 z-20">
+      <span id="eval-score-text" class="absolute top-1/2 -translate-y-1/2 px-1 py-0.5 rounded bg-black/90 text-[10px] font-mono font-black text-amber-300 border border-amber-400/40 z-20">
         0.0
       </span>
     </div>
 
-    <!-- Captured Pieces & Active Turn Card -->
-    <div class="pointer-events-auto w-56 rounded-2xl glass-hud p-3.5 flex flex-col gap-3 text-xs">
-      <!-- Turn Status -->
-      <div class="flex items-center justify-between border-b border-amber-500/20 pb-2.5">
-        <span class="text-amber-200/80 font-semibold">Lượt đi hiện tại:</span>
-        <span id="turn-badge" class="px-2.5 py-1 rounded-lg bg-red-900/80 border border-red-400/50 text-amber-100 font-black">
-          🔴 ĐỎ (TIÊN)
-        </span>
-      </div>
+    <!-- Floating Camera View Seal -->
+    <div class="pointer-events-auto flex flex-col gap-3">
+      <button id="seal-camera" class="ink-seal-btn" title="Đổi góc máy điện ảnh / từ trên xuống / 360 độ">
+        <svg class="w-5 h-5 mb-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+        <span class="text-[10px] font-bold">Góc Nhìn</span>
+      </button>
 
-      <!-- Training & Preset Selector (GSAP Stagger Fly-In) -->
-      <div class="space-y-1.5">
-        <label class="text-amber-300 font-bold block text-xs">📜 Khai Cuộc & Cờ Thế Kinh Điển:</label>
-        <select id="preset-select" class="w-full px-2.5 py-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-100 font-semibold text-xs focus:outline-none cursor-pointer">
-          <option value="standard">0. Khởi Đầu Tiêu Chuẩn (Đầy Đủ Quân)</option>
-          <optgroup label="── KHAI CUỘC TINH HOA (TẦNG 3) ──">
-            <option value="opening_1">1. Trung Pháo Đối Bình Phong Mã</option>
-            <option value="opening_2">2. Tiên Nhân Chỉ Lộ (B7.1)</option>
-            <option value="opening_3">3. Thuận Pháo (Trực Xa Đối Hoành Xa)</option>
-            <option value="opening_4">4. Phi Tượng Cuộc (T3.5)</option>
-            <option value="opening_5">5. Trung Pháo Công Phản Cung Mã</option>
-          </optgroup>
-          <optgroup label="── SÁT PHÁP & CỜ THẾ GIANG HỒ ──">
-            <option value="puzzle_1">6. Thiết Môn Phá Thành (Mã Ngọa Tào)</option>
-            <option value="puzzle_2">7. Phế Xe Tranh Tiên (Mã Hậu Pháo)</option>
-            <option value="puzzle_3">8. Đơn Đao Phó Hội (Đơn Xe Phá Sĩ)</option>
-            <option value="puzzle_4">9. Thất Tinh Tụ Hội (Cờ Thế Đỉnh Cao)</option>
-            <option value="puzzle_5">10. Dã Mã Thao Điền (Phế Song Xa)</option>
-          </optgroup>
-        </select>
-        <p id="preset-desc" class="text-[11px] text-amber-100/80 italic leading-relaxed bg-black/35 p-2 rounded-lg border border-amber-500/15">
-          Chọn khai cuộc hoặc cờ thế để xem các quân cờ bay vào vị trí bằng hiệu ứng GSAP Stagger 3D kèm mũi tên gợi ý.
-        </p>
-      </div>
+      <button id="seal-hint" class="ink-seal-btn" title="Đại sư gợi ý nước đi tiếp theo">
+        <span class="calligraphy-font text-lg text-amber-300">策</span>
+        <span class="text-[9px] font-bold">Kỳ Sách</span>
+      </button>
+    </div>
+  </aside>
 
-      <!-- Captured Pieces Tray -->
-      <div class="space-y-2 pt-1 border-t border-amber-500/20">
-        <div>
-          <span class="text-[11px] text-red-300 font-bold block mb-1">Chiến lợi phẩm Đỏ bắt được:</span>
-          <div id="captured-by-red" class="min-h-[28px] flex flex-wrap gap-1 p-1.5 rounded-lg bg-black/40 border border-white/5 text-xs">
-            <span class="text-stone-500 italic text-[11px]">Chưa ăn quân</span>
-          </div>
-        </div>
-        <div>
-          <span class="text-[11px] text-cyan-300 font-bold block mb-1">Chiến lợi phẩm Đen bắt được:</span>
-          <div id="captured-by-black" class="min-h-[28px] flex flex-wrap gap-1 p-1.5 rounded-lg bg-black/40 border border-white/5 text-xs">
-            <span class="text-stone-500 italic text-[11px]">Chưa ăn quân</span>
-          </div>
-        </div>
+  <!-- RIGHT HUD: Traditional Ink Wash Circle Seals (Sound, Undo, Restart) & History Drawer -->
+  <aside class="fixed right-4 top-24 bottom-4 z-20 flex flex-col items-end justify-between pointer-events-none">
+    <!-- Traditional Ink Circle Seals (Sound, Undo, Restart) -->
+    <div class="pointer-events-auto flex flex-col items-center gap-3.5">
+      <!-- Sound Seal -->
+      <button id="seal-sound" class="ink-seal-btn" title="Bật/Tắt âm thanh trận chiến">
+        <span class="calligraphy-font text-xl text-amber-300">聲音</span>
+        <span class="text-[9px] font-bold">Âm Thanh</span>
+      </button>
+
+      <!-- Undo Seal (悔棋) -->
+      <button id="seal-undo" class="ink-seal-btn" title="Đi lại nước cờ (Hối Kỳ)">
+        <span class="calligraphy-font text-xl text-amber-300">悔棋</span>
+        <span class="text-[9px] font-bold">Đi Lại</span>
+      </button>
+
+      <!-- Restart Seal (重玩) -->
+      <button id="seal-restart" class="ink-seal-btn" title="Xếp lại ván mới (Trùng Ngoạn)">
+        <span class="calligraphy-font text-xl text-amber-300">重玩</span>
+        <span class="text-[9px] font-bold">Ván Mới</span>
+      </button>
+    </div>
+
+    <!-- Move History & Commentary Glass Drawer -->
+    <div class="pointer-events-auto w-64 rounded-2xl glass-hud p-3.5 flex flex-col text-xs text-amber-100 gap-2">
+      <div class="flex items-center justify-between border-b border-amber-500/25 pb-1.5">
+        <span class="font-bold text-amber-200">⚔️ CHIẾN TRƯỜNG KỲ LỤC</span>
+        <span id="move-count-badge" class="text-[11px] font-mono text-amber-300">0 Nước</span>
+      </div>
+      <div id="history-box" class="h-44 overflow-y-auto space-y-1 bg-black/40 p-2 rounded-xl border border-amber-500/15 text-[11px]">
+        <div class="text-stone-400 italic text-center py-6">Hai quân đang dàn trận...</div>
       </div>
     </div>
   </aside>
 
-  <!-- RIGHT HUD: Move History (Vietnamese Standard Notation), Action Controls & Board Editor -->
-  <aside class="fixed right-3 top-20 bottom-3 z-20 w-72 flex flex-col gap-2.5 pointer-events-none">
-    <div class="pointer-events-auto flex-1 rounded-2xl glass-hud p-4 flex flex-col justify-between overflow-hidden">
-      <!-- Top Section: Move Coach & Tactical Hint -->
-      <div class="space-y-2.5">
-        <div class="flex items-center justify-between border-b border-amber-500/20 pb-2">
-          <h2 class="font-black text-sm text-amber-200 tracking-wide">📖 BIÊN BẢN KỲ PHỔ</h2>
-          <button id="btn-hint" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/35 border border-amber-400/40 text-amber-200 text-xs font-bold transition cursor-pointer">
-            💡 Gợi ý mũi tên
-          </button>
-        </div>
-
-        <!-- Move Evaluation Banner -->
-        <div id="coach-box" class="p-2.5 rounded-xl bg-black/45 border border-amber-500/25 text-xs space-y-1">
-          <div class="flex items-center justify-between">
-            <span id="coach-badge" class="font-bold text-amber-300">✨ Sẵn sàng khai cuộc</span>
-            <span id="coach-move-code" class="font-mono text-[11px] text-emerald-300 font-bold"></span>
-          </div>
-          <p id="coach-text" class="text-amber-100/85 leading-relaxed text-[11px]">
-            Click vào quân cờ để nâng quân lên không trung; kéo chuột phải giữa 2 ô để vẽ mũi tên chiến thuật 3D.
-          </p>
-        </div>
-      </div>
-
-      <!-- Middle Section: Scrollable Move History List -->
-      <div class="my-2.5 flex-1 overflow-y-auto pr-1 space-y-1 bg-black/35 p-2.5 rounded-xl border border-white/5" id="move-history-list">
-        <div class="text-stone-400 italic text-xs text-center py-8">
-          Chưa có nước đi nào được thực hiện.
-        </div>
-      </div>
-
-      <!-- Board Editor Palette (Hidden unless Editor Mode is toggled) -->
-      <div id="editor-panel" class="hidden mb-2.5 p-2.5 rounded-xl bg-amber-950/40 border border-amber-400/40 space-y-2 text-xs">
-        <div class="flex items-center justify-between">
-          <span class="font-bold text-amber-200">🛠️ Xếp Cờ Thế (Click ô để đặt):</span>
-          <button id="btn-clear-board" class="px-2 py-0.5 rounded bg-red-900/70 text-red-200 text-[11px] font-bold cursor-pointer">
-            Xóa trống
-          </button>
-        </div>
-        <div class="grid grid-cols-7 gap-1" id="editor-palette"></div>
-      </div>
-
-      <!-- Bottom Action Buttons -->
-      <div class="grid grid-cols-2 gap-2 pt-2 border-t border-amber-500/20 text-xs font-bold">
-        <button id="btn-undo" class="py-2 px-3 rounded-xl glass-pill hover:bg-amber-500/20 text-amber-100 transition cursor-pointer">
-          ↩️ Đi lại (Undo)
-        </button>
-        <button id="btn-reset" class="py-2 px-3 rounded-xl glass-pill hover:bg-amber-500/20 text-amber-100 transition cursor-pointer">
-          🔄 Xếp lại ván
-        </button>
-        <button id="btn-editor" class="py-2 px-3 rounded-xl glass-pill hover:bg-amber-500/20 text-amber-200 transition cursor-pointer">
-          🛠️ Xếp Cờ Thế
-        </button>
-        <button id="btn-clear-arrows" class="py-2 px-3 rounded-xl glass-pill hover:bg-amber-500/20 text-amber-200 transition cursor-pointer">
-          🧹 Xóa mũi tên
-        </button>
-      </div>
-    </div>
-  </aside>
-
-  <!-- MAIN APPLICATION SCRIPT (Three.js + GSAP + WXF Xiangqi Engine) -->
+  <!-- MAIN 3D APPLICATION WITH LIVING PROCEDURAL CHARACTERS -->
   <script type="module">
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
     /**********************************************************************
-     * 1. WEB AUDIO API TACTILE SOUND SYNTHESIZER (Zero External Assets)
+     * 1. BATTLE SOUND SYNTHESIZER (Web Audio API)
      **********************************************************************/
-    class SoundSynth {
+    class BattleSoundSynth {
       constructor() {
         this.ctx = null;
         this.muted = false;
@@ -302,161 +235,99 @@
         const now = this.ctx.currentTime;
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(520, now);
-        osc.frequency.exponentialRampToValueAtTime(680, now + 0.06);
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.exponentialRampToValueAtTime(660, now + 0.08);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.07);
+        osc.stop(now + 0.1);
       }
-      playWoodStrike(isHeavyCapture = false) {
+      playStepImpact(type) {
         if (this.muted) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        // Deep Rosewood/Ebony knock resonance
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        const isCavalry = type === 'H';
+        const isChariot = type === 'R';
+        osc.frequency.setValueAtTime(isChariot ? 120 : isCavalry ? 180 : 220, now);
+        osc.frequency.exponentialRampToValueAtTime(45, now + 0.12);
+        gain.gain.setValueAtTime(0.5, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.14);
+      }
+      playCombatExplosion(type) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        // Deep Cannon / Sword Clang Explosion
         const osc = this.ctx.createOscillator();
         const gain = this.ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(isHeavyCapture ? 155 : 210, now);
-        osc.frequency.exponentialRampToValueAtTime(42, now + (isHeavyCapture ? 0.16 : 0.095));
-        gain.gain.setValueAtTime(isHeavyCapture ? 0.65 : 0.42, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + (isHeavyCapture ? 0.17 : 0.1));
+        osc.frequency.setValueAtTime(type === 'C' ? 95 : 150, now);
+        osc.frequency.exponentialRampToValueAtTime(30, now + 0.32);
+        gain.gain.setValueAtTime(0.8, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
         osc.connect(gain);
         gain.connect(this.ctx.destination);
         osc.start(now);
-        osc.stop(now + 0.18);
-
-        // Crisp high-frequency surface transient
-        const bufferSize = this.ctx.sampleRate * 0.035;
-        const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-        const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
-        }
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = buffer;
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.value = isHeavyCapture ? 980 : 1350;
-        const nGain = this.ctx.createGain();
-        nGain.gain.setValueAtTime(isHeavyCapture ? 0.55 : 0.3, now);
-        nGain.gain.exponentialRampToValueAtTime(0.01, now + 0.035);
-        noise.connect(filter);
-        filter.connect(nGain);
-        nGain.connect(this.ctx.destination);
-        noise.start(now);
+        osc.stop(now + 0.36);
       }
-      playCheckAlert() {
+      playCheckHorns() {
         if (this.muted) return;
         this.init();
         if (!this.ctx) return;
         const now = this.ctx.currentTime;
-        [440, 587.33, 880].forEach((freq, idx) => {
+        [220, 277.18, 329.63, 440].forEach((freq, idx) => {
           const osc = this.ctx.createOscillator();
           const gain = this.ctx.createGain();
           osc.type = 'sawtooth';
-          osc.frequency.setValueAtTime(freq, now + idx * 0.05);
-          gain.gain.setValueAtTime(0.14, now + idx * 0.05);
-          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.35);
+          osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+          gain.gain.setValueAtTime(0.18, now + idx * 0.06);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.5);
           osc.connect(gain);
           gain.connect(this.ctx.destination);
-          osc.start(now + idx * 0.05);
-          osc.stop(now + idx * 0.05 + 0.36);
+          osc.start(now + idx * 0.06);
+          osc.stop(now + idx * 0.06 + 0.52);
         });
       }
     }
-    const sound = new SoundSynth();
+    const sound = new BattleSoundSynth();
 
     /**********************************************************************
-     * 2. COMPLETE WXF XIANGQI RULE ENGINE & NOTATION
+     * 2. COMPLETE WXF XIANGQI RULE ENGINE
      **********************************************************************/
     const PIECE_META = {
-      K: { nameVi: 'Tướng', codeVn: 'Tg', hanRed: '帥', hanBlack: '將', value: 1000 },
-      A: { nameVi: 'Sĩ', codeVn: 'S', hanRed: '仕', hanBlack: '士', value: 20 },
-      E: { nameVi: 'Tượng', codeVn: 'T', hanRed: '相', hanBlack: '象', value: 20 },
-      R: { nameVi: 'Xe', codeVn: 'X', hanRed: '俥', hanBlack: '車', value: 90 },
-      C: { nameVi: 'Pháo', codeVn: 'P', hanRed: '炮', hanBlack: '砲', value: 45 },
-      H: { nameVi: 'Mã', codeVn: 'M', hanRed: '傌', hanBlack: '馬', value: 40 },
-      P: { nameVi: 'Tốt', codeVn: 'B', hanRed: '兵', hanBlack: '卒', value: 10 },
+      K: { nameVi: 'Tướng', hanRed: '帥', hanBlack: '將', value: 1000 },
+      A: { nameVi: 'Sĩ', hanRed: '仕', hanBlack: '士', value: 20 },
+      E: { nameVi: 'Tượng', hanRed: '相', hanBlack: '象', value: 20 },
+      R: { nameVi: 'Xe', hanRed: '俥', hanBlack: '車', value: 90 },
+      C: { nameVi: 'Pháo', hanRed: '炮', hanBlack: '砲', value: 45 },
+      H: { nameVi: 'Mã', hanRed: '傌', hanBlack: '馬', value: 40 },
+      P: { nameVi: 'Tốt', hanRed: '兵', hanBlack: '卒', value: 10 },
     };
 
-    const INITIAL_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1p1P/1C5C1/9/RNBAKABNR'.replace('p1P', 'P1P') + ' r - - 0 1';
-
-    const PRESETS = {
-      standard: {
-        fen: 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r - - 0 1',
-        desc: 'Thế trận khởi đầu tiêu chuẩn 32 quân. Tiên đi Pháo 2 bình 5 (P2-5) hoặc Mã 2 tấn 3 (M2.3).',
-        hintArrow: { from: { r: 7, c: 7 }, to: { r: 7, c: 4 } },
-      },
-      opening_1: {
-        fen: 'r1bakab1r/9/1cn4c1/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKAB1R r - - 0 4',
-        desc: 'Khai Cuộc Kinh Điển: Trung Pháo Đối Bình Phong Mã. Đỏ chuẩn bị xuất trực xa X1-2 hoặc thúc B7.1.',
-        hintArrow: { from: { r: 9, c: 8 }, to: { r: 9, c: 7 } },
-      },
-      opening_2: {
-        fen: 'rnbakabnr/9/2c4c1/p1p1p1p1p/9/2P6/P3P1P1P/1C5C1/9/RNBAKABNR r - - 0 2',
-        desc: 'Tiên Nhân Chỉ Lộ (B7.1 đối Liễm Pháo P2-3): Linh hoạt chuyển Trung Pháo P2-5 công trung lộ.',
-        hintArrow: { from: { r: 7, c: 7 }, to: { r: 7, c: 4 } },
-      },
-      opening_3: {
-        fen: 'r1bakabnr/9/1c2c4/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKAB1R r - - 0 3',
-        desc: 'Thuận Pháo Đôi Công: Đỏ và Đen cùng đóng Pháo đầu, tốc độ xuất Xe quyết định Tiên thủ.',
-        hintArrow: { from: { r: 9, c: 8 }, to: { r: 9, c: 7 } },
-      },
-      opening_4: {
-        fen: 'rnbakabnr/9/1c2c4/p1p1p1p1p/9/9/P1P1P1P1P/1C2B2C1/9/RNBAK1BNR r - - 0 2',
-        desc: 'Phi Tượng Cuộc (T3.5): Lấy nhu thắng cương, củng cố trung lộ trước khi phản kích.',
-        hintArrow: { from: { r: 9, c: 7 }, to: { r: 7, c: 6 } },
-      },
-      opening_5: {
-        fen: 'r1bakab1r/9/2n1cc3/p1p1p1p1p/9/9/P1P1P1P1P/1C2C4/9/RNBAKAB1R r - - 0 4',
-        desc: 'Trung Pháo Công Phản Cung Mã: Thúc tốt B7.1 đè cánh Mã Đen và mở đường Mã Đỏ.',
-        hintArrow: { from: { r: 6, c: 2 }, to: { r: 5, c: 2 } },
-      },
-      puzzle_1: {
-        fen: '2b1kab2/4n1C2/4N4/3c5/9/5R3/9/4C4/9/4K4 r - - 0 1',
-        desc: 'Thiết Môn Phá Thành (2 nước sát): Nhảy Mã Ngọa Tào M5.7 chiếu Tướng, ép Tg5-4 rồi đâm Xe X4.5 chiếu bí!',
-        hintArrow: { from: { r: 2, c: 4 }, to: { r: 1, c: 2 } },
-      },
-      puzzle_2: {
-        fen: '2baka3/9/9/5N3/3Rp4/9/9/3C5/9/4K4 r - - 0 1',
-        desc: 'Phế Quân Tranh Tiên (Mã Hậu Pháo): Phế Xe chém Sĩ X6.4 chiếu ép Tướng Đen xuất cung rồi nhảy M4.6 sát cục!',
-        hintArrow: { from: { r: 4, c: 3 }, to: { r: 0, c: 3 } },
-      },
-      puzzle_3: {
-        fen: '4k1P2/4a4/4R4/9/9/9/9/9/9/4K4 r - - 0 1',
-        desc: 'Đơn Đao Phó Hội: Dùng Xe chém Sĩ tâm cung X5.1 ép Tg5-4, sau đó thoái Xe X5/2 rồi bình X5-6 tuyệt sát!',
-        hintArrow: { from: { r: 2, c: 4 }, to: { r: 1, c: 4 } },
-      },
-      puzzle_4: {
-        fen: '4rk3/3P5/4bP3/9/9/8P/9/1p2p2C1/3p1p3/4K1RR1 r - - 0 1',
-        desc: 'Thất Tinh Tụ Hội (Đệ Nhất Cờ Thế Giang Hồ): Bình Pháo P2-4 giải sát hoàn sát, mở màn đại chiến!',
-        hintArrow: { from: { r: 7, c: 7 }, to: { r: 7, c: 5 } },
-      },
-      puzzle_5: {
-        fen: '2bak4/4a4/4b4/9/6NRR/2B6/1rP1P4/3pB4/4p4/3K5 r - - 0 1',
-        desc: 'Dã Mã Thao Điền: Phế liên hoàn Song Xa X1.4 để Mã Đỏ nhảy liên hoàn khóa tử Cửu cung!',
-        hintArrow: { from: { r: 4, c: 8 }, to: { r: 0, c: 8 } },
-      },
-    };
+    const INITIAL_FEN = 'rnbakabnr/9/1c5c1/p1p1p1p1p/9/9/P1P1P1P1P/1C5C1/9/RNBAKABNR r - - 0 1';
 
     function parseFEN(fen) {
       const [rowsPart, turnPart] = fen.trim().split(/\s+/);
       const rows = rowsPart.split('/');
       const board = Array.from({ length: 10 }, () => Array(9).fill(null));
-      const mapChar = {
-        k: 'K', a: 'A', b: 'E', e: 'E', r: 'R', c: 'C', n: 'H', h: 'H', p: 'P',
-      };
+      const mapChar = { k: 'K', a: 'A', b: 'E', e: 'E', r: 'R', c: 'C', n: 'H', h: 'H', p: 'P' };
       for (let r = 0; r < 10; r++) {
         let c = 0;
         for (const ch of rows[r] || '') {
-          if (/\d/.test(ch)) {
-            c += parseInt(ch, 10);
-          } else {
+          if (/\d/.test(ch)) c += parseInt(ch, 10);
+          else {
             const side = ch === ch.toUpperCase() ? 'r' : 'b';
             const type = mapChar[ch.toLowerCase()];
             if (type && c < 9) board[r][c] = { type, side };
@@ -467,99 +338,57 @@
       return { board, turn: turnPart === 'b' ? 'b' : 'r' };
     }
 
-    function cloneBoard(board) {
-      return board.map((row) => row.map((cell) => (cell ? { ...cell } : null)));
-    }
-
-    function inBounds(r, c) {
-      return r >= 0 && r < 10 && c >= 0 && c < 9;
-    }
-
+    function inBounds(r, c) { return r >= 0 && r < 10 && c >= 0 && c < 9; }
     function inPalace(side, r, c) {
       if (c < 3 || c > 5) return false;
       return side === 'r' ? r >= 7 && r <= 9 : r >= 0 && r <= 2;
     }
-
-    function colToFile(c, side) {
-      return side === 'r' ? 9 - c : c + 1;
-    }
-
-    function formatVnMove(from, to, piece) {
-      const meta = PIECE_META[piece.type];
-      const f1 = colToFile(from.c, piece.side);
-      const f2 = colToFile(to.c, piece.side);
-      const dr = to.r - from.r;
-      const isForward = piece.side === 'r' ? dr < 0 : dr > 0;
-      if (from.r === to.r) {
-        return {
-          code: `${meta.codeVn}${f1}-${f2}`,
-          full: `${meta.nameVi} ${f1} bình ${f2}`,
-        };
-      }
-      const actionChar = isForward ? '.' : '/';
-      const actionWord = isForward ? 'tấn' : 'thoái';
-      if (piece.type === 'H' || piece.type === 'E' || piece.type === 'A') {
-        return {
-          code: `${meta.codeVn}${f1}${actionChar}${f2}`,
-          full: `${meta.nameVi} ${f1} ${actionWord} ${f2}`,
-        };
-      }
-      const steps = Math.abs(dr);
-      return {
-        code: `${meta.codeVn}${f1}${actionChar}${steps}`,
-        full: `${meta.nameVi} ${f1} ${actionWord} ${steps}`,
-      };
-    }
+    function cloneBoard(b) { return b.map((row) => row.map((cell) => (cell ? { ...cell } : null))); }
 
     function getPseudoTargets(board, r, c) {
-      const piece = board[r][c];
-      if (!piece) return [];
+      const p = board[r][c];
+      if (!p) return [];
       const targets = [];
-      const { type, side } = piece;
       const addIfValid = (nr, nc) => {
         if (!inBounds(nr, nc)) return;
         const dest = board[nr][nc];
-        if (!dest || dest.side !== side) targets.push({ r: nr, c: nc });
+        if (!dest || dest.side !== p.side) targets.push({ r: nr, c: nc });
       };
 
-      if (type === 'K') {
+      if (p.type === 'K') {
         [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
-          if (inPalace(side, r + dr, c + dc)) addIfValid(r + dr, c + dc);
+          if (inPalace(p.side, r + dr, c + dc)) addIfValid(r + dr, c + dc);
         });
-      } else if (type === 'A') {
+      } else if (p.type === 'A') {
         [[-1, -1], [-1, 1], [1, -1], [1, 1]].forEach(([dr, dc]) => {
-          if (inPalace(side, r + dr, c + dc)) addIfValid(r + dr, c + dc);
+          if (inPalace(p.side, r + dr, c + dc)) addIfValid(r + dr, c + dc);
         });
-      } else if (type === 'E') {
+      } else if (p.type === 'E') {
         [[-2, -2, -1, -1], [-2, 2, -1, 1], [2, -2, 1, -1], [2, 2, 1, 1]].forEach(([dr, dc, er, ec]) => {
           const nr = r + dr, nc = c + dc;
           if (!inBounds(nr, nc)) return;
-          if (side === 'r' && nr < 5) return;
-          if (side === 'b' && nr > 4) return;
+          if (p.side === 'r' && nr < 5) return;
+          if (p.side === 'b' && nr > 4) return;
           if (!board[r + er][c + ec]) addIfValid(nr, nc);
         });
-      } else if (type === 'H') {
+      } else if (p.type === 'H') {
         const jumps = [
-          [-2, -1, -1, 0], [-2, 1, -1, 0],
-          [2, -1, 1, 0], [2, 1, 1, 0],
-          [-1, -2, 0, -1], [1, -2, 0, -1],
-          [-1, 2, 0, 1], [1, 2, 0, 1],
+          [-2, -1, -1, 0], [-2, 1, -1, 0], [2, -1, 1, 0], [2, 1, 1, 0],
+          [-1, -2, 0, -1], [1, -2, 0, -1], [-1, 2, 0, 1], [1, 2, 0, 1],
         ];
         jumps.forEach(([dr, dc, lr, lc]) => {
-          if (inBounds(r + dr, c + dc) && !board[r + lr][c + lc]) {
-            addIfValid(r + dr, c + dc);
-          }
+          if (inBounds(r + dr, c + dc) && !board[r + lr][c + lc]) addIfValid(r + dr, c + dc);
         });
-      } else if (type === 'R' || type === 'C') {
+      } else if (p.type === 'R' || p.type === 'C') {
         [[-1, 0], [1, 0], [0, -1], [0, 1]].forEach(([dr, dc]) => {
           let nr = r + dr, nc = c + dc;
           let jumped = false;
           while (inBounds(nr, nc)) {
             const occ = board[nr][nc];
-            if (type === 'R') {
+            if (p.type === 'R') {
               if (!occ) targets.push({ r: nr, c: nc });
               else {
-                if (occ.side !== side) targets.push({ r: nr, c: nc });
+                if (occ.side !== p.side) targets.push({ r: nr, c: nc });
                 break;
               }
             } else {
@@ -567,7 +396,7 @@
                 if (!occ) targets.push({ r: nr, c: nc });
                 else jumped = true;
               } else if (occ) {
-                if (occ.side !== side) targets.push({ r: nr, c: nc });
+                if (occ.side !== p.side) targets.push({ r: nr, c: nc });
                 break;
               }
             }
@@ -575,10 +404,10 @@
             nc += dc;
           }
         });
-      } else if (type === 'P') {
-        const fwd = side === 'r' ? -1 : 1;
+      } else if (p.type === 'P') {
+        const fwd = p.side === 'r' ? -1 : 1;
         addIfValid(r + fwd, c);
-        const crossed = side === 'r' ? r <= 4 : r >= 5;
+        const crossed = p.side === 'r' ? r <= 4 : r >= 5;
         if (crossed) {
           addIfValid(r, c - 1);
           addIfValid(r, c + 1);
@@ -607,43 +436,38 @@
       return true;
     }
 
-    function findCheckingPieces(board, targetSide) {
-      const k = findKing(board, targetSide);
-      if (!k) return [];
-      const opp = targetSide === 'r' ? 'b' : 'r';
-      const attackers = [];
+    function isKingInCheck(board, side) {
+      if (areKingsFacing(board)) return true;
+      const k = findKing(board, side);
+      if (!k) return false;
+      const opp = side === 'r' ? 'b' : 'r';
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           const p = board[r][c];
           if (p && p.side === opp) {
-            const pseudo = getPseudoTargets(board, r, c);
-            if (pseudo.some((t) => t.r === k.r && t.c === k.c)) {
-              attackers.push({ r, c, piece: p });
-            }
+            const targets = getPseudoTargets(board, r, c);
+            if (targets.some((t) => t.r === k.r && t.c === k.c)) return true;
           }
         }
       }
-      return attackers;
-    }
-
-    function isKingInCheck(board, side) {
-      if (areKingsFacing(board)) return true;
-      return findCheckingPieces(board, side).length > 0;
+      return false;
     }
 
     function getLegalMoves(board, r, c) {
-      const piece = board[r][c];
-      if (!piece) return [];
+      const p = board[r][c];
+      if (!p) return [];
       const pseudo = getPseudoTargets(board, r, c);
       const legal = [];
       for (const to of pseudo) {
         const next = cloneBoard(board);
         const captured = next[to.r][to.c];
-        next[to.r][to.c] = piece;
+        next[to.r][to.c] = p;
         next[r][c] = null;
-        if (!isKingInCheck(next, piece.side)) {
-          const vn = formatVnMove({ r, c }, to, piece);
-          legal.push({ from: { r, c }, to, piece, captured, code: vn.code, full: vn.full });
+        if (!isKingInCheck(next, p.side)) {
+          const f1 = p.side === 'r' ? 9 - c : c + 1;
+          const f2 = p.side === 'r' ? 9 - to.c : to.c + 1;
+          const notation = `${PIECE_META[p.type].nameVi} ${f1} -> ${f2}`;
+          legal.push({ from: { r, c }, to, piece: p, captured, notation });
         }
       }
       return legal;
@@ -667,11 +491,7 @@
           const p = board[r][c];
           if (!p) continue;
           let val = PIECE_META[p.type].value;
-          if (p.type === 'P') {
-            const crossed = p.side === 'r' ? r <= 4 : r >= 5;
-            if (crossed) val += 12;
-          }
-          if (c >= 3 && c <= 5 && r >= 2 && r <= 7) val += 3;
+          if (p.type === 'P' && (p.side === 'r' ? r <= 4 : r >= 5)) val += 12;
           score += p.side === 'r' ? val : -val;
         }
       }
@@ -687,24 +507,9 @@
         const next = cloneBoard(board);
         next[m.to.r][m.to.c] = m.piece;
         next[m.from.r][m.from.c] = null;
-        // 2-ply lookahead
-        const opp = side === 'r' ? 'b' : 'r';
-        const oppMoves = getAllLegalMoves(next, opp);
-        let worstReply = evaluateBoard(next);
-        if (oppMoves.length === 0) {
-          worstReply = side === 'r' ? 9999 : -9999;
-        } else {
-          for (const om of oppMoves) {
-            const n2 = cloneBoard(next);
-            n2[om.to.r][om.to.c] = om.piece;
-            n2[om.from.r][om.from.c] = null;
-            const sc = evaluateBoard(n2);
-            if (side === 'r') worstReply = Math.min(worstReply, sc);
-            else worstReply = Math.max(worstReply, sc);
-          }
-        }
-        if ((side === 'r' && worstReply > bestVal) || (side === 'b' && worstReply < bestVal)) {
-          bestVal = worstReply;
+        const val = evaluateBoard(next);
+        if ((side === 'r' && val > bestVal) || (side === 'b' && val < bestVal)) {
+          bestVal = val;
           bestMove = m;
         }
       }
@@ -712,151 +517,91 @@
     }
 
     /**********************************************************************
-     * 3. THREE.JS 3D SCENE, PBR MATERIALS, & SPATIAL COORDINATES
+     * 3. THREE.JS SCENE, SKYBOX & INK WASH ENVIRONMENT
      **********************************************************************/
-    const CELL_SIZE = 1.05;
-    const PIECE_RADIUS = 0.43;
-    const PIECE_HEIGHT = 0.24;
-    const BOARD_TOP_Y = 0;
-
-    // Spatial mapping: (r, c) <-> (X, Z)
+    const CELL_SIZE = 1.08;
     const gridToWorld = (r, c) => ({
       x: (c - 4) * CELL_SIZE,
       z: (r - 4.5) * CELL_SIZE,
     });
-
     const worldToGrid = (x, z) => {
       const c = Math.round(x / CELL_SIZE + 4);
       const r = Math.round(z / CELL_SIZE + 4.5);
       if (!inBounds(r, c)) return null;
-      const wx = (c - 4) * CELL_SIZE;
-      const wz = (r - 4.5) * CELL_SIZE;
-      if (Math.hypot(x - wx, z - wz) > CELL_SIZE * 0.48) return null;
+      if (Math.hypot(x - (c - 4) * CELL_SIZE, z - (r - 4.5) * CELL_SIZE) > CELL_SIZE * 0.48) return null;
       return { r, c };
     };
 
     const container = document.getElementById('canvas-container');
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0907, 0.032);
+    scene.background = new THREE.Color(0xd6c6b2);
+    scene.fog = new THREE.FogExp2(0xd6c6b2, 0.022);
 
-    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 120);
-    camera.position.set(0, 10.2, 9.8);
+    const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(0, 11.5, 9.5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.18;
+    renderer.toneMappingExposure = 1.15;
     container.appendChild(renderer.domElement);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.06;
-    controls.maxPolarAngle = Math.PI / 2 - 0.06;
-    controls.minDistance = 5;
+    controls.maxPolarAngle = Math.PI / 2 - 0.05;
+    controls.minDistance = 6;
     controls.maxDistance = 24;
-    controls.mouseButtons = {
-      LEFT: THREE.MOUSE.ROTATE,
-      MIDDLE: THREE.MOUSE.DOLLY,
-      RIGHT: null, // Reserved for Tactical Arrow Drawing!
-    };
-    controls.enabled = false; // Default locked in 45° cinematic mode unless 360° Free mode selected
+    controls.enabled = false;
 
-    // LIGHTING SYSTEM
-    const ambientLight = new THREE.AmbientLight(0xfff1dc, 0.65);
+    // Golden Sunlight & Ambient
+    const ambientLight = new THREE.AmbientLight(0xfff3e0, 0.95);
     scene.add(ambientLight);
 
-    const mainDirLight = new THREE.DirectionalLight(0xffdfba, 2.3);
-    mainDirLight.position.set(6.5, 13.5, 7.5);
-    mainDirLight.castShadow = true;
-    mainDirLight.shadow.mapSize.width = 2048;
-    mainDirLight.shadow.mapSize.height = 2048;
-    mainDirLight.shadow.camera.near = 2;
-    mainDirLight.shadow.camera.far = 32;
-    const d = 7.5;
-    mainDirLight.shadow.camera.left = -d;
-    mainDirLight.shadow.camera.right = d;
-    mainDirLight.shadow.camera.top = d;
-    mainDirLight.shadow.camera.bottom = -d;
-    mainDirLight.shadow.bias = -0.0005;
-    scene.add(mainDirLight);
+    const dirLight = new THREE.DirectionalLight(0xfff7ed, 2.4);
+    dirLight.position.set(7, 15, 8);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 2048;
+    dirLight.shadow.mapSize.height = 2048;
+    dirLight.shadow.camera.left = -8;
+    dirLight.shadow.camera.right = 8;
+    dirLight.shadow.camera.top = 8;
+    dirLight.shadow.camera.bottom = -8;
+    dirLight.shadow.bias = -0.0004;
+    scene.add(dirLight);
 
-    const rimLight = new THREE.DirectionalLight(0x60a5fa, 0.8);
-    rimLight.position.set(-8, 7, -9);
+    const rimLight = new THREE.DirectionalLight(0x93c5fd, 0.85);
+    rimLight.position.set(-8, 8, -9);
     scene.add(rimLight);
 
-    // Interactive Hover PointLight
-    const hoverLight = new THREE.PointLight(0xffd166, 1.5, 3.5);
-    hoverLight.position.set(0, 0.9, 0);
-    scene.add(hoverLight);
-
     /**********************************************************************
-     * 4. PROCEDURAL HIGH-RES BOARD TEXTURE & 3D BOARD BLOCK
+     * 4. PROCEDURAL BOARD WITH SPLATTERED INK BANNER & FAIRY CLOUDS
      **********************************************************************/
-    const THEMES = {
-      ebony: {
-        boardBg1: '#231309',
-        boardBg2: '#140b05',
-        frameColor: 0x1b0e06,
-        gridLine: '#eab308',
-        riverText: '#f59e0b',
-        fogColor: 0x0b0806,
-        ambientColor: 0xfff1dc,
-        redBody: 0x991b1b,
-        blackBody: 0x151419,
-        mistColor: 0xd97706,
-      },
-      jade: {
-        boardBg1: '#e6efe9',
-        boardBg2: '#cbdcd3',
-        frameColor: 0x2c4c3e,
-        gridLine: '#0f5132',
-        riverText: '#115e59',
-        fogColor: 0x0c1917,
-        ambientColor: 0xe0f2fe,
-        redBody: 0xb91c1c,
-        blackBody: 0x064e3b,
-        mistColor: 0x34d399,
-      },
-      cyber: {
-        boardBg1: '#070b19',
-        boardBg2: '#030611',
-        frameColor: 0x0f172a,
-        gridLine: '#22d3ee',
-        riverText: '#f43f5e',
-        fogColor: 0x030712,
-        ambientColor: 0x38bdf8,
-        redBody: 0xe11d48,
-        blackBody: 0x0284c7,
-        mistColor: 0x06b6d4,
-      },
-    };
-    let currentThemeKey = 'ebony';
-
-    function generateBoardTexture(themeKey) {
-      const theme = THEMES[themeKey];
+    function generateInkBoardTexture() {
       const canvas = document.createElement('canvas');
       canvas.width = 2048;
       canvas.height = 2240;
       const ctx = canvas.getContext('2d');
 
-      // Rich wood/stone radial gradient
-      const grad = ctx.createRadialGradient(1024, 1120, 120, 1024, 1120, 1450);
-      grad.addColorStop(0, theme.boardBg1);
-      grad.addColorStop(1, theme.boardBg2);
+      // Light pine/ash wood surface
+      const grad = ctx.createRadialGradient(1024, 1120, 150, 1024, 1120, 1450);
+      grad.addColorStop(0, '#e8cf9b');
+      grad.addColorStop(0.7, '#d6b170');
+      grad.addColorStop(1, '#b88b48');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Subtle procedural wood grain lines
-      ctx.strokeStyle = themeKey === 'jade' ? 'rgba(15, 81, 50, 0.04)' : 'rgba(255, 215, 120, 0.03)';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 160; i++) {
-        const y = (i / 160) * canvas.height;
+      // Fine wood fibers
+      ctx.strokeStyle = 'rgba(74, 44, 15, 0.04)';
+      ctx.lineWidth = 1.5;
+      for (let i = 0; i < 200; i++) {
+        const y = (i / 200) * canvas.height;
         ctx.beginPath();
-        ctx.moveTo(0, y + Math.sin(i) * 14);
-        ctx.bezierCurveTo(680, y - 18, 1360, y + 18, canvas.width, y);
+        ctx.moveTo(0, y);
+        ctx.bezierCurveTo(680, y - 15, 1360, y + 15, canvas.width, y);
         ctx.stroke();
       }
 
@@ -867,22 +612,19 @@
       const toX = (c) => padX + c * stepX;
       const toY = (r) => padY + r * stepY;
 
-      // Outer Decorative Double Frame Inlay
-      ctx.strokeStyle = theme.gridLine;
-      ctx.shadowColor = theme.gridLine;
-      ctx.shadowBlur = themeKey === 'cyber' ? 14 : 3;
-      ctx.lineWidth = 10;
-      ctx.strokeRect(padX - 26, padY - 26, stepX * 8 + 52, stepY * 9 + 52);
+      // Outer Inscribed Frame
+      ctx.strokeStyle = '#381f08';
+      ctx.lineWidth = 9;
+      ctx.strokeRect(padX - 24, padY - 24, stepX * 8 + 48, stepY * 9 + 48);
 
-      ctx.lineWidth = 4;
-      // 10 Horizontal Ranks
+      // 10 Horizontal Ranks & 9 Vertical Files
+      ctx.lineWidth = 3.5;
       for (let r = 0; r < 10; r++) {
         ctx.beginPath();
         ctx.moveTo(toX(0), toY(r));
         ctx.lineTo(toX(8), toY(r));
         ctx.stroke();
       }
-      // 9 Vertical Files (split across the river for files 1..7)
       for (let c = 0; c < 9; c++) {
         if (c === 0 || c === 8) {
           ctx.beginPath();
@@ -902,7 +644,7 @@
       }
 
       // Nine Palace Diagonals
-      ctx.lineWidth = 3.5;
+      ctx.lineWidth = 3;
       ctx.setLineDash([14, 10]);
       [
         [3, 0, 5, 2], [5, 0, 3, 2],
@@ -915,254 +657,368 @@
       });
       ctx.setLineDash([]);
 
-      // Fiducial L-markers
-      const fids = [
-        [2, 1], [2, 7], [7, 1], [7, 7],
-        [3, 0], [3, 2], [3, 4], [3, 6], [3, 8],
-        [6, 0], [6, 2], [6, 4], [6, 6], [6, 8],
-      ];
-      const drawFid = (r, c) => {
-        const cx = toX(c), cy = toY(r), g = 14, l = 26;
-        ctx.lineWidth = 3.5;
-        const corners = [];
-        if (c > 0) corners.push([-1, -1], [-1, 1]);
-        if (c < 8) corners.push([1, -1], [1, 1]);
-        corners.forEach(([sx, sy]) => {
-          ctx.beginPath();
-          ctx.moveTo(cx + sx * (g + l), cy + sy * g);
-          ctx.lineTo(cx + sx * g, cy + sy * g);
-          ctx.lineTo(cx + sx * g, cy + sy * (g + l));
-          ctx.stroke();
-        });
-      };
-      fids.forEach(([r, c]) => drawFid(r, c));
+      // Center River Splattered Ink Banner (From User Screenshot)
+      const riverCenterY = (toY(4) + toY(5)) / 2;
+      ctx.save();
+      ctx.fillStyle = 'rgba(15, 10, 8, 0.88)';
+      ctx.beginPath();
+      ctx.ellipse(canvas.width / 2, riverCenterY, 520, 85, 0, 0, Math.PI * 2);
+      ctx.fill();
 
-      // Metallic Gold River Inscription: SỞ HÀ - HÁN GIỚI
-      ctx.fillStyle = theme.riverText;
-      ctx.font = '900 58px "Noto Serif SC", "Noto Serif", serif';
+      // Splattered ink drops
+      for (let i = 0; i < 45; i++) {
+        const rx = canvas.width / 2 + (Math.random() - 0.5) * 1100;
+        const ry = riverCenterY + (Math.random() - 0.5) * 160;
+        const rRad = 4 + Math.random() * 16;
+        ctx.beginPath();
+        ctx.arc(rx, ry, rRad, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Gold River Calligraphy
+      ctx.fillStyle = '#fce7b2';
+      ctx.shadowColor = '#d97706';
+      ctx.shadowBlur = 10;
+      ctx.font = '900 62px "Ma Shan Zheng", serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      const riverY = (toY(4) + toY(5)) / 2;
-      ctx.fillText('楚 河 • SỞ HÀ', toX(2), riverY);
-      ctx.fillText('HÁN GIỚI • 漢 界', toX(6), riverY);
-
-      // Coordinate Numbers (Black 1..9 top, Red 9..1 bottom)
-      ctx.font = 'bold 42px "Noto Serif", serif';
-      for (let c = 0; c < 9; c++) {
-        ctx.fillStyle = theme.gridLine;
-        ctx.fillText(String(c + 1), toX(c), 78);
-        ctx.fillStyle = theme.riverText;
-        ctx.fillText(String(9 - c), toX(c), canvas.height - 78);
-      }
+      ctx.fillText('楚河漢界 • SỞ HÀ HÁN GIỚI', canvas.width / 2, riverCenterY);
+      ctx.restore();
 
       const tex = new THREE.CanvasTexture(canvas);
       tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
       return tex;
     }
 
-    // Build 3D Board Group
     const boardGroup = new THREE.Group();
     scene.add(boardGroup);
 
-    const boardWidth = CELL_SIZE * 8 + 1.65;
-    const boardDepth = CELL_SIZE * 9 + 1.65;
-    const boardThickness = 0.58;
+    const boardWidth = CELL_SIZE * 8 + 1.8;
+    const boardDepth = CELL_SIZE * 9 + 1.8;
+    const boardThick = 0.65;
 
-    const boardTopMat = new THREE.MeshStandardMaterial({
-      map: generateBoardTexture(currentThemeKey),
-      roughness: 0.25,
-      metalness: 0.18,
+    const boardMat = new THREE.MeshStandardMaterial({
+      map: generateInkBoardTexture(),
+      roughness: 0.28,
+      metalness: 0.15,
     });
-    const boardSideMat = new THREE.MeshStandardMaterial({
-      color: THEMES[currentThemeKey].frameColor,
-      roughness: 0.35,
-      metalness: 0.25,
+    const frameMat = new THREE.MeshStandardMaterial({
+      color: 0x3d2009,
+      roughness: 0.4,
+      metalness: 0.2,
     });
 
     const boardMesh = new THREE.Mesh(
-      new THREE.BoxGeometry(boardWidth, boardThickness, boardDepth),
-      [boardSideMat, boardSideMat, boardTopMat, boardSideMat, boardSideMat, boardSideMat]
+      new THREE.BoxGeometry(boardWidth, boardThick, boardDepth),
+      [frameMat, frameMat, boardMat, frameMat, frameMat, frameMat]
     );
-    boardMesh.position.y = -boardThickness / 2;
+    boardMesh.position.y = -boardThick / 2;
     boardMesh.receiveShadow = true;
     boardGroup.add(boardMesh);
 
-    // Outer Gold Trim Molding
-    const trimGeo = new THREE.BoxGeometry(boardWidth + 0.18, boardThickness * 0.82, boardDepth + 0.18);
-    const trimMat = new THREE.MeshStandardMaterial({
-      color: 0xb48327,
-      metalness: 0.78,
-      roughness: 0.24,
-    });
-    const trimMesh = new THREE.Mesh(trimGeo, trimMat);
-    trimMesh.position.y = -boardThickness / 2 - 0.04;
-    trimMesh.receiveShadow = true;
-    boardGroup.add(trimMesh);
-
-    // Invisible Hit Plane for Raycasting Any Board Coordinate
+    // Hit plane for raycasting
     const hitPlane = new THREE.Mesh(
       new THREE.PlaneGeometry(boardWidth, boardDepth),
       new THREE.MeshBasicMaterial({ visible: false })
     );
     hitPlane.rotation.x = -Math.PI / 2;
-    hitPlane.position.y = BOARD_TOP_Y + 0.01;
+    hitPlane.position.y = 0.01;
     scene.add(hitPlane);
 
-    /**********************************************************************
-     * 5. AMBIENT MIST PARTICLES AROUND BOARD PERIMETER
-     **********************************************************************/
-    const mistCount = 140;
-    const mistGeo = new THREE.BufferGeometry();
-    const mistPositions = new Float32Array(mistCount * 3);
-    const mistPhases = new Float32Array(mistCount);
-    for (let i = 0; i < mistCount; i++) {
-      const angle = (i / mistCount) * Math.PI * 2;
-      const radius = 5.8 + Math.random() * 2.8;
-      mistPositions[i * 3] = Math.cos(angle) * radius;
-      mistPositions[i * 3 + 1] = -0.2 + Math.random() * 0.9;
-      mistPositions[i * 3 + 2] = Math.sin(angle) * radius;
-      mistPhases[i] = Math.random() * Math.PI * 2;
-    }
-    mistGeo.setAttribute('position', new THREE.BufferAttribute(mistPositions, 3));
-    const mistMat = new THREE.PointsMaterial({
-      color: THEMES[currentThemeKey].mistColor,
-      size: 0.16,
+    // Floating Celestial Cloud Sea beneath the board
+    const cloudGeo = new THREE.DodecahedronGeometry(2.4, 1);
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: 0xf5ebd9,
+      roughness: 0.9,
+      metalness: 0.1,
       transparent: true,
-      opacity: 0.45,
-      blending: THREE.AdditiveBlending,
+      opacity: 0.72,
     });
-    const mistSystem = new THREE.Points(mistGeo, mistMat);
-    scene.add(mistSystem);
-
-    /**********************************************************************
-     * 6. 3D BEVELED PIECE FACTORY (Crimson Jade & Dark Obsidian)
-     **********************************************************************/
-    let labelStyle = 'both'; // 'both' | 'hanzi' | 'vn'
-
-    function createPieceCapTexture(type, side) {
-      const meta = PIECE_META[type];
-      const isRed = side === 'r';
-      const canvas = document.createElement('canvas');
-      canvas.width = 512;
-      canvas.height = 512;
-      const ctx = canvas.getContext('2d');
-
-      // Base medallion gradient
-      const grad = ctx.createRadialGradient(256, 256, 20, 256, 256, 245);
-      if (isRed) {
-        grad.addColorStop(0, '#7f1d1d');
-        grad.addColorStop(0.75, '#450a0a');
-        grad.addColorStop(1, '#2a0505');
-      } else {
-        grad.addColorStop(0, '#1e293b');
-        grad.addColorStop(0.75, '#0f172a');
-        grad.addColorStop(1, '#020617');
-      }
-      ctx.fillStyle = grad;
-      ctx.beginPath();
-      ctx.arc(256, 256, 248, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Engraved metallic inner rings
-      ctx.strokeStyle = isRed ? '#fbbf24' : '#38bdf8';
-      ctx.lineWidth = 12;
-      ctx.beginPath();
-      ctx.arc(256, 256, 218, 0, Math.PI * 2);
-      ctx.stroke();
-
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(256, 256, 198, 0, Math.PI * 2);
-      ctx.stroke();
-
-      // Embossed Typography
-      ctx.fillStyle = isRed ? '#fde68a' : '#e0f2fe';
-      ctx.shadowColor = isRed ? '#f59e0b' : '#0ea5e9';
-      ctx.shadowBlur = 12;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-
-      const hanChar = isRed ? meta.hanRed : meta.hanBlack;
-      if (labelStyle === 'both') {
-        ctx.font = '900 195px "Noto Serif SC", serif';
-        ctx.fillText(hanChar, 256, 225);
-        ctx.font = 'bold 64px "Noto Serif", serif';
-        ctx.fillText(meta.codeVn.toUpperCase(), 256, 365);
-      } else if (labelStyle === 'hanzi') {
-        ctx.font = '900 245px "Noto Serif SC", serif';
-        ctx.fillText(hanChar, 256, 262);
-      } else {
-        ctx.font = '900 185px "Noto Serif", serif';
-        ctx.fillText(meta.codeVn, 256, 245);
-        ctx.font = 'bold 54px "Noto Serif", serif';
-        ctx.fillText(meta.nameVi, 256, 365);
-      }
-
-      const tex = new THREE.CanvasTexture(canvas);
-      tex.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      return tex;
+    for (let i = 0; i < 28; i++) {
+      const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+      const ang = (i / 28) * Math.PI * 2;
+      const dist = 7.5 + Math.random() * 5.5;
+      cloud.position.set(Math.cos(ang) * dist, -2.4 + Math.random() * 1.5, Math.sin(ang) * dist);
+      cloud.scale.set(1.4 + Math.random(), 0.6 + Math.random() * 0.4, 1.4 + Math.random());
+      scene.add(cloud);
     }
 
-    function createPieceMesh(type, side, r, c) {
-      const group = new THREE.Group();
+    // Swirling Peach Blossom Petals
+    const petalCount = 130;
+    const petalGeo = new THREE.BufferGeometry();
+    const petalPos = new Float32Array(petalCount * 3);
+    const petalRot = new Float32Array(petalCount * 3);
+    for (let i = 0; i < petalCount; i++) {
+      petalPos[i * 3] = (Math.random() - 0.5) * 18;
+      petalPos[i * 3 + 1] = 0.5 + Math.random() * 8;
+      petalPos[i * 3 + 2] = (Math.random() - 0.5) * 18;
+      petalRot[i * 3] = Math.random() * 0.03;
+      petalRot[i * 3 + 1] = Math.random() * 0.03;
+      petalRot[i * 3 + 2] = Math.random() * 0.03;
+    }
+    petalGeo.setAttribute('position', new THREE.BufferAttribute(petalPos, 3));
+    const petalMat = new THREE.PointsMaterial({
+      color: 0xf472b6,
+      size: 0.18,
+      transparent: true,
+      opacity: 0.85,
+    });
+    const petalParticles = new THREE.Points(petalGeo, petalMat);
+    scene.add(petalParticles);
+
+    /**********************************************************************
+     * 5. HIGH-CRAFT PROCEDURAL LIVING 3D CHARACTERS & SIEGE UNITS
+     **********************************************************************/
+    // Materials
+    const redCloth = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.35, metalness: 0.15 });
+    const redGold = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.85 });
+    const blackCloth = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.2 });
+    const blackSilver = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.85 });
+    const fleshMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.2 });
+    const bronzeMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.8, roughness: 0.3 });
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x543110, roughness: 0.6 });
+
+    // Procedural 3D Character Unit Factory
+    function buildLiving3DUnit(type, side) {
+      const root = new THREE.Group();
       const isRed = side === 'r';
-      const theme = THEMES[currentThemeKey];
+      const mainMat = isRed ? redCloth : blackCloth;
+      const armorMat = isRed ? redGold : blackSilver;
 
-      // Beveled Cylinder Body (Crimson Jade vs Dark Obsidian)
-      const bodyMat = new THREE.MeshPhysicalMaterial({
-        color: isRed ? theme.redBody : theme.blackBody,
-        roughness: 0.14,
-        metalness: isRed ? 0.15 : 0.35,
-        clearcoat: 1.0,
-        clearcoatRoughness: 0.1,
-        reflectivity: 0.9,
-      });
-
-      const cyl = new THREE.Mesh(
-        new THREE.CylinderGeometry(PIECE_RADIUS * 0.94, PIECE_RADIUS, PIECE_HEIGHT, 40),
-        bodyMat
+      // 1. Lotus Jade Pedestal Disc with Faction Glow Ring
+      const pedestal = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.42, 0.44, 0.09, 32),
+        new THREE.MeshStandardMaterial({
+          color: isRed ? 0x7f1d1d : 0x0f172a,
+          metalness: 0.5,
+          roughness: 0.3,
+        })
       );
-      cyl.castShadow = true;
-      cyl.receiveShadow = true;
-      group.add(cyl);
+      pedestal.position.y = 0.045;
+      pedestal.receiveShadow = true;
+      root.add(pedestal);
 
-      // Beveled Crown Torus Ring (Metallic Gold / Silver Rim)
-      const rimMat = new THREE.MeshStandardMaterial({
-        color: isRed ? 0xfbbf24 : 0x7dd3fc,
-        metalness: 0.85,
-        roughness: 0.2,
-      });
-      const torus = new THREE.Mesh(
-        new THREE.TorusGeometry(PIECE_RADIUS * 0.94, 0.022, 16, 48),
-        rimMat
+      const ringGlow = new THREE.Mesh(
+        new THREE.RingGeometry(0.39, 0.43, 32),
+        new THREE.MeshBasicMaterial({
+          color: isRed ? 0xfacc15 : 0x38bdf8,
+          side: THREE.DoubleSide,
+        })
       );
-      torus.rotation.x = Math.PI / 2;
-      torus.position.y = PIECE_HEIGHT / 2;
-      group.add(torus);
+      ringGlow.rotation.x = -Math.PI / 2;
+      ringGlow.position.y = 0.092;
+      root.add(ringGlow);
 
-      // Top Engraved Cap Disc
-      const capTex = createPieceCapTexture(type, side);
-      const capMat = new THREE.MeshStandardMaterial({
-        map: capTex,
-        roughness: 0.22,
-        metalness: 0.3,
+      // Character Group that breathes & bobs
+      const body = new THREE.Group();
+      body.position.y = 0.09;
+      root.add(body);
+      root.userData.bobGroup = body;
+
+      if (type === 'K') {
+        // TƯỚNG (Emperor on Dragon Throne / Hegemon Warlord)
+        if (isRed) {
+          // Imperial Dragon Throne
+          const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.75, 0.12), armorMat);
+          throneBack.position.set(0, 0.55, -0.16);
+          body.add(throneBack);
+          const throneSeat = new THREE.Mesh(new THREE.BoxGeometry(0.52, 0.22, 0.44), armorMat);
+          throneSeat.position.set(0, 0.22, 0);
+          body.add(throneSeat);
+
+          // Seated Emperor Figure in Imperial Long Robes
+          const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 0.45, 16), mainMat);
+          torso.position.set(0, 0.55, 0);
+          body.add(torso);
+          const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), fleshMat);
+          head.position.set(0, 0.88, 0);
+          body.add(head);
+          // Imperial Mianguan Beaded Crown
+          const crown = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.05, 0.22), armorMat);
+          crown.position.set(0, 1.04, 0);
+          body.add(crown);
+          // Golden Imperial Scepter / Sword
+          const scepter = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.75, 8), armorMat);
+          scepter.position.set(0.24, 0.55, 0.16);
+          scepter.rotation.x = 0.3;
+          body.add(scepter);
+        } else {
+          // Black Hegemon King (Hạng Vũ)
+          const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.55, 16), mainMat);
+          torso.position.set(0, 0.45, 0);
+          body.add(torso);
+          const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.34, 0.32), armorMat);
+          cuirass.position.set(0, 0.48, 0);
+          body.add(cuirass);
+          const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
+          head.position.set(0, 0.82, 0);
+          body.add(head);
+          // Warlord Helmet with Red Plume
+          const helm = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.24, 16), armorMat);
+          helm.position.set(0, 0.98, 0);
+          body.add(helm);
+          // Giant Greatsword
+          const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.85, 0.12), steelMat);
+          sword.position.set(0.24, 0.48, 0.15);
+          body.add(sword);
+        }
+      } else if (type === 'A') {
+        // SĨ (Female Imperial Swordswoman / Elite Bodyguard)
+        const dress = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.65, 16), mainMat);
+        dress.position.set(0, 0.35, 0);
+        body.add(dress);
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.32, 16), armorMat);
+        torso.position.set(0, 0.65, 0);
+        body.add(torso);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), fleshMat);
+        head.position.set(0, 0.88, 0);
+        body.add(head);
+        // Twin Dao Blades
+        const bladeL = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.55, 8), steelMat);
+        bladeL.position.set(-0.22, 0.55, 0.12);
+        bladeL.rotation.z = 0.45;
+        body.add(bladeL);
+        const bladeR = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.55, 8), steelMat);
+        bladeR.position.set(0.22, 0.55, 0.12);
+        bladeR.rotation.z = -0.45;
+        body.add(bladeR);
+      } else if (type === 'E') {
+        // TƯỢNG (Hulking Chancellor / Armored War Titan)
+        const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.6, 16), mainMat);
+        robe.position.set(0, 0.38, 0);
+        body.add(robe);
+        const pauldrons = new THREE.Mesh(new THREE.BoxGeometry(0.68, 0.22, 0.34), armorMat);
+        pauldrons.position.set(0, 0.65, 0);
+        body.add(pauldrons);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
+        head.position.set(0, 0.86, 0);
+        body.add(head);
+        // Heavy Ceremonial War Shield
+        const shield = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.55, 0.08), armorMat);
+        shield.position.set(0.26, 0.48, 0.18);
+        body.add(shield);
+      } else if (type === 'H') {
+        // MÃ (Armored War Horse + Cavalry Rider)
+        // Horse Torso
+        const horseBody = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.28, 0.65), armorMat);
+        horseBody.position.set(0, 0.36, 0);
+        body.add(horseBody);
+        // Horse Neck & Head
+        const horseNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.36, 12), armorMat);
+        horseNeck.position.set(0, 0.56, 0.26);
+        horseNeck.rotation.x = 0.65;
+        body.add(horseNeck);
+        const horseHead = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.18, 0.26), armorMat);
+        horseHead.position.set(0, 0.72, 0.36);
+        body.add(horseHead);
+        // Mounted Armored Cavalry Lancer
+        const rider = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.38, 12), mainMat);
+        rider.position.set(0, 0.68, -0.04);
+        body.add(rider);
+        const riderHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+        riderHead.position.set(0, 0.94, -0.04);
+        body.add(riderHead);
+        // Pennant Battle Spear
+        const lance = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 1.15, 8), steelMat);
+        lance.position.set(0.22, 0.72, 0.22);
+        lance.rotation.x = 0.35;
+        body.add(lance);
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.26), mainMat);
+        flag.position.set(0.22, 1.15, 0.14);
+        body.add(flag);
+      } else if (type === 'R') {
+        // XE (Heavy Siege Ballista War Chariot)
+        // Chassis Frame
+        const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.18, 0.68), woodMat);
+        chassis.position.set(0, 0.24, 0);
+        body.add(chassis);
+        // 2 Large Iron Spoked Wheels
+        const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 16), steelMat);
+        wheelL.rotation.z = Math.PI / 2;
+        wheelL.position.set(-0.3, 0.22, 0);
+        body.add(wheelL);
+        const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.08, 16), steelMat);
+        wheelR.rotation.z = Math.PI / 2;
+        wheelR.position.set(0.3, 0.22, 0);
+        body.add(wheelR);
+        // Giant Mounted Crossbow Arms
+        const bow = new THREE.Mesh(new THREE.BoxGeometry(0.82, 0.08, 0.08), steelMat);
+        bow.position.set(0, 0.44, 0.15);
+        body.add(bow);
+        const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.65), armorMat);
+        rail.position.set(0, 0.38, 0);
+        body.add(rail);
+        // Battle Standard Flag
+        const flagPole = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.9, 8), woodMat);
+        flagPole.position.set(-0.2, 0.62, -0.25);
+        body.add(flagPole);
+        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.32), mainMat);
+        flag.position.set(-0.2, 0.88, -0.15);
+        body.add(flag);
+      } else if (type === 'C') {
+        // PHÁO (Heavy Bronze Cannon + Standing Artillery Gunner)
+        // Gun Carriage
+        const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.2, 0.54), woodMat);
+        carriage.position.set(-0.1, 0.2, 0);
+        body.add(carriage);
+        // Cannon Barrel elevated 22 degrees
+        const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.14, 0.68, 16), bronzeMat);
+        barrel.rotation.x = -0.38;
+        barrel.position.set(-0.1, 0.38, 0.08);
+        body.add(barrel);
+        // Muscular Standing Artilleryman
+        const gunner = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.15, 0.48, 12), mainMat);
+        gunner.position.set(0.24, 0.32, -0.08);
+        body.add(gunner);
+        const gunnerHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+        gunnerHead.position.set(0.24, 0.62, -0.08);
+        body.add(gunnerHead);
+        // Ignition Torch
+        const torch = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.45, 8), woodMat);
+        torch.position.set(0.32, 0.48, 0.12);
+        body.add(torch);
+      } else {
+        // TỐT / BINH (Foot Infantry Soldier with Dao & Shield)
+        const soldierTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.42, 12), mainMat);
+        soldierTorso.position.set(0, 0.32, 0);
+        body.add(soldierTorso);
+        const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.22, 0.22), armorMat);
+        cuirass.position.set(0, 0.34, 0);
+        body.add(cuirass);
+        const soldierHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+        soldierHead.position.set(0, 0.6, 0);
+        body.add(soldierHead);
+        const helm = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.16, 12), armorMat);
+        helm.position.set(0, 0.72, 0);
+        body.add(helm);
+        // Dao Broadsword in Right Hand
+        const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.48, 0.08), steelMat);
+        sword.position.set(0.22, 0.38, 0.12);
+        sword.rotation.z = -0.35;
+        body.add(sword);
+        // Round Shield in Left Hand
+        const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.04, 16), armorMat);
+        shield.rotation.x = Math.PI / 2;
+        shield.position.set(-0.2, 0.34, 0.1);
+        body.add(shield);
+      }
+
+      root.traverse((child) => {
+        if (child.isMesh) {
+          child.castShadow = true;
+          child.receiveShadow = true;
+        }
       });
-      const cap = new THREE.Mesh(new THREE.CircleGeometry(PIECE_RADIUS * 0.92, 40), capMat);
-      cap.rotation.x = -Math.PI / 2;
-      cap.position.y = PIECE_HEIGHT / 2 + 0.003;
-      group.add(cap);
 
-      const pos = gridToWorld(r, c);
-      group.position.set(pos.x, BOARD_TOP_Y + PIECE_HEIGHT / 2, pos.z);
-      group.userData = { isPiece: true, type, side, r, c, capMesh: cap };
-      return group;
+      return root;
     }
 
     /**********************************************************************
-     * 7. VFX CONTROLLERS: GLOW RING, INDICATORS, ARROWS, PARTICLES, LASER
+     * 6. SCENE OBJECTS & VISUAL FX MANAGERS
      **********************************************************************/
-    const piecesRoot = new THREE.Group();
-    scene.add(piecesRoot);
+    const unitsRoot = new THREE.Group();
+    scene.add(unitsRoot);
 
     const indicatorsRoot = new THREE.Group();
     scene.add(indicatorsRoot);
@@ -1170,874 +1026,375 @@
     const arrowsRoot = new THREE.Group();
     scene.add(arrowsRoot);
 
-    const trailRoot = new THREE.Group();
-    scene.add(trailRoot);
-
-    const checkLaserRoot = new THREE.Group();
-    scene.add(checkLaserRoot);
-
     const vfxRoot = new THREE.Group();
     scene.add(vfxRoot);
 
-    // Selection Halo Ring under Levitated Piece
-    const selectionHalo = new THREE.Mesh(
-      new THREE.RingGeometry(PIECE_RADIUS * 0.85, PIECE_RADIUS * 1.28, 48),
-      new THREE.MeshBasicMaterial({
-        color: 0xfbbf24,
-        side: THREE.DoubleSide,
-        transparent: true,
-        opacity: 0.88,
-      })
+    // Glowing selection halo ring on selected unit
+    const selHalo = new THREE.Mesh(
+      new THREE.RingGeometry(0.48, 0.62, 36),
+      new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide })
     );
-    selectionHalo.rotation.x = -Math.PI / 2;
-    selectionHalo.position.y = BOARD_TOP_Y + 0.02;
-    selectionHalo.visible = false;
-    scene.add(selectionHalo);
+    selHalo.rotation.x = -Math.PI / 2;
+    selHalo.position.y = 0.02;
+    selHalo.visible = false;
+    scene.add(selHalo);
 
     function clearGroup(grp) {
-      while (grp.children.length > 0) {
-        const obj = grp.children[0];
-        grp.remove(obj);
-      }
+      while (grp.children.length > 0) grp.remove(grp.children[0]);
     }
 
-    // Valid Move Indicators (Glowing 3D Orbs + Rotating Red Target Reticles on Captures)
-    function renderLegalMoveIndicators(moves) {
-      clearGroup(indicatorsRoot);
-      moves.forEach((m) => {
-        const { x, z } = gridToWorld(m.to.r, m.to.c);
-        if (m.captured) {
-          // Rotating Red Crosshair Reticle around Enemy Piece
-          const reticle = new THREE.Group();
-          const outerRing = new THREE.Mesh(
-            new THREE.RingGeometry(PIECE_RADIUS * 1.08, PIECE_RADIUS * 1.28, 36),
-            new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide, transparent: true, opacity: 0.92 })
-          );
-          outerRing.rotation.x = -Math.PI / 2;
-          reticle.add(outerRing);
-
-          for (let i = 0; i < 4; i++) {
-            const tick = new THREE.Mesh(
-              new THREE.BoxGeometry(0.14, 0.03, 0.04),
-              new THREE.MeshBasicMaterial({ color: 0xfca5a5 })
-            );
-            const ang = (i * Math.PI) / 2;
-            tick.position.set(Math.cos(ang) * PIECE_RADIUS * 1.18, 0.02, Math.sin(ang) * PIECE_RADIUS * 1.18);
-            tick.rotation.y = -ang;
-            reticle.add(tick);
-          }
-          reticle.position.set(x, BOARD_TOP_Y + 0.03, z);
-          reticle.userData = { isReticle: true };
-          indicatorsRoot.add(reticle);
-        } else {
-          // Floating Luminous Jade Orb
-          const orb = new THREE.Mesh(
-            new THREE.SphereGeometry(0.13, 20, 20),
-            new THREE.MeshStandardMaterial({
-              color: 0x34d399,
-              emissive: 0x10b981,
-              emissiveIntensity: 0.85,
-              roughness: 0.1,
-            })
-          );
-          orb.position.set(x, BOARD_TOP_Y + 0.14, z);
-          orb.userData = { isOrb: true, baseY: BOARD_TOP_Y + 0.14 };
-          indicatorsRoot.add(orb);
-        }
-      });
-    }
-
-    // Last Move Trail (Start Ring, End Ring, Glowing Beam)
-    function renderLastMoveTrail(from, to) {
-      clearGroup(trailRoot);
-      if (!from || !to) return;
-      const p1 = gridToWorld(from.r, from.c);
-      const p2 = gridToWorld(to.r, to.c);
-
-      const startMarker = new THREE.Mesh(
-        new THREE.RingGeometry(0.12, 0.24, 32),
-        new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
-      );
-      startMarker.rotation.x = -Math.PI / 2;
-      startMarker.position.set(p1.x, BOARD_TOP_Y + 0.015, p1.z);
-      trailRoot.add(startMarker);
-
-      const endMarker = new THREE.Mesh(
-        new THREE.RingGeometry(PIECE_RADIUS * 1.02, PIECE_RADIUS * 1.16, 40),
-        new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.85 })
-      );
-      endMarker.rotation.x = -Math.PI / 2;
-      endMarker.position.set(p2.x, BOARD_TOP_Y + 0.015, p2.z);
-      trailRoot.add(endMarker);
-
-      // Luminous Connecting Trail Line
-      const dx = p2.x - p1.x;
-      const dz = p2.z - p1.z;
-      const dist = Math.hypot(dx, dz);
-      const beam = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.07, dist),
-        new THREE.MeshBasicMaterial({ color: 0x38bdf8, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
-      );
-      beam.rotation.x = -Math.PI / 2;
-      beam.rotation.z = -Math.atan2(dx, dz);
-      beam.position.set((p1.x + p2.x) / 2, BOARD_TOP_Y + 0.012, (p1.z + p2.z) / 2);
-      trailRoot.add(beam);
-    }
-
-    // 3D Tactical Arrow Builder (Used for Right-Click Drag & Preset Hints)
-    function add3DTacticalArrow(from, to, colorHex = 0xfbbf24) {
+    function add3DArrow(from, to, hex = 0xfacc15) {
       if (from.r === to.r && from.c === to.c) return;
       const p1 = gridToWorld(from.r, from.c);
       const p2 = gridToWorld(to.r, to.c);
       const dx = p2.x - p1.x;
       const dz = p2.z - p1.z;
-      const totalLen = Math.hypot(dx, dz);
-      const headLen = 0.36;
-      const shaftLen = Math.max(0.1, totalLen - headLen);
+      const len = Math.hypot(dx, dz);
+      const headLen = 0.35;
+      const shaftLen = Math.max(0.1, len - headLen);
 
-      const arrowGrp = new THREE.Group();
-      const mat = new THREE.MeshBasicMaterial({
-        color: colorHex,
-        transparent: true,
-        opacity: 0.88,
-      });
-
-      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, shaftLen, 16), mat);
+      const grp = new THREE.Group();
+      const mat = new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: 0.9 });
+      const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, shaftLen, 12), mat);
       shaft.rotation.x = Math.PI / 2;
       shaft.position.z = shaftLen / 2;
-      arrowGrp.add(shaft);
+      grp.add(shaft);
 
-      const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, headLen, 20), mat);
+      const head = new THREE.Mesh(new THREE.ConeGeometry(0.16, headLen, 16), mat);
       head.rotation.x = Math.PI / 2;
       head.position.z = shaftLen + headLen / 2;
-      arrowGrp.add(head);
+      grp.add(head);
 
-      arrowGrp.position.set(p1.x, BOARD_TOP_Y + PIECE_HEIGHT + 0.08, p1.z);
-      arrowGrp.rotation.y = Math.atan2(dx, dz);
-      arrowsRoot.add(arrowGrp);
+      grp.position.set(p1.x, 0.15, p1.z);
+      grp.rotation.y = Math.atan2(dx, dz);
+      arrowsRoot.add(grp);
     }
 
-    // Capture Particle Explosion + Shockwave Ring (+ Lightning Bolt for Chariot/Cannon)
-    function triggerCaptureVFX(coord, capturedPiece, attackerPiece) {
+    function triggerCaptureCombatVFX(coord, capturedPiece, attackerPiece) {
       const { x, z } = gridToWorld(coord.r, coord.c);
-      const isHeavy = attackerPiece && (attackerPiece.type === 'R' || attackerPiece.type === 'C');
-      const particleColor = capturedPiece.side === 'r' ? 0xf87171 : 0x38bdf8;
+      sound.playCombatExplosion(attackerPiece?.type);
 
-      // 1. Expanding Shockwave Ring
+      // Expanding Shockwave Ring
       const ring = new THREE.Mesh(
-        new THREE.RingGeometry(0.1, 0.26, 40),
-        new THREE.MeshBasicMaterial({
-          color: isHeavy ? 0xfbbf24 : particleColor,
-          side: THREE.DoubleSide,
-          transparent: true,
-          opacity: 0.95,
-        })
+        new THREE.RingGeometry(0.1, 0.3, 36),
+        new THREE.MeshBasicMaterial({ color: 0xfacc15, side: THREE.DoubleSide, transparent: true, opacity: 0.95 })
       );
       ring.rotation.x = -Math.PI / 2;
-      ring.position.set(x, BOARD_TOP_Y + 0.03, z);
+      ring.position.set(x, 0.03, z);
       vfxRoot.add(ring);
+      gsap.to(ring.scale, { x: 5, y: 5, duration: 0.5, ease: 'power2.out' });
+      gsap.to(ring.material, { opacity: 0, duration: 0.5, onComplete: () => vfxRoot.remove(ring) });
 
-      gsap.to(ring.scale, {
-        x: isHeavy ? 6.5 : 4.2,
-        y: isHeavy ? 6.5 : 4.2,
-        duration: 0.55,
-        ease: 'power2.out',
-      });
-      gsap.to(ring.material, {
-        opacity: 0,
-        duration: 0.55,
-        onComplete: () => vfxRoot.remove(ring),
-      });
-
-      // 2. 45 Luminous Shards Explosion
-      const count = isHeavy ? 60 : 38;
-      for (let i = 0; i < count; i++) {
+      // Spark / Shard Particles
+      for (let i = 0; i < 40; i++) {
         const shard = new THREE.Mesh(
-          new THREE.OctahedronGeometry(0.055 + Math.random() * 0.04, 0),
-          new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? particleColor : 0xfde047, transparent: true })
+          new THREE.OctahedronGeometry(0.06, 0),
+          new THREE.MeshBasicMaterial({ color: i % 2 === 0 ? 0xfacc15 : 0xef4444, transparent: true })
         );
-        shard.position.set(x, BOARD_TOP_Y + 0.15, z);
+        shard.position.set(x, 0.4, z);
         vfxRoot.add(shard);
-
-        const angle = Math.random() * Math.PI * 2;
-        const speed = 0.6 + Math.random() * (isHeavy ? 1.8 : 1.1);
-        const tx = x + Math.cos(angle) * speed;
-        const tz = z + Math.sin(angle) * speed;
-        const ty = BOARD_TOP_Y + 0.4 + Math.random() * 1.1;
-
-        gsap.to(shard.position, { x: tx, y: ty, z: tz, duration: 0.52, ease: 'power2.out' });
-        gsap.to(shard.rotation, { x: Math.random() * 6, y: Math.random() * 6, duration: 0.52 });
-        gsap.to(shard.material, {
-          opacity: 0,
-          duration: 0.52,
-          onComplete: () => vfxRoot.remove(shard),
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 0.6 + Math.random() * 1.4;
+        gsap.to(shard.position, {
+          x: x + Math.cos(ang) * dist,
+          y: 0.2 + Math.random() * 1.2,
+          z: z + Math.sin(ang) * dist,
+          duration: 0.48,
         });
+        gsap.to(shard.material, { opacity: 0, duration: 0.48, onComplete: () => vfxRoot.remove(shard) });
       }
-
-      // 3. Special Lightning Bolt for Chariot (Xe) or Cannon (Pháo) Capture
-      if (isHeavy) {
-        const points = [];
-        let currY = 5.5;
-        points.push(new THREE.Vector3(x, currY, z));
-        while (currY > BOARD_TOP_Y + 0.2) {
-          currY -= 0.65;
-          points.push(
-            new THREE.Vector3(
-              x + (Math.random() - 0.5) * 0.45,
-              Math.max(BOARD_TOP_Y + 0.1, currY),
-              z + (Math.random() - 0.5) * 0.45
-            )
-          );
-        }
-        const boltGeo = new THREE.BufferGeometry().setFromPoints(points);
-        const boltMat = new THREE.LineBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 1 });
-        const bolt = new THREE.Line(boltGeo, boltMat);
-        vfxRoot.add(bolt);
-        gsap.to(boltMat, {
-          opacity: 0,
-          duration: 0.38,
-          onComplete: () => vfxRoot.remove(bolt),
-        });
-      }
-    }
-
-    // Check Effect: Camera Shake + Red Vignette + 3D Calligraphy + Laser Beam to King
-    function triggerCheckEffect(board, checkedSide) {
-      clearGroup(checkLaserRoot);
-      const kingCoord = findKing(board, checkedSide);
-      const attackers = findCheckingPieces(board, checkedSide);
-      if (!kingCoord || attackers.length === 0) return;
-
-      sound.playCheckAlert();
-
-      // Laser Beam from each Checking Piece to the King
-      const kPos = gridToWorld(kingCoord.r, kingCoord.c);
-      attackers.forEach((att) => {
-        const aPos = gridToWorld(att.r, att.c);
-        const dx = kPos.x - aPos.x;
-        const dz = kPos.z - aPos.z;
-        const len = Math.hypot(dx, dz);
-        const laser = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.045, 0.045, len, 16),
-          new THREE.MeshBasicMaterial({ color: 0xff1e1e, transparent: true, opacity: 0.9 })
-        );
-        laser.rotation.x = Math.PI / 2;
-        const laserGrp = new THREE.Group();
-        laser.position.z = len / 2;
-        laserGrp.add(laser);
-        laserGrp.position.set(aPos.x, BOARD_TOP_Y + PIECE_HEIGHT + 0.06, aPos.z);
-        laserGrp.rotation.y = Math.atan2(dx, dz);
-        checkLaserRoot.add(laserGrp);
-      });
-
-      // Red Danger Halo on Checked King
-      const dangerHalo = new THREE.Mesh(
-        new THREE.RingGeometry(PIECE_RADIUS * 1.05, PIECE_RADIUS * 1.38, 40),
-        new THREE.MeshBasicMaterial({ color: 0xff0000, side: THREE.DoubleSide })
-      );
-      dangerHalo.rotation.x = -Math.PI / 2;
-      dangerHalo.position.set(kPos.x, BOARD_TOP_Y + 0.035, kPos.z);
-      checkLaserRoot.add(dangerHalo);
-
-      // Camera Shake & Screen Banner
-      gsap.fromTo(
-        boardGroup.position,
-        { x: -0.12 },
-        { x: 0, duration: 0.45, ease: 'elastic.out(1, 0.2)' }
-      );
-
-      const vignette = document.getElementById('check-vignette');
-      const banner = document.getElementById('check-banner');
-      vignette.style.opacity = '1';
-      gsap.killTweensOf(banner);
-      gsap.fromTo(
-        banner,
-        { opacity: 0, scale: 0.4 },
-        {
-          opacity: 1,
-          scale: 1,
-          duration: 0.32,
-          ease: 'back.out(1.8)',
-          onComplete: () => {
-            gsap.to(banner, { opacity: 0, scale: 1.35, delay: 0.85, duration: 0.4 });
-            setTimeout(() => {
-              vignette.style.opacity = '0';
-            }, 950);
-          },
-        }
-      );
     }
 
     /**********************************************************************
-     * 8. GAME STATE, PARABOLIC BÉZIER ANIMATION & STAGGER FLY-IN
+     * 7. GAME STATE & PARABOLIC TROOP MARCH ANIMATION
      **********************************************************************/
-    let boardState = parseFEN(PRESETS.standard.fen).board;
+    let boardState = parseFEN(INITIAL_FEN).board;
     let currentTurn = 'r';
     let selectedCoord = null;
     let currentLegalMoves = [];
     let moveHistory = [];
-    let capturedByRed = [];
-    let capturedByBlack = [];
     let isAnimating = false;
     let vsAI = true;
-    let isEditorMode = false;
-    let selectedEditorPiece = { type: 'R', side: 'r' };
 
-    // Map of "r,c" -> THREE.Group piece mesh
-    const pieceMeshes = new Map();
+    const unitMeshes = new Map();
 
-    function syncBoardMeshesWithStagger(board, hintArrow = null) {
-      isAnimating = true;
-      clearGroup(piecesRoot);
+    function renderBoardUnits(board) {
+      clearGroup(unitsRoot);
       clearGroup(indicatorsRoot);
-      clearGroup(arrowsRoot);
-      clearGroup(trailRoot);
-      clearGroup(checkLaserRoot);
-      pieceMeshes.clear();
-      selectionHalo.visible = false;
+      unitMeshes.clear();
+      selHalo.visible = false;
 
-      const allCreated = [];
       for (let r = 0; r < 10; r++) {
         for (let c = 0; c < 9; c++) {
           const p = board[r][c];
           if (p) {
-            const mesh = createPieceMesh(p.type, p.side, r, c);
-            const targetY = BOARD_TOP_Y + PIECE_HEIGHT / 2;
-            mesh.position.y = targetY + 3.8 + Math.random() * 1.5;
-            mesh.scale.set(0.01, 0.01, 0.01);
-            piecesRoot.add(mesh);
-            pieceMeshes.set(`${r},${c}`, mesh);
-            allCreated.push({ mesh, targetY });
+            const unit = buildLiving3DUnit(p.type, p.side);
+            const pos = gridToWorld(r, c);
+            unit.position.set(pos.x, 0, pos.z);
+            unit.userData = { isUnit: true, r, c, type: p.type, side: p.side };
+            unitsRoot.add(unit);
+            unitMeshes.set(`${r},${c}`, unit);
           }
         }
       }
-
-      // GSAP Stagger Fly-In Animation
-      allCreated.forEach((item, idx) => {
-        gsap.to(item.mesh.position, {
-          y: item.targetY,
-          duration: 0.55,
-          delay: idx * 0.018,
-          ease: 'back.out(1.2)',
-        });
-        gsap.to(item.mesh.scale, {
-          x: 1,
-          y: 1,
-          z: 1,
-          duration: 0.42,
-          delay: idx * 0.018,
-          ease: 'power2.out',
-          onComplete: () => {
-            if (idx === allCreated.length - 1) {
-              isAnimating = false;
-              sound.playWoodStrike(false);
-              if (hintArrow) add3DTacticalArrow(hintArrow.from, hintArrow.to, 0xfbbf24);
-            }
-          },
-        });
-      });
-
-      if (allCreated.length === 0) isAnimating = false;
       updateHUD();
     }
 
     function selectSquare(r, c) {
       if (isAnimating) return;
 
-      // Board Editor Mode: Place or Remove Piece
-      if (isEditorMode) {
-        const existing = pieceMeshes.get(`${r},${c}`);
-        if (existing) {
-          piecesRoot.remove(existing);
-          pieceMeshes.delete(`${r},${c}`);
-          boardState[r][c] = null;
-        } else if (selectedEditorPiece) {
-          boardState[r][c] = { ...selectedEditorPiece };
-          const mesh = createPieceMesh(selectedEditorPiece.type, selectedEditorPiece.side, r, c);
-          piecesRoot.add(mesh);
-          pieceMeshes.set(`${r},${c}`, mesh);
-        }
-        sound.playSelect();
-        updateHUD();
-        return;
-      }
-
-      // Check if clicked square is a valid move destination for currently selected piece
       if (selectedCoord) {
         const move = currentLegalMoves.find((m) => m.to.r === r && m.to.c === c);
         if (move) {
-          executeMove3D(move);
+          executeTroopMove(move);
           return;
         }
       }
 
-      // Selecting own piece
-      const clickedPiece = boardState[r][c];
-      if (clickedPiece && clickedPiece.side === currentTurn) {
-        // Lower previously selected piece
-        if (selectedCoord) {
-          const prevMesh = pieceMeshes.get(`${selectedCoord.r},${selectedCoord.c}`);
-          if (prevMesh) {
-            gsap.to(prevMesh.position, { y: BOARD_TOP_Y + PIECE_HEIGHT / 2, duration: 0.2 });
-            gsap.to(prevMesh.rotation, { x: 0, z: 0, duration: 0.2 });
-          }
-        }
-
+      const p = boardState[r][c];
+      if (p && p.side === currentTurn) {
         selectedCoord = { r, c };
         currentLegalMoves = getLegalMoves(boardState, r, c);
         sound.playSelect();
 
-        // Levitate selected piece +1.5cm & show Glowing Ring
-        const mesh = pieceMeshes.get(`${r},${c}`);
-        if (mesh) {
-          gsap.to(mesh.position, { y: BOARD_TOP_Y + PIECE_HEIGHT / 2 + 0.42, duration: 0.26, ease: 'power2.out' });
-          gsap.to(mesh.rotation, { x: 0.08, duration: 0.26 });
-          const { x, z } = gridToWorld(r, c);
-          selectionHalo.position.set(x, BOARD_TOP_Y + 0.02, z);
-          selectionHalo.visible = true;
-        }
-        renderLegalMoveIndicators(currentLegalMoves);
+        const pos = gridToWorld(r, c);
+        selHalo.position.set(pos.x, 0.02, pos.z);
+        selHalo.visible = true;
+
+        // Render legal moves
+        clearGroup(indicatorsRoot);
+        currentLegalMoves.forEach((m) => {
+          const pt = gridToWorld(m.to.r, m.to.c);
+          const isCap = Boolean(boardState[m.to.r][m.to.c]);
+          const orb = new THREE.Mesh(
+            new THREE.SphereGeometry(isCap ? 0.22 : 0.14, 16, 16),
+            new THREE.MeshStandardMaterial({
+              color: isCap ? 0xef4444 : 0x10b981,
+              emissive: isCap ? 0xb91c1c : 0x059669,
+              emissiveIntensity: 0.9,
+            })
+          );
+          orb.position.set(pt.x, 0.22, pt.y || pt.z);
+          indicatorsRoot.add(orb);
+        });
       } else {
-        // Deselect
-        if (selectedCoord) {
-          const prevMesh = pieceMeshes.get(`${selectedCoord.r},${selectedCoord.c}`);
-          if (prevMesh) {
-            gsap.to(prevMesh.position, { y: BOARD_TOP_Y + PIECE_HEIGHT / 2, duration: 0.2 });
-            gsap.to(prevMesh.rotation, { x: 0, z: 0, duration: 0.2 });
-          }
-        }
         selectedCoord = null;
         currentLegalMoves = [];
-        selectionHalo.visible = false;
+        selHalo.visible = false;
         clearGroup(indicatorsRoot);
       }
     }
 
-    // Execute Move with Parabolic Quadratic Bézier Trajectory
-    function executeMove3D(move) {
+    function executeTroopMove(move) {
       isAnimating = true;
       selectedCoord = null;
       currentLegalMoves = [];
-      selectionHalo.visible = false;
+      selHalo.visible = false;
       clearGroup(indicatorsRoot);
-      clearGroup(checkLaserRoot);
+      clearGroup(arrowsRoot);
 
       const fromKey = `${move.from.r},${move.from.c}`;
       const toKey = `${move.to.r},${move.to.c}`;
-      const movingMesh = pieceMeshes.get(fromKey);
-      const targetMesh = pieceMeshes.get(toKey);
+      const mover = unitMeshes.get(fromKey);
+      const target = unitMeshes.get(toKey);
 
-      const startPos = gridToWorld(move.from.r, move.from.c);
-      const endPos = gridToWorld(move.to.r, move.to.c);
-      const baseY = BOARD_TOP_Y + PIECE_HEIGHT / 2;
-      const peakHeight = 1.45; // Parabolic apex height
+      const start = gridToWorld(move.from.r, move.from.c);
+      const end = gridToWorld(move.to.r, move.to.c);
 
-      // Save snapshot for Undo
       moveHistory.push({
         move,
         prevBoard: cloneBoard(boardState),
         prevTurn: currentTurn,
       });
 
-      // Update logical board
       boardState[move.to.r][move.to.c] = move.piece;
       boardState[move.from.r][move.from.c] = null;
 
-      if (move.captured) {
-        if (move.piece.side === 'r') capturedByRed.push(move.captured);
-        else capturedByBlack.push(move.captured);
-      }
-
-      // Parabolic Bézier Tween: B_y(t) = Y0 + 4 * H_peak * t * (1 - t)
+      // Parabolic Bézier Troop Movement
       const proxy = { t: 0 };
       gsap.to(proxy, {
         t: 1,
-        duration: 0.42,
+        duration: 0.45,
         ease: 'power2.inOut',
         onUpdate: () => {
           const t = proxy.t;
-          if (movingMesh) {
-            movingMesh.position.x = startPos.x + (endPos.x - startPos.x) * t;
-            movingMesh.position.z = startPos.z + (endPos.z - startPos.z) * t;
-            movingMesh.position.y = baseY + 4 * peakHeight * t * (1 - t);
-            movingMesh.rotation.x = Math.sin(t * Math.PI) * 0.18;
+          if (mover) {
+            mover.position.x = start.x + (end.x - start.x) * t;
+            mover.position.z = start.z + (end.z - start.z) * t;
+            mover.position.y = 4 * 1.35 * t * (1 - t);
+            mover.rotation.y = Math.atan2(end.x - start.x, end.z - start.z);
           }
         },
         onComplete: () => {
-          if (movingMesh) {
-            movingMesh.position.set(endPos.x, baseY, endPos.z);
-            movingMesh.rotation.set(0, 0, 0);
-            movingMesh.userData.r = move.to.r;
-            movingMesh.userData.c = move.to.c;
+          if (mover) {
+            mover.position.set(end.x, 0, end.z);
+            mover.rotation.set(0, 0, 0);
+            mover.userData.r = move.to.r;
+            mover.userData.c = move.to.c;
           }
 
-          // Handle Capture VFX
-          if (targetMesh && move.captured) {
-            piecesRoot.remove(targetMesh);
-            triggerCaptureVFX(move.to, move.captured, move.piece);
-            sound.playWoodStrike(move.piece.type === 'R' || move.piece.type === 'C');
+          if (target && move.captured) {
+            unitsRoot.remove(target);
+            triggerCaptureCombatVFX(move.to, move.captured, move.piece);
           } else {
-            sound.playWoodStrike(false);
+            sound.playStepImpact(move.piece.type);
           }
 
-          // Subtle Board Impact Micro-Bounce
-          gsap.fromTo(
-            boardGroup.position,
-            { y: -0.05 },
-            { y: 0, duration: 0.22, ease: 'bounce.out' }
-          );
+          unitMeshes.delete(fromKey);
+          if (mover) unitMeshes.set(toKey, mover);
 
-          pieceMeshes.delete(fromKey);
-          if (movingMesh) pieceMeshes.set(toKey, movingMesh);
-
-          renderLastMoveTrail(move.from, move.to);
-
-          // Switch Turn
           currentTurn = currentTurn === 'r' ? 'b' : 'r';
           updateHUD(move);
 
-          // Check Alert & Laser Beam
+          // Check Alert
           if (isKingInCheck(boardState, currentTurn)) {
-            triggerCheckEffect(boardState, currentTurn);
+            sound.playCheckHorns();
+            const vig = document.getElementById('check-vignette');
+            const ban = document.getElementById('check-banner');
+            vig.style.opacity = '1';
+            gsap.fromTo(ban, { opacity: 0, scale: 0.4 }, {
+              opacity: 1, scale: 1, duration: 0.35, ease: 'back.out(1.8)',
+              onComplete: () => {
+                gsap.to(ban, { opacity: 0, scale: 1.3, delay: 0.7, duration: 0.35 });
+                setTimeout(() => vig.style.opacity = '0', 800);
+              }
+            });
           }
 
           isAnimating = false;
 
-          // Trigger AI Reply if enabled and Black's turn
+          // AI Auto-Move
           if (vsAI && currentTurn === 'b') {
             setTimeout(() => {
               const aiMove = findBestAIMove(boardState, 'b');
-              if (aiMove) executeMove3D(aiMove);
-            }, 420);
+              if (aiMove) executeTroopMove(aiMove);
+            }, 450);
           }
         },
       });
     }
 
-    /**********************************************************************
-     * 9. HUD SYNCHRONIZATION (EVALUATION BAR, NOTATION, CAPTURED TRAYS)
-     **********************************************************************/
-    function updateHUD(latestMove = null) {
-      // 1. Turn Badge
-      const turnBadge = document.getElementById('turn-badge');
+    function updateHUD(latest = null) {
+      const badge = document.getElementById('turn-badge');
       if (currentTurn === 'r') {
-        turnBadge.textContent = '🔴 ĐỎ (TIÊN)';
-        turnBadge.className = 'px-2.5 py-1 rounded-lg bg-red-900/80 border border-red-400/50 text-amber-100 font-black';
+        badge.textContent = '🔴 ĐỎ: HÁN VƯƠNG TIÊN THỦ';
+        badge.className = 'px-3 py-1.5 rounded-xl bg-red-950/90 border border-red-500/60 text-amber-100 font-black shadow-inner';
       } else {
-        turnBadge.textContent = '⚫ ĐEN (HẬU)';
-        turnBadge.className = 'px-2.5 py-1 rounded-lg bg-slate-800 border border-cyan-400/50 text-cyan-100 font-black';
+        badge.textContent = '⚫ ĐEN: SỞ BÁ VƯƠNG HẬU THỦ';
+        badge.className = 'px-3 py-1.5 rounded-xl bg-slate-900 border border-cyan-400/60 text-cyan-100 font-black shadow-inner';
       }
 
-      // 2. Real-time Evaluation Bar
-      const rawScore = evaluateBoard(boardState);
-      const clamped = Math.max(-250, Math.min(250, rawScore));
+      // Eval Bar
+      const score = evaluateBoard(boardState);
+      const clamped = Math.max(-250, Math.min(250, score));
       const redPct = Math.round(50 + (clamped / 250) * 45);
-      const blackPct = 100 - redPct;
       document.getElementById('eval-red-bar').style.height = `${redPct}%`;
-      document.getElementById('eval-black-bar').style.height = `${blackPct}%`;
-      const dispScore = (rawScore / 10).toFixed(1);
-      document.getElementById('eval-score-text').textContent = rawScore > 0 ? `+${dispScore}` : dispScore;
+      document.getElementById('eval-black-bar').style.height = `${100 - redPct}%`;
+      document.getElementById('eval-score-text').textContent = (score / 10).toFixed(1);
 
-      // 3. Move Coach Banner
-      if (latestMove) {
-        document.getElementById('coach-badge').textContent =
-          latestMove.captured ? `⚔️ Ăn ${PIECE_META[latestMove.captured.type].nameVi}` : '★ Nước đi chuẩn';
-        document.getElementById('coach-move-code').textContent = latestMove.code;
-        document.getElementById('coach-text').textContent =
-          `${latestMove.piece.side === 'r' ? 'Đỏ' : 'Đen'} đi: ${latestMove.full} (${latestMove.code}).`;
-      }
-
-      // 4. Move History List
-      const listEl = document.getElementById('move-history-list');
+      // History
+      document.getElementById('move-count-badge').textContent = `${moveHistory.length} Nước`;
+      const historyEl = document.getElementById('history-box');
       if (moveHistory.length === 0) {
-        listEl.innerHTML = '<div class="text-stone-400 italic text-xs text-center py-8">Chưa có nước đi nào được thực hiện.</div>';
+        historyEl.innerHTML = '<div class="text-stone-400 italic text-center py-6">Hai quân đang dàn trận...</div>';
       } else {
-        let html = '';
-        for (let i = 0; i < moveHistory.length; i += 2) {
-          const moveNum = Math.floor(i / 2) + 1;
-          const rMove = moveHistory[i]?.move;
-          const bMove = moveHistory[i + 1]?.move;
-          html += `
-            <div class="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white/5 text-xs">
-              <span class="text-amber-400/70 font-mono w-7">${moveNum}.</span>
-              <span class="flex-1 font-bold text-red-300">${rMove ? `${rMove.full} (${rMove.code})` : ''}</span>
-              <span class="flex-1 font-bold text-cyan-300 text-right">${bMove ? `${bMove.full} (${bMove.code})` : ''}</span>
-            </div>
-          `;
-        }
-        listEl.innerHTML = html;
-        listEl.scrollTop = listEl.scrollHeight;
+        historyEl.innerHTML = moveHistory.map((h, i) => `
+          <div class="flex items-center justify-between px-2 py-1 rounded bg-white/5 font-mono">
+            <span class="text-amber-400/70">#${i + 1}</span>
+            <span class="${h.move.piece.side === 'r' ? 'text-red-300' : 'text-cyan-300'} font-bold">${h.move.notation}</span>
+          </div>
+        `).join('');
+        historyEl.scrollTop = historyEl.scrollHeight;
       }
-
-      // 5. Captured Trays
-      const renderTray = (arr, elId) => {
-        const el = document.getElementById(elId);
-        if (arr.length === 0) {
-          el.innerHTML = '<span class="text-stone-500 italic text-[11px]">Chưa ăn quân</span>';
-          return;
-        }
-        el.innerHTML = arr
-          .map((p) => {
-            const meta = PIECE_META[p.type];
-            const char = p.side === 'r' ? meta.hanRed : meta.hanBlack;
-            const cls = p.side === 'r' ? 'bg-red-950 text-amber-200 border-red-500/40' : 'bg-slate-900 text-cyan-200 border-cyan-500/40';
-            return `<span class="px-1.5 py-0.5 rounded border font-bold ${cls}">${char} ${meta.codeVn}</span>`;
-          })
-          .join('');
-      };
-      renderTray(capturedByRed, 'captured-by-red');
-      renderTray(capturedByBlack, 'captured-by-black');
     }
 
     /**********************************************************************
-     * 10. RAYCASTING: LEFT-CLICK MOVE & RIGHT-CLICK TACTICAL ARROWS
+     * 8. RAYCASTING, CAMERA & BUTTON EVENT LISTENERS
      **********************************************************************/
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    let rightDragStart = null;
-
-    function getPointerGridCoord(event) {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-
-      // First check piece meshes
-      const pieceHits = raycaster.intersectObjects(piecesRoot.children, true);
-      if (pieceHits.length > 0) {
-        let obj = pieceHits[0].object;
-        while (obj && !obj.userData?.isPiece) obj = obj.parent;
-        if (obj && obj.userData?.isPiece) {
-          return { r: obj.userData.r, c: obj.userData.c };
-        }
-      }
-
-      // Otherwise intersect board plane
-      const planeHits = raycaster.intersectObject(hitPlane);
-      if (planeHits.length > 0) {
-        const pt = planeHits[0].point;
-        return worldToGrid(pt.x, pt.z);
-      }
-      return null;
-    }
-
-    renderer.domElement.addEventListener('pointermove', (e) => {
-      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-      raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObject(hitPlane);
-      if (hits.length > 0) {
-        hoverLight.position.set(hits[0].point.x, 0.85, hits[0].point.z);
-      }
-    });
 
     renderer.domElement.addEventListener('pointerdown', (e) => {
-      if (e.button === 2) {
-        rightDragStart = getPointerGridCoord(e);
-        return;
-      }
       if (e.button === 0 && !controls.enabled) {
-        const coord = getPointerGridCoord(e);
-        if (coord) selectSquare(coord.r, coord.c);
-      }
-    });
+        mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+        raycaster.setFromCamera(mouse, camera);
 
-    renderer.domElement.addEventListener('pointerup', (e) => {
-      if (e.button === 2 && rightDragStart) {
-        const endCoord = getPointerGridCoord(e);
-        if (endCoord) {
-          if (endCoord.r === rightDragStart.r && endCoord.c === rightDragStart.c) {
-            clearGroup(arrowsRoot);
-          } else {
-            add3DTacticalArrow(rightDragStart, endCoord, 0x38bdf8);
-            sound.playSelect();
+        const hits = raycaster.intersectObjects(unitsRoot.children, true);
+        if (hits.length > 0) {
+          let obj = hits[0].object;
+          while (obj && !obj.userData?.isUnit) obj = obj.parent;
+          if (obj?.userData?.isUnit) {
+            selectSquare(obj.userData.r, obj.userData.c);
+            return;
           }
         }
-        rightDragStart = null;
+
+        const planeHit = raycaster.intersectObject(hitPlane);
+        if (planeHit.length > 0) {
+          const pt = planeHit[0].point;
+          const g = worldToGrid(pt.x, pt.z);
+          if (g) selectSquare(g.r, g.c);
+        }
       }
     });
 
-    renderer.domElement.addEventListener('contextmenu', (e) => e.preventDefault());
-
-    /**********************************************************************
-     * 11. UI CONTROLS & CAMERA LERP BINDINGS
-     **********************************************************************/
-    const setCameraAngle = (mode) => {
-      document.querySelectorAll('.cam-btn').forEach((b) => {
-        b.className = 'cam-btn px-2.5 py-1.5 rounded-lg font-bold text-amber-100/80 hover:text-amber-200 transition cursor-pointer';
-      });
-      if (mode === '45') {
-        document.getElementById('cam-45').className = 'cam-btn px-2.5 py-1.5 rounded-lg font-bold bg-amber-400 text-stone-950 transition cursor-pointer';
+    // Ink Seals
+    let camStep = 0;
+    document.getElementById('seal-camera').addEventListener('click', () => {
+      camStep = (camStep + 1) % 3;
+      if (camStep === 0) {
         controls.enabled = false;
-        gsap.to(camera.position, {
-          x: 0,
-          y: 10.2,
-          z: 9.8,
-          duration: 0.9,
-          ease: 'power3.inOut',
-          onUpdate: () => camera.lookAt(0, 0, 0),
-        });
-      } else if (mode === 'top') {
-        document.getElementById('cam-top').className = 'cam-btn px-2.5 py-1.5 rounded-lg font-bold bg-amber-400 text-stone-950 transition cursor-pointer';
+        gsap.to(camera.position, { x: 0, y: 11.5, z: 9.5, duration: 0.8, onUpdate: () => camera.lookAt(0, 0, 0) });
+      } else if (camStep === 1) {
         controls.enabled = false;
-        gsap.to(camera.position, {
-          x: 0,
-          y: 14.5,
-          z: 0.8,
-          duration: 0.9,
-          ease: 'power3.inOut',
-          onUpdate: () => camera.lookAt(0, 0, 0),
-        });
+        gsap.to(camera.position, { x: 0, y: 14.5, z: 0.5, duration: 0.8, onUpdate: () => camera.lookAt(0, 0, 0) });
       } else {
-        document.getElementById('cam-free').className = 'cam-btn px-2.5 py-1.5 rounded-lg font-bold bg-amber-400 text-stone-950 transition cursor-pointer';
         controls.enabled = true;
       }
-    };
-
-    document.getElementById('cam-45').addEventListener('click', () => setCameraAngle('45'));
-    document.getElementById('cam-top').addEventListener('click', () => setCameraAngle('top'));
-    document.getElementById('cam-free').addEventListener('click', () => setCameraAngle('free'));
-
-    // Theme Switcher
-    document.getElementById('theme-select').addEventListener('change', (e) => {
-      currentThemeKey = e.target.value;
-      const t = THEMES[currentThemeKey];
-      boardTopMat.map = generateBoardTexture(currentThemeKey);
-      boardTopMat.needsUpdate = true;
-      boardSideMat.color.setHex(t.frameColor);
-      scene.fog.color.setHex(t.fogColor);
-      ambientLight.color.setHex(t.ambientColor);
-      mistMat.color.setHex(t.mistColor);
-      syncBoardMeshesWithStagger(boardState);
     });
 
-    // Label Style Toggle
-    document.getElementById('btn-label-mode').addEventListener('click', (e) => {
-      if (labelStyle === 'both') {
-        labelStyle = 'hanzi';
-        e.target.textContent = 'Chữ: Hán Tự';
-      } else if (labelStyle === 'hanzi') {
-        labelStyle = 'vn';
-        e.target.textContent = 'Chữ: Việt Nam';
-      } else {
-        labelStyle = 'both';
-        e.target.textContent = 'Chữ: Hán + Việt';
-      }
-      pieceMeshes.forEach((mesh) => {
-        const { type, side, capMesh } = mesh.userData;
-        capMesh.material.map = createPieceCapTexture(type, side);
-        capMesh.material.needsUpdate = true;
-      });
-    });
-
-    // AI Toggle
-    document.getElementById('btn-ai-toggle').addEventListener('click', (e) => {
-      vsAI = !vsAI;
-      e.target.textContent = vsAI ? '🤖 Đấu AI: BẬT' : '👥 2 Người: TẮT AI';
-    });
-
-    // Sound Toggle
-    document.getElementById('btn-sound').addEventListener('click', (e) => {
+    document.getElementById('seal-sound').addEventListener('click', (e) => {
       sound.muted = !sound.muted;
-      e.target.textContent = sound.muted ? '🔇 Tắt' : '🔊 Âm';
+      e.currentTarget.classList.toggle('opacity-50', sound.muted);
     });
 
-    // Preset Selector (Openings & Jianghu Endgames)
-    document.getElementById('preset-select').addEventListener('change', (e) => {
-      const preset = PRESETS[e.target.value] || PRESETS.standard;
-      const parsed = parseFEN(preset.fen);
-      boardState = parsed.board;
-      currentTurn = parsed.turn;
-      moveHistory = [];
-      capturedByRed = [];
-      capturedByBlack = [];
-      document.getElementById('preset-desc').textContent = preset.desc;
-      syncBoardMeshesWithStagger(boardState, preset.hintArrow);
-    });
-
-    // Smart Hint Button
-    document.getElementById('btn-hint').addEventListener('click', () => {
-      const best = findBestAIMove(boardState, currentTurn);
-      if (best) {
-        clearGroup(arrowsRoot);
-        add3DTacticalArrow(best.from, best.to, 0x34d399);
-        document.getElementById('coach-badge').textContent = '💡 Đại Sư Gợi Ý';
-        document.getElementById('coach-move-code').textContent = best.code;
-        document.getElementById('coach-text').textContent = `Nước đi tối ưu hiện tại: ${best.full} (${best.code}).`;
-        sound.playSelect();
-      }
-    });
-
-    // Undo Move
-    document.getElementById('btn-undo').addEventListener('click', () => {
+    document.getElementById('seal-undo').addEventListener('click', () => {
       if (moveHistory.length === 0 || isAnimating) return;
       const last = moveHistory.pop();
       boardState = last.prevBoard;
       currentTurn = last.prevTurn;
-      if (last.move.captured) {
-        if (last.move.piece.side === 'r') capturedByRed.pop();
-        else capturedByBlack.pop();
-      }
-      syncBoardMeshesWithStagger(boardState);
+      renderBoardUnits(boardState);
     });
 
-    // Reset Game
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      const key = document.getElementById('preset-select').value;
-      const preset = PRESETS[key] || PRESETS.standard;
-      const parsed = parseFEN(preset.fen);
-      boardState = parsed.board;
-      currentTurn = parsed.turn;
+    document.getElementById('seal-restart').addEventListener('click', () => {
+      boardState = parseFEN(INITIAL_FEN).board;
+      currentTurn = 'r';
       moveHistory = [];
-      capturedByRed = [];
-      capturedByBlack = [];
-      syncBoardMeshesWithStagger(boardState, preset.hintArrow);
+      renderBoardUnits(boardState);
     });
 
-    // Clear Arrows
-    document.getElementById('btn-clear-arrows').addEventListener('click', () => {
-      clearGroup(arrowsRoot);
-    });
-
-    // Board Editor Mode
-    const paletteEl = document.getElementById('editor-palette');
-    ['K', 'A', 'E', 'R', 'C', 'H', 'P'].forEach((t) => {
-      ['r', 'b'].forEach((s) => {
-        const btn = document.createElement('button');
-        const meta = PIECE_META[t];
-        btn.textContent = s === 'r' ? meta.hanRed : meta.hanBlack;
-        btn.className = `p-1 rounded font-bold border cursor-pointer ${
-          s === 'r' ? 'bg-red-950 text-amber-200 border-red-500/40' : 'bg-slate-900 text-cyan-200 border-cyan-500/40'
-        }`;
-        btn.onclick = () => {
-          selectedEditorPiece = { type: t, side: s };
-        };
-        paletteEl.appendChild(btn);
-      });
-    });
-
-    document.getElementById('btn-editor').addEventListener('click', (e) => {
-      isEditorMode = !isEditorMode;
-      document.getElementById('editor-panel').classList.toggle('hidden', !isEditorMode);
-      e.target.textContent = isEditorMode ? '✅ Xong Xếp Cờ' : '🛠️ Xếp Cờ Thế';
-    });
-
-    document.getElementById('btn-clear-board').addEventListener('click', () => {
-      for (let r = 0; r < 10; r++) {
-        for (let c = 0; c < 9; c++) {
-          if (boardState[r][c]?.type !== 'K') boardState[r][c] = null;
-        }
+    document.getElementById('seal-hint').addEventListener('click', () => {
+      const best = findBestAIMove(boardState, currentTurn);
+      if (best) {
+        clearGroup(arrowsRoot);
+        add3DArrow(best.from, best.to, 0xfacc15);
+        sound.playSelect();
       }
-      syncBoardMeshesWithStagger(boardState);
     });
 
-    // Responsive Resize
+    document.getElementById('btn-toggle-ai').addEventListener('click', (e) => {
+      vsAI = !vsAI;
+      e.target.textContent = vsAI ? '🤖 Đấu AI: BẬT' : '👥 2 Người: TẮT AI';
+    });
+
     window.addEventListener('resize', () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // Render Loop (60FPS Smooth Animations)
+    // 60FPS Animation Loop with Living Character Idle Breathing
     const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
@@ -2045,33 +1402,29 @@
 
       if (controls.enabled) controls.update();
 
-      // Rotate Selection Halo & Capture Reticles
-      if (selectionHalo.visible) {
-        selectionHalo.rotation.z = elapsed * 1.8;
-      }
-      indicatorsRoot.children.forEach((child) => {
-        if (child.userData?.isReticle) {
-          child.rotation.y = elapsed * 2.2;
-        } else if (child.userData?.isOrb) {
-          child.position.y = child.userData.baseY + Math.sin(elapsed * 4) * 0.04;
+      // Living Character Idle Breathing & Weapon Sway
+      unitsRoot.children.forEach((u, i) => {
+        if (u.userData?.bobGroup) {
+          u.userData.bobGroup.position.y = 0.09 + Math.sin(elapsed * 2.5 + i * 0.4) * 0.015;
         }
       });
 
-      // Drift Ambient Mist Particles
-      const posAttr = mistGeo.attributes.position;
-      for (let i = 0; i < mistCount; i++) {
-        const y = posAttr.getY(i);
-        posAttr.setY(i, y + Math.sin(elapsed * 1.2 + mistPhases[i]) * 0.0015);
+      // Swirling Peach Blossom Petals
+      const posAttr = petalGeo.attributes.position;
+      for (let i = 0; i < petalCount; i++) {
+        let y = posAttr.getY(i) - 0.015;
+        let x = posAttr.getX(i) + Math.sin(elapsed + i) * 0.008;
+        if (y < -1) y = 7;
+        posAttr.setY(i, y);
+        posAttr.setX(i, x);
       }
       posAttr.needsUpdate = true;
-      mistSystem.rotation.y = elapsed * 0.04;
 
       renderer.render(scene, camera);
     }
 
-    // Initialize Board with Stagger Fly-In
     camera.lookAt(0, 0, 0);
-    syncBoardMeshesWithStagger(boardState, PRESETS.standard.hintArrow);
+    renderBoardUnits(boardState);
     animate();
   </script>
 </body>

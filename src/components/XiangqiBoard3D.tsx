@@ -19,6 +19,7 @@ import { PieceLabelMode, ArrowGuide } from './XiangqiBoard';
 
 export type Board3DTheme = 'ebony' | 'jade' | 'cyber';
 export type Camera3DMode = '45' | 'top' | 'free';
+export type PieceVisualMode = 'living' | 'disc';
 
 interface XiangqiBoard3DProps {
   board: BoardMatrix;
@@ -132,6 +133,7 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [cameraMode, setCameraMode] = useState<Camera3DMode>('45');
   const [theme, setTheme] = useState<Board3DTheme>('ebony');
+  const [pieceVisualMode, setPieceVisualMode] = useState<PieceVisualMode>('living');
   const [userArrows, setUserArrows] = useState<{ from: Coord; to: Coord }[]>([]);
   const [checkBannerVisible, setCheckBannerVisible] = useState<boolean>(false);
 
@@ -318,6 +320,194 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = maxAnisotropy;
     return tex;
+  };
+
+  // Helper to build living 3D character unit (Chinese Chess 3D Invincible Edition)
+  const buildLivingUnit3D = (type: PieceType, side: Side) => {
+    const root = new THREE.Group();
+    const isRed = side === 'r';
+    const redCloth = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.35, metalness: 0.15 });
+    const redGold = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.85 });
+    const blackCloth = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.35, metalness: 0.2 });
+    const blackSilver = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.2, metalness: 0.85 });
+    const fleshMat = new THREE.MeshStandardMaterial({ color: 0xfbbf24, roughness: 0.6 });
+    const steelMat = new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.9, roughness: 0.2 });
+    const bronzeMat = new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.8, roughness: 0.3 });
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x543110, roughness: 0.6 });
+
+    const mainMat = isRed ? redCloth : blackCloth;
+    const armorMat = isRed ? redGold : blackSilver;
+
+    // Lotus Pedestal
+    const pedestal = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.42, 0.44, 0.08, 32),
+      new THREE.MeshStandardMaterial({
+        color: isRed ? 0x7f1d1d : 0x0f172a,
+        metalness: 0.5,
+        roughness: 0.3,
+      })
+    );
+    pedestal.position.y = 0.04;
+    pedestal.receiveShadow = true;
+    root.add(pedestal);
+
+    const ringGlow = new THREE.Mesh(
+      new THREE.RingGeometry(0.38, 0.42, 32),
+      new THREE.MeshBasicMaterial({ color: isRed ? 0xfacc15 : 0x38bdf8, side: THREE.DoubleSide })
+    );
+    ringGlow.rotation.x = -Math.PI / 2;
+    ringGlow.position.y = 0.082;
+    root.add(ringGlow);
+
+    const body = new THREE.Group();
+    body.position.y = 0.08;
+    root.add(body);
+    root.userData.bobGroup = body;
+
+    if (type === 'K') {
+      if (isRed) {
+        const throneBack = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.72, 0.12), armorMat);
+        throneBack.position.set(0, 0.52, -0.15);
+        body.add(throneBack);
+        const throneSeat = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.4), armorMat);
+        throneSeat.position.set(0, 0.2, 0);
+        body.add(throneSeat);
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.44, 16), mainMat);
+        torso.position.set(0, 0.52, 0);
+        body.add(torso);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.12, 16, 16), fleshMat);
+        head.position.set(0, 0.84, 0);
+        body.add(head);
+        const crown = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.05, 0.2), armorMat);
+        crown.position.set(0, 1.0, 0);
+        body.add(crown);
+      } else {
+        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.52, 16), mainMat);
+        torso.position.set(0, 0.42, 0);
+        body.add(torso);
+        const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.32, 0.3), armorMat);
+        cuirass.position.set(0, 0.45, 0);
+        body.add(cuirass);
+        const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
+        head.position.set(0, 0.78, 0);
+        body.add(head);
+        const helm = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.22, 16), armorMat);
+        helm.position.set(0, 0.94, 0);
+        body.add(helm);
+        const sword = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.8, 0.12), steelMat);
+        sword.position.set(0.22, 0.45, 0.15);
+        body.add(sword);
+      }
+    } else if (type === 'A') {
+      const dress = new THREE.Mesh(new THREE.ConeGeometry(0.24, 0.6, 16), mainMat);
+      dress.position.set(0, 0.32, 0);
+      body.add(dress);
+      const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.3, 16), armorMat);
+      torso.position.set(0, 0.62, 0);
+      body.add(torso);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), fleshMat);
+      head.position.set(0, 0.84, 0);
+      body.add(head);
+      const blade = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.5, 8), steelMat);
+      blade.position.set(0.2, 0.5, 0.12);
+      blade.rotation.z = -0.4;
+      body.add(blade);
+    } else if (type === 'E') {
+      const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.32, 0.58, 16), mainMat);
+      robe.position.set(0, 0.35, 0);
+      body.add(robe);
+      const pauldrons = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.2, 0.32), armorMat);
+      pauldrons.position.set(0, 0.62, 0);
+      body.add(pauldrons);
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.13, 16, 16), fleshMat);
+      head.position.set(0, 0.82, 0);
+      body.add(head);
+      const shield = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.5, 0.08), armorMat);
+      shield.position.set(0.25, 0.45, 0.16);
+      body.add(shield);
+    } else if (type === 'H') {
+      const horseBody = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.26, 0.6), armorMat);
+      horseBody.position.set(0, 0.34, 0);
+      body.add(horseBody);
+      const horseNeck = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.14, 0.34, 12), armorMat);
+      horseNeck.position.set(0, 0.52, 0.24);
+      horseNeck.rotation.x = 0.65;
+      body.add(horseNeck);
+      const horseHead = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.16, 0.24), armorMat);
+      horseHead.position.set(0, 0.68, 0.34);
+      body.add(horseHead);
+      const rider = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.36, 12), mainMat);
+      rider.position.set(0, 0.64, -0.04);
+      body.add(rider);
+      const riderHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+      riderHead.position.set(0, 0.88, -0.04);
+      body.add(riderHead);
+      const lance = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 1.1, 8), steelMat);
+      lance.position.set(0.2, 0.68, 0.2);
+      lance.rotation.x = 0.35;
+      body.add(lance);
+    } else if (type === 'R') {
+      const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.18, 0.65), woodMat);
+      chassis.position.set(0, 0.22, 0);
+      body.add(chassis);
+      const wheelL = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), steelMat);
+      wheelL.rotation.z = Math.PI / 2;
+      wheelL.position.set(-0.28, 0.2, 0);
+      body.add(wheelL);
+      const wheelR = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16), steelMat);
+      wheelR.rotation.z = Math.PI / 2;
+      wheelR.position.set(0.28, 0.2, 0);
+      body.add(wheelR);
+      const bow = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.08, 0.08), steelMat);
+      bow.position.set(0, 0.42, 0.14);
+      body.add(bow);
+      const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.62), armorMat);
+      rail.position.set(0, 0.36, 0);
+      body.add(rail);
+    } else if (type === 'C') {
+      const carriage = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.18, 0.5), woodMat);
+      carriage.position.set(-0.1, 0.18, 0);
+      body.add(carriage);
+      const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.13, 0.65, 16), bronzeMat);
+      barrel.rotation.x = -0.38;
+      barrel.position.set(-0.1, 0.36, 0.08);
+      body.add(barrel);
+      const gunner = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.14, 0.45, 12), mainMat);
+      gunner.position.set(0.22, 0.3, -0.08);
+      body.add(gunner);
+      const gunnerHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+      gunnerHead.position.set(0.22, 0.58, -0.08);
+      body.add(gunnerHead);
+    } else {
+      const soldierTorso = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.18, 0.4, 12), mainMat);
+      soldierTorso.position.set(0, 0.3, 0);
+      body.add(soldierTorso);
+      const cuirass = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.2, 0.2), armorMat);
+      cuirass.position.set(0, 0.32, 0);
+      body.add(cuirass);
+      const soldierHead = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), fleshMat);
+      soldierHead.position.set(0, 0.56, 0);
+      body.add(soldierHead);
+      const helm = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.15, 12), armorMat);
+      helm.position.set(0, 0.68, 0);
+      body.add(helm);
+      const sword = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.45, 0.08), steelMat);
+      sword.position.set(0.2, 0.35, 0.12);
+      sword.rotation.z = -0.35;
+      body.add(sword);
+      const shield = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.04, 16), armorMat);
+      shield.rotation.x = Math.PI / 2;
+      shield.position.set(-0.18, 0.32, 0.1);
+      body.add(shield);
+    }
+
+    root.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        child.castShadow = true;
+        child.receiveShadow = true;
+      }
+    });
+    return root;
   };
 
   // Initialize Three.js Scene once
@@ -562,6 +752,11 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       indicatorsRoot.children.forEach((c) => {
         if (c.userData?.isReticle) c.rotation.y = elapsed * 2.2;
       });
+      piecesRoot.children.forEach((c, idx) => {
+        if (c.userData?.bobGroup) {
+          c.userData.bobGroup.position.y = 0.08 + Math.sin(elapsed * 2.6 + idx * 0.35) * 0.015;
+        }
+      });
       mistPoints.rotation.y = elapsed * 0.035;
       renderer.render(scene, camera);
     };
@@ -743,54 +938,59 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
         const p = board[r][c];
         if (!p) continue;
         const isRed = p.side === 'r';
-        const grp = new THREE.Group();
+        const grp =
+          pieceVisualMode === 'living'
+            ? buildLivingUnit3D(p.type, p.side)
+            : (() => {
+                const g = new THREE.Group();
+                const cyl = new THREE.Mesh(
+                  new THREE.CylinderGeometry(PIECE_RADIUS * 0.94, PIECE_RADIUS, PIECE_HEIGHT, 36),
+                  new THREE.MeshPhysicalMaterial({
+                    color: isRed ? cfg.redBodyHex : cfg.blackBodyHex,
+                    roughness: 0.15,
+                    metalness: isRed ? 0.15 : 0.35,
+                    clearcoat: 1.0,
+                  })
+                );
+                cyl.castShadow = true;
+                cyl.receiveShadow = true;
+                g.add(cyl);
 
-        const cyl = new THREE.Mesh(
-          new THREE.CylinderGeometry(PIECE_RADIUS * 0.94, PIECE_RADIUS, PIECE_HEIGHT, 36),
-          new THREE.MeshPhysicalMaterial({
-            color: isRed ? cfg.redBodyHex : cfg.blackBodyHex,
-            roughness: 0.15,
-            metalness: isRed ? 0.15 : 0.35,
-            clearcoat: 1.0,
-          })
-        );
-        cyl.castShadow = true;
-        cyl.receiveShadow = true;
-        grp.add(cyl);
+                const torus = new THREE.Mesh(
+                  new THREE.TorusGeometry(PIECE_RADIUS * 0.94, 0.02, 14, 40),
+                  new THREE.MeshStandardMaterial({
+                    color: isRed ? 0xfbbf24 : 0x7dd3fc,
+                    metalness: 0.85,
+                    roughness: 0.2,
+                  })
+                );
+                torus.rotation.x = Math.PI / 2;
+                torus.position.y = PIECE_HEIGHT / 2;
+                g.add(torus);
 
-        const torus = new THREE.Mesh(
-          new THREE.TorusGeometry(PIECE_RADIUS * 0.94, 0.02, 14, 40),
-          new THREE.MeshStandardMaterial({
-            color: isRed ? 0xfbbf24 : 0x7dd3fc,
-            metalness: 0.85,
-            roughness: 0.2,
-          })
-        );
-        torus.rotation.x = Math.PI / 2;
-        torus.position.y = PIECE_HEIGHT / 2;
-        grp.add(torus);
-
-        const cap = new THREE.Mesh(
-          new THREE.CircleGeometry(PIECE_RADIUS * 0.92, 36),
-          new THREE.MeshStandardMaterial({
-            map: buildPieceCapTexture(p.type, p.side, labelMode, maxAniso),
-            roughness: 0.22,
-            metalness: 0.28,
-          })
-        );
-        cap.rotation.x = -Math.PI / 2;
-        cap.position.y = PIECE_HEIGHT / 2 + 0.003;
-        grp.add(cap);
+                const cap = new THREE.Mesh(
+                  new THREE.CircleGeometry(PIECE_RADIUS * 0.92, 36),
+                  new THREE.MeshStandardMaterial({
+                    map: buildPieceCapTexture(p.type, p.side, labelMode, maxAniso),
+                    roughness: 0.22,
+                    metalness: 0.28,
+                  })
+                );
+                cap.rotation.x = -Math.PI / 2;
+                cap.position.y = PIECE_HEIGHT / 2 + 0.003;
+                g.add(cap);
+                return g;
+              })();
 
         const pos = gridToWorld3D(r, c);
         grp.position.set(pos.x, baseY, pos.z);
-        grp.userData = { isPiece: true, r, c, type: p.type, side: p.side };
+        grp.userData = { isPiece: true, r, c, type: p.type, side: p.side, bobGroup: grp.userData.bobGroup };
         ctx.piecesRoot.add(grp);
         ctx.pieceMap.set(`${r},${c}`, grp);
       }
     }
     prevBoardRef.current = board;
-  }, [board, labelMode, theme, lastMove]);
+  }, [board, labelMode, theme, lastMove, pieceVisualMode]);
 
   // Levitate Selected Piece + Render Valid Move Indicators + Check Laser
   useEffect(() => {
@@ -972,6 +1172,19 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPieceVisualMode((prev) => (prev === 'living' ? 'disc' : 'living'))}
+            className={`px-2.5 py-1 rounded-lg font-bold transition cursor-pointer ${
+              pieceVisualMode === 'living'
+                ? 'bg-amber-500/25 border border-amber-400/50 text-[#f6d28b]'
+                : 'bg-[#261f1a] text-[#cbbdaf] hover:bg-[#332720]'
+            }`}
+            title="Chuyển đổi giữa Tướng sống 3D và Quân ngọc PBR"
+          >
+            {pieceVisualMode === 'living' ? '⚔️ Tướng Sống 3D' : '💎 Đĩa Ngọc PBR'}
+          </button>
+
           <select
             value={theme}
             onChange={(e) => setTheme(e.target.value as Board3DTheme)}
@@ -1040,3 +1253,4 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
     </div>
   );
 };
+
