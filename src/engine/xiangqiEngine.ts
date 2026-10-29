@@ -1053,7 +1053,7 @@ export function boardToAscii(board: BoardMatrix): string {
     lines.push(`H${r + 1 < 10 ? ' ' + (r + 1) : r + 1}│${rowCells.join('│')}│`);
     if (r === 4) {
       lines.push('   ├───┴───┴───┴───┴───┴───┴───┴───┴───┤');
-      lines.push('   │      🌊 SỞ HÀ  ───  HÁN GIỚI 🌊   │');
+      lines.push('   │          SỞ HÀ  ───  HÁN GIỚI   │');
       lines.push('   ├───┬───┬───┬───┬───┬───┬───┬───┬───┤');
     } else if (r < 9) {
       lines.push('   ├───┼───┼───┼───┼───┼───┼───┼───┼───┤');

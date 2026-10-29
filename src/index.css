@@ -4,8 +4,27 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Serif", Georgia, serif;
     background-color: #12100e;
-    color: #e6dfd5;
+    color: #f5ede4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
+}
+
+/* Custom Scrollbars for High-Readability Lists */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #191411;
+}
+::-webkit-scrollbar-thumb {
+  background: #3e3025;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #594434;
 }
 
 /* Authentic Antique Wood Board Styling */

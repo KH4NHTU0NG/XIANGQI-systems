@@ -134,24 +134,24 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
             <button
               type="button"
               onClick={() => setShowWhy((prev) => !prev)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#241c16] hover:bg-[#33271f] text-[#dfb673] border border-[#4d3a2a] text-xs font-serif font-medium transition cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#291f18] hover:bg-[#382b21] text-[#f0caa0] border border-[#594432] text-xs sm:text-sm font-serif font-bold transition cursor-pointer shadow-sm"
             >
-              <HelpCircle className="w-3.5 h-3.5 text-[#dfb673]" />
+              <HelpCircle className="w-4 h-4 text-[#dfb673]" />
               <span>Bình chú ý đồ</span>
             </button>
           </div>
 
-          <p className="text-xs sm:text-sm text-[#e0d6c8] mt-2 leading-relaxed">
+          <p className="text-sm text-[#f5eee6] mt-2.5 leading-relaxed font-serif">
             {latestFeedback.summary}
           </p>
 
           {showWhy && (
-            <div className="mt-3 pt-3 border-t border-[#443528]/80 space-y-2 text-xs sm:text-sm text-[#c7baa8]">
-              <p className="leading-relaxed italic">{latestFeedback.whyExplanation}</p>
+            <div className="mt-3 pt-3 border-t border-[#443528]/90 space-y-2 text-xs sm:text-sm text-[#e8ded2]">
+              <p className="leading-relaxed font-serif">{latestFeedback.whyExplanation}</p>
               {latestFeedback.recommendedMove && (
-                <div className="flex items-center justify-between pt-1 text-xs">
-                  <span className="text-[#968674]">Nước cờ chuẩn tối ưu:</span>
-                  <code className="font-mono font-bold text-[#86efac] bg-[#1a2d1d] px-2.5 py-1 rounded border border-[#2f5c35]">
+                <div className="flex items-center justify-between pt-1 text-xs sm:text-sm">
+                  <span className="text-[#c7baa8] font-serif">Nước cờ chuẩn tối ưu:</span>
+                  <code className="font-mono font-black text-[#86efac] bg-[#1a2d1d] px-3 py-1 rounded-lg border border-[#2f5c35] text-sm">
                     {latestFeedback.recommendedMove}
                   </code>
                 </div>
@@ -160,56 +160,56 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
           )}
         </div>
       ) : (
-        <div className="rounded-xl px-4 py-3 bg-[#1d1713] border border-[#382b20] text-xs sm:text-sm text-[#a89987] flex items-center justify-between font-serif">
+        <div className="rounded-xl px-4 py-3.5 bg-[#1d1713] border border-[#3d2f23] text-sm text-[#cbbdaf] flex items-center justify-between font-serif">
           <span>Hãy xuất quân trên sa bàn để nhận lời bình chú nước đi.</span>
         </div>
       )}
 
       {/* Replay Controls & Notation History */}
-      <div className="p-3 bg-[#16120f] border border-[#382a20] rounded-xl space-y-2">
+      <div className="p-3.5 bg-[#16120f] border border-[#3d2e23] rounded-xl space-y-2.5">
         <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
             <button
               type="button"
               disabled={moveHistory.length === 0 || activePlyIndex === 0}
               onClick={() => onSelectPly(0)}
-              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#241c16] hover:bg-[#332720] border border-[#3d2f23] text-[#e0d6c8] disabled:opacity-30 cursor-pointer"
               title="Về đầu ván"
             >
-              <ChevronsLeft className="w-3.5 h-3.5" />
+              <ChevronsLeft className="w-4 h-4" />
             </button>
             <button
               type="button"
               disabled={moveHistory.length === 0 || activePlyIndex === 0}
               onClick={handlePrevPly}
-              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#241c16] hover:bg-[#332720] border border-[#3d2f23] text-[#e0d6c8] disabled:opacity-30 cursor-pointer"
               title="Nước trước"
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
             <button
               type="button"
               disabled={moveHistory.length === 0 || activePlyIndex === null}
               onClick={handleNextPly}
-              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#cfc2b0] disabled:opacity-30 cursor-pointer"
+              className="p-1.5 rounded-lg bg-[#241c16] hover:bg-[#332720] border border-[#3d2f23] text-[#e0d6c8] disabled:opacity-30 cursor-pointer"
               title="Nước sau"
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4" />
             </button>
             <button
               type="button"
               disabled={moveHistory.length === 0 || activePlyIndex === null}
               onClick={() => onSelectPly(null)}
-              className="p-1 rounded bg-[#221a15] hover:bg-[#2d221c] border border-[#382b20] text-[#dfb673] disabled:opacity-30 cursor-pointer text-[11px] font-bold px-1.5"
+              className="p-1.5 rounded-lg bg-[#241c16] hover:bg-[#332720] border border-[#3d2f23] text-[#dfb673] disabled:opacity-30 cursor-pointer text-xs font-bold px-2"
               title="Về hiện tại"
             >
-              <ChevronsRight className="w-3.5 h-3.5 inline" />
+              <ChevronsRight className="w-4 h-4 inline" />
             </button>
           </div>
 
-          <div className="text-[11px] font-mono text-[#a89987]">
+          <div className="text-xs font-mono font-medium text-[#cbbdaf]">
             {activePlyIndex !== null ? (
-              <span className="text-[#dfb673]">Đang xem: Nước {activePlyIndex + 1}/{moveHistory.length}</span>
+              <span className="text-[#fae5a8] font-bold">Đang xem: Nước {activePlyIndex + 1}/{moveHistory.length}</span>
             ) : (
               <span>Thực chiến ({moveHistory.length} nước)</span>
             )}
@@ -217,9 +217,9 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
         </div>
 
         {/* Move History Pills */}
-        <div className="flex flex-wrap items-center gap-1.5 max-h-[72px] overflow-y-auto">
+        <div className="flex flex-wrap items-center gap-1.5 max-h-[85px] overflow-y-auto">
           {moveHistory.length === 0 ? (
-            <span className="text-[#635546] italic font-serif text-xs">Chưa có nước đi</span>
+            <span className="text-[#8f7d6a] italic font-serif text-xs">Chưa có nước đi</span>
           ) : (
             moveHistory.map((m, idx) => {
               const isViewing = currentViewingIndex === idx;
@@ -228,12 +228,12 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
                   key={m.ply}
                   type="button"
                   onClick={() => onSelectPly(idx)}
-                  className={`px-2 py-0.5 rounded font-mono text-xs font-bold border cursor-pointer transition ${
+                  className={`px-2.5 py-1 rounded-lg font-mono text-xs font-bold border cursor-pointer transition ${
                     isViewing
-                      ? 'ring-2 ring-[#dfb673] bg-[#422e1b] text-[#fae5a8] border-[#dfb673]'
+                      ? 'ring-2 ring-[#dfb673] bg-[#4a341f] text-[#fae5a8] border-[#dfb673]'
                       : m.side === 'r'
-                      ? 'bg-[#3b1715] border-[#6b2521] text-[#fca5a5]'
-                      : 'bg-[#221c17] border-[#423528] text-[#e0d6c8]'
+                      ? 'bg-[#3b1715] border-[#782823] text-[#fca5a5]'
+                      : 'bg-[#241d18] border-[#4a3a2c] text-[#f0e6d6]'
                   }`}
                 >
                   {m.notation}
@@ -249,19 +249,19 @@ export const MoveCoachPanel: React.FC<MoveCoachPanelProps> = ({
           <button
             type="button"
             onClick={() => setShowTheory((prev) => !prev)}
-            className="flex items-center gap-1.5 text-xs text-[#dfb673] hover:text-[#fae5a8] font-serif font-medium cursor-pointer"
+            className="flex items-center gap-1.5 text-xs sm:text-sm text-[#e2b972] hover:text-[#fae5a8] font-serif font-bold cursor-pointer"
           >
-            <BookOpen className="w-3.5 h-3.5" />
+            <BookOpen className="w-4 h-4" />
             <span>{showTheory ? 'Đóng kỳ lý' : 'Xem kỳ lý'}</span>
           </button>
         </div>
       )}
 
       {showTheory && lessonTheory && (
-        <div className="rounded-xl p-4 bg-[#1a1512] border border-[#3b2e23] text-xs sm:text-sm text-[#cfc2b0] space-y-2 leading-relaxed font-serif shadow-inner">
+        <div className="rounded-xl p-4 bg-[#1a1512] border border-[#3d2f23] text-sm text-[#e6ded2] space-y-2 leading-relaxed font-serif shadow-inner">
           <p className="leading-relaxed">{lessonTheory}</p>
           {lessonCitation && (
-            <p className="text-[11px] text-[#806f5e] italic font-mono pt-1 border-t border-[#2e2319]">
+            <p className="text-xs text-[#a89886] italic font-mono pt-1.5 border-t border-[#33261b]">
               {lessonCitation}
             </p>
           )}

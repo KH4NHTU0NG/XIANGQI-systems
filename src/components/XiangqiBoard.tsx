@@ -48,7 +48,7 @@ const getPieceTypography = (
   if (mode === 'hanzi') {
     return {
       label: isRed ? meta.hanRed : meta.hanBlack,
-      fontSizeClass: 'text-[32px] font-serif',
+      fontSizeClass: 'text-[34px] font-serif font-black tracking-normal',
     };
   }
 
@@ -65,17 +65,17 @@ const getPieceTypography = (
     const name = fullNames[type][side];
     const fontSizeClass =
       name.length <= 2
-        ? 'text-[20px]'
+        ? 'text-[22px] font-bold'
         : name.length <= 4
-        ? 'text-[17px]'
-        : 'text-[14px]';
+        ? 'text-[18px] font-bold tracking-tight'
+        : 'text-[16px] font-bold tracking-tighter';
     return { label: name, fontSizeClass };
   }
 
   if (mode === 'dual') {
     return {
       label: meta.dualLabel,
-      fontSizeClass: 'text-[16px]',
+      fontSizeClass: 'text-[18px] font-black tracking-tight',
     };
   }
 
@@ -83,7 +83,7 @@ const getPieceTypography = (
   const code = meta.codeVn;
   return {
     label: code,
-    fontSizeClass: code.length > 1 ? 'text-[22px]' : 'text-[26px]',
+    fontSizeClass: code.length > 1 ? 'text-[24px] font-black' : 'text-[28px] font-black',
   };
 };
 
@@ -207,21 +207,21 @@ export const XiangqiBoard: React.FC<XiangqiBoardProps> = ({
               rx="4"
             />
 
-            {/* Top Coordinates (Black Side: 1 -> 9 left to right) */}
+            {/* Top Coordinates (Black Side: 1 -> 9 left to right) - Crisp High Contrast */}
             {Array.from({ length: 9 }, (_, c) => (
               <text
                 key={`coord-top-${c}`}
                 x={toX(c)}
-                y={28}
+                y={26}
                 textAnchor="middle"
                 dominantBaseline="central"
-                className="fill-[#381d06] font-serif font-black text-[16px]"
+                className="fill-[#1f1105] font-serif font-black text-[18px]"
               >
                 {c + 1}
               </text>
             ))}
 
-            {/* Bottom Coordinates (Red Side: 9 -> 1 left to right) */}
+            {/* Bottom Coordinates (Red Side: 9 -> 1 left to right) - Rich Crimson Carmine */}
             {Array.from({ length: 9 }, (_, c) => (
               <text
                 key={`coord-bot-${c}`}
@@ -229,7 +229,7 @@ export const XiangqiBoard: React.FC<XiangqiBoardProps> = ({
                 y={height - 20}
                 textAnchor="middle"
                 dominantBaseline="central"
-                className="fill-[#8c221e] font-serif font-black text-[16px]"
+                className="fill-[#991b1b] font-serif font-black text-[18px]"
               >
                 {9 - c}
               </text>
@@ -329,7 +329,7 @@ export const XiangqiBoard: React.FC<XiangqiBoardProps> = ({
               y={(toY(4) + toY(5)) / 2}
               textAnchor="middle"
               dominantBaseline="central"
-              className="fill-[#422209]/85 font-serif font-black text-[22px] tracking-[0.35em]"
+              className="fill-[#381a05] font-serif font-black text-[24px] tracking-[0.4em]"
             >
               SỞ HÀ
             </text>
@@ -338,7 +338,7 @@ export const XiangqiBoard: React.FC<XiangqiBoardProps> = ({
               y={(toY(4) + toY(5)) / 2}
               textAnchor="middle"
               dominantBaseline="central"
-              className="fill-[#422209]/85 font-serif font-black text-[22px] tracking-[0.35em]"
+              className="fill-[#381a05] font-serif font-black text-[24px] tracking-[0.4em]"
             >
               HÁN GIỚI
             </text>
