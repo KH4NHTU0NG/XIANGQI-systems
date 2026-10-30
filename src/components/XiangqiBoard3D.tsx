@@ -62,7 +62,7 @@ function normalizeChariotGLTF(gltfScene: THREE.Group): THREE.Group {
   box.getCenter(center);
 
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  const targetScale = 0.84 / maxDim;
+  const targetScale = 0.86 / maxDim;
 
   const wrapper = new THREE.Group();
   gltfScene.scale.setScalar(targetScale);
@@ -73,10 +73,20 @@ function normalizeChariotGLTF(gltfScene: THREE.Group): THREE.Group {
   );
 
   gltfScene.traverse((child) => {
-    if ((child as THREE.Mesh).isMesh) {
-      child.castShadow = true;
-      child.receiveShadow = true;
-      child.userData.outlineParameters = { visible: false };
+    const mesh = child as THREE.Mesh;
+    if (mesh.isMesh) {
+      if (mesh.geometry) {
+        mesh.geometry.computeVertexNormals();
+      }
+      mesh.castShadow = true;
+      mesh.receiveShadow = false;
+      mesh.userData.outlineParameters = { visible: false };
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      mats.forEach((m) => {
+        if (!m) return;
+        m.userData = m.userData || {};
+        m.userData.outlineParameters = { visible: false };
+      });
     }
   });
 
@@ -95,18 +105,35 @@ function instantiateChariotForSide(
     const mesh = child as THREE.Mesh;
     if (mesh.isMesh) {
       mesh.castShadow = true;
-      mesh.receiveShadow = true;
+      mesh.receiveShadow = false;
       mesh.userData.outlineParameters = { visible: false };
       const origMat = mesh.material as THREE.MeshStandardMaterial;
       if (origMat && !Array.isArray(origMat)) {
-        const matKey = isRed ? '__redClonedMat' : '__blueClonedMat';
+        origMat.userData = origMat.userData || {};
+        origMat.userData.outlineParameters = { visible: false };
+        const matKey = isRed ? '__redBrightToonMat' : '__blueBrightToonMat';
         if (!origMat.userData[matKey]) {
-          const cloned = origMat.clone();
-          if ('emissive' in cloned) {
-            cloned.emissive = new THREE.Color(isRed ? 0x3b0808 : 0x062c47);
-            cloned.emissiveIntensity = 0.22;
+          const baseMap = origMat.map || null;
+          const normalMap = origMat.normalMap || null;
+          if (baseMap) {
+            baseMap.colorSpace = THREE.SRGBColorSpace;
+            baseMap.needsUpdate = true;
           }
-          origMat.userData[matKey] = cloned;
+          const brightMat = new THREE.MeshToonMaterial({
+            map: baseMap,
+            normalMap: normalMap,
+            normalScale: new THREE.Vector2(0.85, 0.85),
+            color: isRed
+              ? new THREE.Color(2.2, 1.85, 1.65)
+              : new THREE.Color(1.65, 1.95, 2.25),
+            emissiveMap: baseMap,
+            emissive: isRed
+              ? new THREE.Color(0xffb396)
+              : new THREE.Color(0x96dcff),
+            emissiveIntensity: 0.72,
+          });
+          brightMat.userData = { outlineParameters: { visible: false } };
+          origMat.userData[matKey] = brightMat;
         }
         mesh.material = origMat.userData[matKey];
       }
