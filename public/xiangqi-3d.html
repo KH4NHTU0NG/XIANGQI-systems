@@ -1004,7 +1004,65 @@
       return bytes.buffer;
     }
 
-    function normalizeAndPrepareGLTF(gltfScene) {
+    // Directly extract the embedded BaseColor JPEG from GLB binary chunk via DOM <img> + 2D <canvas>
+    // (Bypasses ImageBitmapLoader fetch() issues on file:// and brightens dark baked mahogany albedo)
+    function extractAndBrightenGLBTexture(glbBuffer) {
+      return new Promise((resolve) => {
+        try {
+          const dv = new DataView(glbBuffer);
+          const magic = dv.getUint32(0, true);
+          if (magic !== 0x46546c67) return resolve(null);
+          const jsonLen = dv.getUint32(12, true);
+          const jsonBytes = new Uint8Array(glbBuffer, 20, jsonLen);
+          const json = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
+
+          const matDef = json.materials && json.materials[0];
+          const texIdx = matDef?.pbrMetallicRoughness?.baseColorTexture?.index ?? 0;
+          const imgIdx = (json.textures && json.textures[texIdx]?.source) ?? 0;
+          const imgDef = json.images && json.images[imgIdx];
+          if (!imgDef || imgDef.bufferView === undefined) return resolve(null);
+
+          const bv = json.bufferViews[imgDef.bufferView];
+          const binChunkStart = 20 + jsonLen + 8;
+          const imgBytes = new Uint8Array(
+            glbBuffer,
+            binChunkStart + (bv.byteOffset || 0),
+            bv.byteLength
+          );
+          const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/jpeg' });
+          const blobUrl = URL.createObjectURL(blob);
+
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048;
+            canvas.height = 2048;
+            const ctx = canvas.getContext('2d');
+            ctx.filter = 'brightness(1.95) contrast(1.18) saturate(1.32)';
+            ctx.drawImage(img, 0, 0, 2048, 2048);
+            URL.revokeObjectURL(blobUrl);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            tex.flipY = false;
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.wrapS = THREE.RepeatWrapping;
+            tex.wrapT = THREE.RepeatWrapping;
+            tex.needsUpdate = true;
+            resolve(tex);
+          };
+          img.onerror = () => {
+            URL.revokeObjectURL(blobUrl);
+            resolve(null);
+          };
+          img.src = blobUrl;
+        } catch (e) {
+          console.warn('Direct GLB texture extract fallback:', e);
+          resolve(null);
+        }
+      });
+    }
+
+    function normalizeAndPrepareGLTF(gltfScene, customBrightTex = null) {
       gltfScene.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(gltfScene);
       const size = new THREE.Vector3();
@@ -1025,22 +1083,51 @@
 
       gltfScene.traverse((child) => {
         if (child.isMesh) {
-          // 1. Recompute full-precision Float32 normals from quantized Int8 normals
+          // 1. CRITICAL FIX: DO NOT call computeVertexNormals() on Int8Array InterleavedBufferAttribute!
+          // (computeVertexNormals writes float ~1e-6 into Int8Array, rounding every normal to [0,0,0] -> NaN black!).
+          // Instead, convert the quantized Int8 normals directly into a unit-length Float32Array BufferAttribute:
           if (child.geometry) {
-            child.geometry.computeVertexNormals();
+            const oldNorm = child.geometry.getAttribute('normal');
+            if (oldNorm) {
+              const count = oldNorm.count;
+              const f32Norm = new Float32Array(count * 3);
+              for (let i = 0; i < count; i++) {
+                let nx = oldNorm.getX(i);
+                let ny = oldNorm.getY(i);
+                let nz = oldNorm.getZ(i);
+                const len = Math.hypot(nx, ny, nz);
+                if (len > 1e-5) {
+                  nx /= len;
+                  ny /= len;
+                  nz /= len;
+                } else {
+                  nx = 0;
+                  ny = 1;
+                  nz = 0;
+                }
+                f32Norm[i * 3] = nx;
+                f32Norm[i * 3 + 1] = ny;
+                f32Norm[i * 3 + 2] = nz;
+              }
+              child.geometry.setAttribute('normal', new THREE.BufferAttribute(f32Norm, 3));
+            }
           }
-          // 2. Cast shadow onto the board, but disable self-shadow acne on 1.8M micro-triangles
+
           child.castShadow = true;
           child.receiveShadow = false;
           child.userData.outlineParameters = { visible: false };
+          if (customBrightTex) {
+            child.userData.brightCanvasTex = customBrightTex;
+          }
 
-          // 3. CRITICAL: OutlineEffect reads originalMaterial.userData.outlineParameters!
-          // Setting visible: false on material.userData prevents OutlineEffect from extruding a solid black hull over 1.8M triangles.
           const mats = Array.isArray(child.material) ? child.material : [child.material];
           mats.forEach((m) => {
             if (!m) return;
             m.userData = m.userData || {};
             m.userData.outlineParameters = { visible: false };
+            if (customBrightTex) {
+              m.userData.brightCanvasTex = customBrightTex;
+            }
           });
         }
       });
@@ -1062,28 +1149,27 @@
             child.material.userData.outlineParameters = { visible: false };
 
             if (!child.material.userData[matKey]) {
-              const baseMap = child.material.map || null;
-              const normalMap = child.material.normalMap || null;
+              const baseMap =
+                child.userData.brightCanvasTex ||
+                child.material.userData?.brightCanvasTex ||
+                child.material.map ||
+                null;
               if (baseMap) {
                 baseMap.colorSpace = THREE.SRGBColorSpace;
                 baseMap.needsUpdate = true;
               }
 
-              // Convert PBR material (which defaults to metalness=1.0 & reflects black when scene.environment is null)
-              // into a bright, vibrant Cel-Shaded MeshToonMaterial with HDR albedo & emissiveMap boost
               const brightMat = new THREE.MeshToonMaterial({
                 map: baseMap,
-                normalMap: normalMap,
-                normalScale: new THREE.Vector2(0.85, 0.85),
                 gradientMap: toonGradTex,
                 color: isRed
-                  ? new THREE.Color(2.2, 1.85, 1.65)
-                  : new THREE.Color(1.65, 1.95, 2.25),
+                  ? new THREE.Color(1.38, 1.15, 1.06)
+                  : new THREE.Color(1.06, 1.24, 1.42),
                 emissiveMap: baseMap,
                 emissive: isRed
-                  ? new THREE.Color(0xffb396)
-                  : new THREE.Color(0x96dcff),
-                emissiveIntensity: 0.72,
+                  ? new THREE.Color(0xffd6c4)
+                  : new THREE.Color(0xc4ebff),
+                emissiveIntensity: 0.68,
               });
               brightMat.userData = {
                 outlineParameters: { visible: false },
@@ -1109,6 +1195,25 @@
       return instance;
     }
 
+    function parseGLBBufferWithBrightTexture(buffer, type, resolve, reject) {
+      extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+        gltfLoader.parse(
+          buffer,
+          './models/',
+          (gltf) => {
+            const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex);
+            gltfCache.set(type, normalized);
+            const badge = document.getElementById('glb-status-badge');
+            if (badge) {
+              badge.textContent = '✅ Xe 3D: Tripo PBR Meshopt GLB';
+            }
+            resolve(normalized);
+          },
+          reject
+        );
+      });
+    }
+
     function loadGLTFModelOnce(type, url) {
       if (gltfCache.has(type)) {
         return Promise.resolve(gltfCache.get(type));
@@ -1118,43 +1223,34 @@
       }
 
       const promise = new Promise((resolve, reject) => {
-        const onSuccess = (gltf) => {
-          const normalized = normalizeAndPrepareGLTF(gltf.scene);
-          gltfCache.set(type, normalized);
-          const badge = document.getElementById('glb-status-badge');
-          if (badge) {
-            badge.textContent = '✅ Xe 3D: Tripo PBR Meshopt GLB';
-          }
-          resolve(normalized);
-        };
-
         // Zero-CORS Desktop file:// execution using preloaded Base64 ArrayBuffer
         if (type === 'R' && window.__PRELOADED_XE_GLB_BASE64__) {
           try {
             const buffer = base64ToArrayBuffer(window.__PRELOADED_XE_GLB_BASE64__);
             window.__PRELOADED_XE_GLB_BASE64__ = null;
-            gltfLoader.parse(
-              buffer,
-              './models/',
-              onSuccess,
-              (err) => {
-                console.warn('Preloaded GLB parse fallback to URL load:', err);
-                gltfLoader.load(url, onSuccess, undefined, reject);
-              }
-            );
+            parseGLBBufferWithBrightTexture(buffer, type, resolve, (err) => {
+              console.warn('Preloaded GLB parse fallback to URL load:', err);
+              fetch(url)
+                .then((r) => r.arrayBuffer())
+                .then((buf) => parseGLBBufferWithBrightTexture(buf, type, resolve, reject))
+                .catch(reject);
+            });
             return;
           } catch (e) {
             console.warn('Base64 decode fallback to URL load:', e);
           }
         }
 
-        gltfLoader.load(url, onSuccess, undefined, (err) => {
-          const badge = document.getElementById('glb-status-badge');
-          if (badge) {
-            badge.textContent = '📂 Nạp file .glb cho Quân Xe';
-          }
-          reject(err);
-        });
+        fetch(url)
+          .then((r) => r.arrayBuffer())
+          .then((buf) => parseGLBBufferWithBrightTexture(buf, type, resolve, reject))
+          .catch((err) => {
+            const badge = document.getElementById('glb-status-badge');
+            if (badge) {
+              badge.textContent = '📂 Nạp file .glb cho Quân Xe';
+            }
+            reject(err);
+          });
       });
 
       gltfLoadingPromises.set(type, promise);
@@ -3776,22 +3872,24 @@
       const reader = new FileReader();
       reader.onload = (ev) => {
         const buffer = ev.target.result;
-        gltfLoader.parse(
-          buffer,
-          '',
-          (gltf) => {
-            const normalized = normalizeAndPrepareGLTF(gltf.scene);
-            gltfCache.set(targetPieceType, normalized);
-            OPTIONAL_GLTF_URLS[targetPieceType] = 'custom://' + file.name;
-            if (badge) badge.textContent = '✅ Xe 3D: ' + file.name.slice(0, 22);
-            renderBoardUnits(boardState);
-            triggerSwordQiCaptureVFX({ r: 9, c: 0 });
-          },
-          (err) => {
-            console.error('Lỗi giải mã GLB:', err);
-            if (badge) badge.textContent = '❌ Lỗi nạp GLB';
-          }
-        );
+        extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+          gltfLoader.parse(
+            buffer,
+            '',
+            (gltf) => {
+              const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex);
+              gltfCache.set(targetPieceType, normalized);
+              OPTIONAL_GLTF_URLS[targetPieceType] = 'custom://' + file.name;
+              if (badge) badge.textContent = '✅ Xe 3D: ' + file.name.slice(0, 22);
+              renderBoardUnits(boardState);
+              triggerSwordQiCaptureVFX({ r: 9, c: 0 });
+            },
+            (err) => {
+              console.error('Lỗi giải mã GLB:', err);
+              if (badge) badge.textContent = '❌ Lỗi nạp GLB';
+            }
+          );
+        });
       };
       reader.readAsArrayBuffer(file);
     }

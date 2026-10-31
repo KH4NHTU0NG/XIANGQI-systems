@@ -53,7 +53,65 @@ sharedGltfLoader.setMeshoptDecoder(MeshoptDecoder);
 const sharedGltfCache = new Map<PieceType, THREE.Group>();
 const sharedGltfPromises = new Map<PieceType, Promise<THREE.Group>>();
 
-function normalizeChariotGLTF(gltfScene: THREE.Group): THREE.Group {
+function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.CanvasTexture | null> {
+  return new Promise((resolve) => {
+    try {
+      const dv = new DataView(glbBuffer);
+      const magic = dv.getUint32(0, true);
+      if (magic !== 0x46546c67) return resolve(null);
+      const jsonLen = dv.getUint32(12, true);
+      const jsonBytes = new Uint8Array(glbBuffer, 20, jsonLen);
+      const json = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
+
+      const matDef = json.materials?.[0];
+      const texIdx = matDef?.pbrMetallicRoughness?.baseColorTexture?.index ?? 0;
+      const imgIdx = json.textures?.[texIdx]?.source ?? 0;
+      const imgDef = json.images?.[imgIdx];
+      if (!imgDef || imgDef.bufferView === undefined) return resolve(null);
+
+      const bv = json.bufferViews[imgDef.bufferView];
+      const binChunkStart = 20 + jsonLen + 8;
+      const imgBytes = new Uint8Array(
+        glbBuffer,
+        binChunkStart + (bv.byteOffset || 0),
+        bv.byteLength
+      );
+      const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/jpeg' });
+      const blobUrl = URL.createObjectURL(blob);
+
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 2048;
+        canvas.height = 2048;
+        const ctx = canvas.getContext('2d')!;
+        ctx.filter = 'brightness(1.95) contrast(1.18) saturate(1.32)';
+        ctx.drawImage(img, 0, 0, 2048, 2048);
+        URL.revokeObjectURL(blobUrl);
+
+        const tex = new THREE.CanvasTexture(canvas);
+        tex.flipY = false;
+        tex.colorSpace = THREE.SRGBColorSpace;
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.needsUpdate = true;
+        resolve(tex);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(blobUrl);
+        resolve(null);
+      };
+      img.src = blobUrl;
+    } catch {
+      resolve(null);
+    }
+  });
+}
+
+function normalizeChariotGLTF(
+  gltfScene: THREE.Group,
+  customBrightTex: THREE.CanvasTexture | null = null
+): THREE.Group {
   gltfScene.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(gltfScene);
   const size = new THREE.Vector3();
@@ -76,16 +134,45 @@ function normalizeChariotGLTF(gltfScene: THREE.Group): THREE.Group {
     const mesh = child as THREE.Mesh;
     if (mesh.isMesh) {
       if (mesh.geometry) {
-        mesh.geometry.computeVertexNormals();
+        const oldNorm = mesh.geometry.getAttribute('normal');
+        if (oldNorm) {
+          const count = oldNorm.count;
+          const f32Norm = new Float32Array(count * 3);
+          for (let i = 0; i < count; i++) {
+            let nx = oldNorm.getX(i);
+            let ny = oldNorm.getY(i);
+            let nz = oldNorm.getZ(i);
+            const len = Math.hypot(nx, ny, nz);
+            if (len > 1e-5) {
+              nx /= len;
+              ny /= len;
+              nz /= len;
+            } else {
+              nx = 0;
+              ny = 1;
+              nz = 0;
+            }
+            f32Norm[i * 3] = nx;
+            f32Norm[i * 3 + 1] = ny;
+            f32Norm[i * 3 + 2] = nz;
+          }
+          mesh.geometry.setAttribute('normal', new THREE.BufferAttribute(f32Norm, 3));
+        }
       }
       mesh.castShadow = true;
       mesh.receiveShadow = false;
       mesh.userData.outlineParameters = { visible: false };
+      if (customBrightTex) {
+        mesh.userData.brightCanvasTex = customBrightTex;
+      }
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       mats.forEach((m) => {
         if (!m) return;
         m.userData = m.userData || {};
         m.userData.outlineParameters = { visible: false };
+        if (customBrightTex) {
+          m.userData.brightCanvasTex = customBrightTex;
+        }
       });
     }
   });
@@ -113,24 +200,25 @@ function instantiateChariotForSide(
         origMat.userData.outlineParameters = { visible: false };
         const matKey = isRed ? '__redBrightToonMat' : '__blueBrightToonMat';
         if (!origMat.userData[matKey]) {
-          const baseMap = origMat.map || null;
-          const normalMap = origMat.normalMap || null;
+          const baseMap =
+            mesh.userData.brightCanvasTex ||
+            origMat.userData?.brightCanvasTex ||
+            origMat.map ||
+            null;
           if (baseMap) {
             baseMap.colorSpace = THREE.SRGBColorSpace;
             baseMap.needsUpdate = true;
           }
           const brightMat = new THREE.MeshToonMaterial({
             map: baseMap,
-            normalMap: normalMap,
-            normalScale: new THREE.Vector2(0.85, 0.85),
             color: isRed
-              ? new THREE.Color(2.2, 1.85, 1.65)
-              : new THREE.Color(1.65, 1.95, 2.25),
+              ? new THREE.Color(1.38, 1.15, 1.06)
+              : new THREE.Color(1.06, 1.24, 1.42),
             emissiveMap: baseMap,
             emissive: isRed
-              ? new THREE.Color(0xffb396)
-              : new THREE.Color(0x96dcff),
-            emissiveIntensity: 0.72,
+              ? new THREE.Color(0xffd6c4)
+              : new THREE.Color(0xc4ebff),
+            emissiveIntensity: 0.68,
           });
           brightMat.userData = { outlineParameters: { visible: false } };
           origMat.userData[matKey] = brightMat;
@@ -160,16 +248,23 @@ function loadChariotGLTFOnce(): Promise<THREE.Group> {
     return sharedGltfPromises.get('R')!;
   }
   const p = new Promise<THREE.Group>((resolve, reject) => {
-    sharedGltfLoader.load(
-      '/models/xe_chariot.glb',
-      (gltf) => {
-        const normalized = normalizeChariotGLTF(gltf.scene);
-        sharedGltfCache.set('R', normalized);
-        resolve(normalized);
-      },
-      undefined,
-      reject
-    );
+    fetch('/models/xe_chariot.glb')
+      .then((r) => r.arrayBuffer())
+      .then((buffer) => {
+        extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+          sharedGltfLoader.parse(
+            buffer,
+            '/models/',
+            (gltf) => {
+              const normalized = normalizeChariotGLTF(gltf.scene, brightTex);
+              sharedGltfCache.set('R', normalized);
+              resolve(normalized);
+            },
+            reject
+          );
+        });
+      })
+      .catch(reject);
   });
   sharedGltfPromises.set('R', p);
   return p;

@@ -81,5 +81,8 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
     expect(content).toContain('gltfLoader.setMeshoptDecoder(MeshoptDecoder)');
     expect(content).toContain("R: './models/xe_chariot.glb'");
     expect(content).toContain('normalizeAndPrepareGLTF');
+    expect(content).toContain('extractAndBrightenGLBTexture');
+    expect(content).toContain('new THREE.BufferAttribute(f32Norm, 3)');
+    expect(content).not.toContain('child.geometry.computeVertexNormals()');
   });
 });
