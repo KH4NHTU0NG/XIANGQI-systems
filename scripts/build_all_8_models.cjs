@@ -25,8 +25,9 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 1.08,
     maxSpanXZ: 1.02,
-    gamma: 0.88,
-    gain: 1.08,
+    gamma: 0.95,
+    gain: 1.0,
+    satBoost: 1.35,
   },
   {
     key: 'K_b',
@@ -35,8 +36,9 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 1.12,
     maxSpanXZ: 0.90,
-    gamma: 0.82,
-    gain: 1.16,
+    gamma: 0.92,
+    gain: 1.04,
+    satBoost: 1.38,
   },
   {
     key: 'A',
@@ -45,8 +47,9 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 1.00,
     maxSpanXZ: 0.95,
-    gamma: 0.90,
-    gain: 1.06,
+    gamma: 0.96,
+    gain: 1.0,
+    satBoost: 1.36,
   },
   {
     key: 'B',
@@ -55,8 +58,9 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 1.04,
     maxSpanXZ: 0.92,
-    gamma: 0.82,
-    gain: 1.16,
+    gamma: 0.92,
+    gain: 1.04,
+    satBoost: 1.38,
   },
   {
     key: 'N',
@@ -65,18 +69,21 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 1.05,
     maxSpanXZ: 0.96,
-    gamma: 0.92,
-    gain: 1.05,
+    gamma: 0.98,
+    gain: 0.98,
+    satBoost: 1.35,
   },
   {
     key: 'R',
     outFile: 'xe.glb',
     match: 'Xe',
     yawDeg: -90,
-    targetHeight: 0.82,
+    targetHeight: 0.84,
     maxSpanXZ: 1.02,
-    gamma: 0.58,
-    gain: 1.45,
+    gamma: 0.90,
+    gain: 1.02,
+    satBoost: 1.55,
+    isChariot: true,
   },
   {
     key: 'C',
@@ -85,8 +92,9 @@ const MODEL_SPECS = [
     yawDeg: -152,
     targetHeight: 0.98,
     maxSpanXZ: 0.96,
-    gamma: 0.88,
-    gain: 1.08,
+    gamma: 0.95,
+    gain: 1.0,
+    satBoost: 1.35,
   },
   {
     key: 'P',
@@ -95,12 +103,13 @@ const MODEL_SPECS = [
     yawDeg: -90,
     targetHeight: 0.92,
     maxSpanXZ: 0.92,
-    gamma: 0.88,
-    gain: 1.08,
+    gamma: 0.95,
+    gain: 1.0,
+    satBoost: 1.35,
   },
 ];
 
-function brightenAndResizeJpeg(rawJpgBuf, tempPrefix, gamma, gain) {
+function brightenAndResizeJpeg(rawJpgBuf, tempPrefix, gamma, gain, satBoost = 1.35, isChariot = false) {
   const inJpg = path.join(SCRATCH_DIR, `${tempPrefix}_in.jpg`);
   const bmpPath = path.join(SCRATCH_DIR, `${tempPrefix}_1024.bmp`);
   const outJpg = path.join(SCRATCH_DIR, `${tempPrefix}_out.jpg`);
@@ -124,14 +133,40 @@ function brightenAndResizeJpeg(rawJpgBuf, tempPrefix, gamma, gain) {
     const rowStart = off + y * stride;
     for (let x = 0; x < w; x++) {
       const idx = rowStart + x * bpp;
-      bmp[idx] = lut[bmp[idx]];
-      bmp[idx + 1] = lut[bmp[idx + 1]];
-      bmp[idx + 2] = lut[bmp[idx + 2]];
+      let b = lut[bmp[idx]];
+      let g = lut[bmp[idx + 1]];
+      let r = lut[bmp[idx + 2]];
+
+      if (isChariot) {
+        // Enrich Ebony/Rosewood & Antique Bronze/Dark Silver tones on Xe (Chariot)
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+        if (r >= g && g >= b * 0.85 && lum < 175) {
+          // Warm dark wood & bronze: deepen warm amber/ebony contrast
+          r = Math.min(255, Math.round(r * 1.18 + 8));
+          g = Math.min(255, Math.round(g * 0.96));
+          b = Math.max(0, Math.round(b * 0.76));
+        } else if (lum >= 145) {
+          // Metallic crossbow parts: antique tarnished silver-bronze instead of stark white
+          r = Math.min(235, Math.round(r * 0.92));
+          g = Math.min(228, Math.round(g * 0.90));
+          b = Math.min(220, Math.round(b * 0.88));
+        }
+      }
+
+      // Boost saturation around luminance so colors are rich and never washed out
+      const luma = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = Math.min(255, Math.max(0, Math.round(luma + (r - luma) * satBoost)));
+      g = Math.min(255, Math.max(0, Math.round(luma + (g - luma) * satBoost)));
+      b = Math.min(255, Math.max(0, Math.round(luma + (b - luma) * satBoost)));
+
+      bmp[idx] = b;
+      bmp[idx + 1] = g;
+      bmp[idx + 2] = r;
     }
   }
 
   fs.writeFileSync(bmpPath, bmp);
-  execSync(`sips -s format jpeg -s formatOptions 82 "${bmpPath}" --out "${outJpg}" >/dev/null 2>&1`);
+  execSync(`sips -s format jpeg -s formatOptions 85 "${bmpPath}" --out "${outJpg}" >/dev/null 2>&1`);
   const finalJpg = fs.readFileSync(outJpg);
   return { finalJpg, bmp, off, w, h, bpp, stride, topDown: bmp.readInt32LE(22) < 0 };
 }
@@ -287,7 +322,7 @@ async function run() {
 
     const bv0 = json.bufferViews[0];
     const rawJpg = rawGlb.subarray(binStart + (bv0.byteOffset || 0), binStart + (bv0.byteOffset || 0) + bv0.byteLength);
-    const texInfo = brightenAndResizeJpeg(rawJpg, spec.key, spec.gamma, spec.gain);
+    const texInfo = brightenAndResizeJpeg(rawJpg, spec.key, spec.gamma, spec.gain, spec.satBoost, spec.isChariot);
 
     function decodeBV(bvIdx) {
       const bv = json.bufferViews[bvIdx];

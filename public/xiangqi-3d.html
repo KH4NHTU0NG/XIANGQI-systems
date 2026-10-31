@@ -320,8 +320,7 @@
   </div>
 
   <!-- Preloaded Base64 GLB Bundle for file:// Zero-CORS Desktop Execution (All 8 3D Piece Models) -->
-  <script src="./models/all_pieces_inline.js" onerror="console.info('all_pieces_inline.js not found; trying fallback')"></script>
-  <script src="./models/xe_chariot_inline.js" onerror="console.info('GLB inline bundle not used; loading via HTTP fetch')"></script>
+  <script src="./models/all_pieces_inline.js?v=2" onerror="console.info('all_pieces_inline.js not found; trying fallback')"></script>
 
   <!-- MAIN WEBGL + GLSL SHADER + OUTLINE EFFECT MODULE -->
   <script type="module">
@@ -707,21 +706,22 @@
     const DEFAULT_CAM_POS = { x: 0, y: 12.8, z: 8.95 }; // ~55 degree pitch
     camera.position.set(DEFAULT_CAM_POS.x, DEFAULT_CAM_POS.y, DEFAULT_CAM_POS.z);
 
-    // 4K Renderer with devicePixelRatio & Soft Shadows
+    // 4K Renderer with devicePixelRatio, SRGBColorSpace & ACESFilmicToneMapping
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio || 2);
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // Post-Processing OutlineEffect for Cel-Shaded Bold Black Outlines
+    // Post-Processing OutlineEffect for Cel-Shaded Toon Ink Outlines (#111111)
     const outlineEffect = new OutlineEffect(renderer, {
-      defaultThickness: 0.0038,
-      defaultColor: [0.06, 0.04, 0.03],
-      defaultAlpha: 0.95,
+      defaultThickness: 0.0028,
+      defaultColor: [0.067, 0.067, 0.067],
+      defaultAlpha: 0.94,
       defaultKeepAlive: true,
     });
 
@@ -736,15 +736,15 @@
     controls.maxDistance = 22;
     controls.enabled = false;
 
-    // Warm Sunlight, Hemisphere Bounce Light & Cyan Rim Light for Cel-Shading & 3D GLB Models
-    const ambientLight = new THREE.AmbientLight(0xfff6e5, 1.35);
+    // Balanced Cinema Lighting for Rich Saturated PBR/Toon Models (Zero White Blow-Out)
+    const ambientLight = new THREE.AmbientLight(0xfff1dc, 0.85);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xfffbeb, 0xd9a464, 1.3);
+    const hemiLight = new THREE.HemisphereLight(0xfff6e5, 0xa66328, 0.72);
     hemiLight.position.set(0, 12, 0);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xfffbeb, 2.5);
+    const dirLight = new THREE.DirectionalLight(0xfff5e4, 1.55);
     dirLight.position.set(7, 16, 8);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -756,12 +756,12 @@
     dirLight.shadow.bias = -0.0005;
     scene.add(dirLight);
 
-    const cyanRimLight = new THREE.DirectionalLight(0x38bdf8, 0.9);
+    const cyanRimLight = new THREE.DirectionalLight(0x74c0fc, 0.48);
     cyanRimLight.position.set(-9, 9, -9);
     scene.add(cyanRimLight);
 
     /**********************************************************************
-     * MODULE 5: 3D WOODEN CHESSBOARD WITH SEAL SCRIPT & INK SPLATTER RIVER
+     * MODULE 5: 3D SANDALWOOD CHESSBOARD (#c88446 -> #a66328) WITH VERTICAL PLANK GRAIN
      **********************************************************************/
     function generateWarmWoodenBoardTexture() {
       const canvas = document.createElement('canvas');
@@ -769,28 +769,62 @@
       canvas.height = 2240;
       const ctx = canvas.getContext('2d');
 
-      // Warm polished wood base
-      const grad = ctx.createRadialGradient(1024, 1120, 120, 1024, 1120, 1480);
-      grad.addColorStop(0, '#edd09c');
-      grad.addColorStop(0.6, '#d9a464');
-      grad.addColorStop(1, '#b07434');
+      // Deep Warm Sandalwood Base (#c88446 -> #b57134 -> #a66328)
+      const grad = ctx.createRadialGradient(1024, 1120, 140, 1024, 1120, 1520);
+      grad.addColorStop(0, '#c88446');
+      grad.addColorStop(0.55, '#b87335');
+      grad.addColorStop(1, '#a66328');
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Wood grain planks & fibers
-      for (let i = 0; i < 260; i++) {
-        const y = (i / 260) * canvas.height;
-        ctx.strokeStyle = i % 5 === 0 ? 'rgba(72, 38, 10, 0.08)' : 'rgba(96, 52, 14, 0.04)';
-        ctx.lineWidth = i % 7 === 0 ? 2.8 : 1.4;
+      // Vertical Wood Plank Joinery (Vân gỗ ghép dọc sắc nét như bản gốc)
+      const plankCount = 8;
+      const plankW = canvas.width / plankCount;
+      for (let p = 0; p < plankCount; p++) {
+        const px = p * plankW;
+        // Subtle tonal variation per vertical sandalwood plank
+        ctx.fillStyle = p % 2 === 0 ? 'rgba(68, 32, 6, 0.055)' : 'rgba(255, 200, 130, 0.04)';
+        ctx.fillRect(px, 0, plankW, canvas.height);
+
+        if (p > 0) {
+          ctx.strokeStyle = 'rgba(42, 18, 4, 0.34)';
+          ctx.lineWidth = 3.2;
+          ctx.beginPath();
+          ctx.moveTo(px, 0);
+          ctx.lineTo(px, canvas.height);
+          ctx.stroke();
+        }
+      }
+
+      // Crisp Vertical Wood Grain Fibers & Organic Sandalwood Rings
+      for (let i = 0; i < 420; i++) {
+        const x = (i / 420) * canvas.width;
+        ctx.strokeStyle =
+          i % 6 === 0
+            ? 'rgba(54, 24, 5, 0.16)'
+            : i % 3 === 0
+            ? 'rgba(78, 36, 8, 0.10)'
+            : 'rgba(240, 175, 100, 0.06)';
+        ctx.lineWidth = i % 8 === 0 ? 3.0 : 1.5;
         ctx.beginPath();
-        ctx.moveTo(0, y);
+        ctx.moveTo(x, 0);
         ctx.bezierCurveTo(
-          canvas.width * 0.33, y + Math.sin(i * 0.5) * 16,
-          canvas.width * 0.66, y - Math.cos(i * 0.4) * 16,
-          canvas.width, y
+          x + Math.sin(i * 0.45) * 18,
+          canvas.height * 0.33,
+          x - Math.cos(i * 0.38) * 18,
+          canvas.height * 0.66,
+          x + Math.sin(i * 0.25) * 8,
+          canvas.height
         );
         ctx.stroke();
       }
+
+      // Antique Weathered Vignette Border
+      const borderGrad = ctx.createRadialGradient(1024, 1120, 880, 1024, 1120, 1560);
+      borderGrad.addColorStop(0, 'rgba(0,0,0,0)');
+      borderGrad.addColorStop(1, 'rgba(38, 16, 4, 0.38)');
+      ctx.fillStyle = borderGrad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const padX = 184;
       const padY = 182;
@@ -799,12 +833,12 @@
       const toX = (c) => padX + c * stepX;
       const toY = (r) => padY + r * stepY;
 
-      // Crisp Black Grid Lines (9 columns x 10 rows)
-      ctx.strokeStyle = '#180f08';
-      ctx.lineWidth = 10;
-      ctx.strokeRect(padX - 24, padY - 24, stepX * 8 + 48, stepY * 9 + 48);
+      // Crisp Sumi-Ink Black Grid Lines (9 columns x 10 rows)
+      ctx.strokeStyle = '#0d0704';
+      ctx.lineWidth = 12;
+      ctx.strokeRect(padX - 26, padY - 26, stepX * 8 + 52, stepY * 9 + 52);
 
-      ctx.lineWidth = 4.8;
+      ctx.lineWidth = 5.8;
       for (let r = 0; r < 10; r++) {
         ctx.beginPath();
         ctx.moveTo(toX(0), toY(r));
@@ -830,7 +864,7 @@
       }
 
       // Nine Palace Diagonals
-      ctx.lineWidth = 4.2;
+      ctx.lineWidth = 5.0;
       [
         [3, 0, 5, 2], [5, 0, 3, 2],
         [3, 7, 5, 9], [5, 7, 3, 9],
@@ -847,7 +881,7 @@
         const cy = toY(r);
         const gap = 14;
         const len = 28;
-        ctx.lineWidth = 4;
+        ctx.lineWidth = 4.6;
         const dirs = [];
         if (c > 0) dirs.push([-1, -1], [-1, 1]);
         if (c < 8) dirs.push([1, -1], [1, 1]);
@@ -869,15 +903,15 @@
       ctx.font = '900 96px "Noto Serif SC", "Ma Shan Zheng", serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = 'rgba(255, 232, 178, 0.55)';
+      ctx.fillStyle = 'rgba(235, 178, 108, 0.42)';
       ctx.fillText('楚 河', toX(1.5) + 3, riverCenterY + 3);
       ctx.fillText('漢 界', toX(6.5) + 3, riverCenterY + 3);
-      ctx.fillStyle = '#1f1106';
+      ctx.fillStyle = '#120904';
       ctx.fillText('楚 河', toX(1.5), riverCenterY);
       ctx.fillText('漢 界', toX(6.5), riverCenterY);
 
       // Ink-wash horizontal brush stroke in center river (matching reference game)
-      ctx.fillStyle = 'rgba(14, 10, 8, 0.9)';
+      ctx.fillStyle = 'rgba(12, 8, 6, 0.92)';
       ctx.beginPath();
       ctx.ellipse(canvas.width / 2, riverCenterY, 460, 74, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -908,13 +942,14 @@
 
     const boardTopMat = new THREE.MeshStandardMaterial({
       map: generateWarmWoodenBoardTexture(),
-      roughness: 0.34,
-      metalness: 0.08,
+      color: new THREE.Color(0xeecfa8),
+      roughness: 0.48,
+      metalness: 0.06,
     });
     const boardSideMat = new THREE.MeshStandardMaterial({
-      color: 0x6b3d16,
-      roughness: 0.45,
-      metalness: 0.12,
+      color: 0x5c3110,
+      roughness: 0.52,
+      metalness: 0.10,
     });
 
     const boardMesh = new THREE.Mesh(
@@ -1014,11 +1049,11 @@
       P: 0.92,
     };
 
-    // High-key Toon Gradient Texture (RGBAFormat 4x1) so 3D GLB models never go dark in shadow
+    // Mid-tone Toon Gradient Texture for procedural fallback pieces
     const highKeyBytes = new Uint8Array([
-      192, 192, 192, 255,
-      216, 216, 216, 255,
-      238, 238, 238, 255,
+      110, 110, 110, 255,
+      165, 165, 165, 255,
+      215, 215, 215, 255,
       255, 255, 255, 255,
     ]);
     const highKeyModelGradTex = new THREE.DataTexture(highKeyBytes, 4, 1, THREE.RGBAFormat);
@@ -1031,6 +1066,21 @@
     toonGradTex.minFilter = THREE.NearestFilter;
     toonGradTex.magFilter = THREE.NearestFilter;
     toonGradTex.needsUpdate = true;
+
+    // Inverted-Hull Toon Ink Outline Material (#111111) for crisp 3D character silhouettes
+    const glbInkOutlineMat = new THREE.MeshBasicMaterial({
+      color: 0x111111,
+      side: THREE.BackSide,
+      transparent: true,
+      opacity: 0.92,
+    });
+    glbInkOutlineMat.userData = { outlineParameters: { visible: false }, noOutline: true };
+    glbInkOutlineMat.onBeforeCompile = (shader) => {
+      shader.vertexShader = shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        'vec3 transformed = position + normal * 0.0085;'
+      );
+    };
 
     function base64ToArrayBuffer(b64) {
       const binStr = atob(b64);
@@ -1051,9 +1101,82 @@
       return 'data:' + mimeType + ';base64,' + btoa(binary);
     }
 
-    // Selective HSV Crimson/Purple -> Royal Cyan-Blue recolor for Blue Faction shared models
-    // Preserves warm skin tones (Hue 14°..55°), white horses/trousers, and gold/silver armor
-    function createBlueFactionCanvas(sourceCanvas) {
+    // Enhance Red Faction (Chu Vũ) saturation: vivid Cinnabar Red (#e03131) + Imperial Gold (#f59f00)
+    // and Ebony-Wood + Bronze/Dark-Silver for Xe (Chariot)
+    function enhanceRedFactionCanvas(sourceCanvas, modelKey = 'R') {
+      const w = sourceCanvas.width;
+      const h = sourceCanvas.height;
+      const ctx = sourceCanvas.getContext('2d');
+      const imgData = ctx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+      const isChariot = modelKey === 'R';
+
+      for (let i = 0, len = data.length; i < len; i += 4) {
+        let r = data[i];
+        let g = data[i + 1];
+        let b = data[i + 2];
+
+        const max = r > g ? (r > b ? r : b) : (g > b ? g : b);
+        const min = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        const d = max - min;
+        const sat = max === 0 ? 0 : d / max;
+        const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+        if (isChariot) {
+          // Chariot (Xe): Rich dark Ebony/Rosewood frame + Antique Bronze (#f59f00/#b47b26) + Cinnabar Red banner (#e03131)
+          if (r > g * 1.35 && r > b * 1.45 && sat > 0.32) {
+            // Banner & red accents -> Cinnabar Red (#e03131)
+            r = Math.min(255, Math.round(r * 1.15 + 18));
+            g = Math.round(g * 0.62);
+            b = Math.round(b * 0.62);
+          } else if (r >= g && g >= b * 0.82 && lum < 175) {
+            // Wooden frame & bronze -> Deep Ebony / Warm Rosewood & Bronze
+            r = Math.min(220, Math.round(Math.pow(r / 255, 1.18) * 215));
+            g = Math.min(165, Math.round(Math.pow(g / 255, 1.25) * 150));
+            b = Math.min(115, Math.round(Math.pow(b / 255, 1.35) * 95));
+          } else {
+            // Crossbow metallic parts -> Tarnished Dark Silver / Gunmetal
+            r = Math.min(205, Math.round(r * 0.78));
+            g = Math.min(208, Math.round(g * 0.80));
+            b = Math.min(215, Math.round(b * 0.84));
+          }
+        } else {
+          // Boost Cinnabar Red (#e03131) on robes/capes and Imperial Gold (#f59f00) on trim
+          let hue = 0;
+          if (d > 0) {
+            if (max === r) hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+            else if (max === g) hue = ((b - r) / d + 2) * 60;
+            else hue = ((r - g) / d + 4) * 60;
+          }
+          if ((hue <= 14 || hue >= 330) && sat > 0.24) {
+            // Push toward rich Cinnabar Red (#e03131)
+            r = Math.min(255, Math.round(r * 1.12 + 10));
+            g = Math.round(g * 0.78);
+            b = Math.round(b * 0.76);
+          } else if (hue >= 32 && hue <= 56 && sat > 0.28) {
+            // Push gold trim toward vibrant Imperial Gold (#f59f00)
+            r = Math.min(255, Math.round(r * 1.08 + 8));
+            g = Math.min(245, Math.round(g * 1.02));
+            b = Math.round(b * 0.72);
+          } else {
+            // General saturation boost & slight midtone deepening to prevent wash-out
+            const satMult = 1.28;
+            r = Math.min(255, Math.max(0, Math.round((lum + (r - lum) * satMult) * 0.94)));
+            g = Math.min(255, Math.max(0, Math.round((lum + (g - lum) * satMult) * 0.94)));
+            b = Math.min(255, Math.max(0, Math.round((lum + (b - lum) * satMult) * 0.94)));
+          }
+        }
+
+        data[i] = r;
+        data[i + 1] = g;
+        data[i + 2] = b;
+      }
+      ctx.putImageData(imgData, 0, 0);
+    }
+
+    // Selective HSV Crimson/Purple -> Sapphire Cyan-Blue (#1c7ed6) & Ice-Silver (#74c0fc) recolor for Blue Faction
+    // Preserves warm peach skin tones (Hue 15°..52°), white horses, and golden thrones
+    function createBlueFactionCanvas(sourceCanvas, modelKey = 'R') {
       const w = sourceCanvas.width;
       const h = sourceCanvas.height;
       const blueCanvas = document.createElement('canvas');
@@ -1063,20 +1186,43 @@
       bCtx.drawImage(sourceCanvas, 0, 0);
       const imgData = bCtx.getImageData(0, 0, w, h);
       const data = imgData.data;
+      const isChariot = modelKey === 'R';
 
       for (let i = 0, len = data.length; i < len; i += 4) {
         const r = data[i];
         const g = data[i + 1];
         const b = data[i + 2];
+
+        if (isChariot) {
+          const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+          if (r > g * 1.25 && r > b * 1.3) {
+            // Banner & red accents -> Sapphire Cyan-Blue (#1c7ed6)
+            data[i] = Math.min(255, Math.round(lum * 0.22));
+            data[i + 1] = Math.min(255, Math.round(lum * 0.68 + 20));
+            data[i + 2] = Math.min(255, Math.round(lum * 1.25 + 45));
+          } else if (lum < 155) {
+            // Dark Ebony / Ironwood frame with subtle cool bronze sheen
+            data[i] = Math.min(185, Math.round(r * 0.72));
+            data[i + 1] = Math.min(175, Math.round(g * 0.76));
+            data[i + 2] = Math.min(195, Math.round(b * 0.88 + 10));
+          } else {
+            // Metallic crossbow -> Silver-Blue (#74c0fc)
+            data[i] = Math.min(210, Math.round(lum * 0.68));
+            data[i + 1] = Math.min(235, Math.round(lum * 0.88));
+            data[i + 2] = Math.min(255, Math.round(lum * 1.06 + 14));
+          }
+          continue;
+        }
+
         const maxRB = r > b ? r : b;
         // Fast reject for neutral/white/black/skin/gold pixels
-        if (maxRB < 30 || g >= maxRB * 0.78) continue;
+        if (maxRB < 26 || g >= maxRB * 0.80) continue;
 
         const max = maxRB > g ? maxRB : g;
         const min = r < g ? (r < b ? r : b) : (g < b ? g : b);
         const d = max - min;
         const sat = max === 0 ? 0 : d / max;
-        if (sat < 0.25) continue;
+        if (sat < 0.22) continue;
 
         let hue = 0;
         if (max === r) {
@@ -1087,10 +1233,11 @@
           continue;
         }
 
-        if (hue <= 11 || hue >= 250) {
-          const targetHue = hue >= 250 && hue < 320 ? 216 : 204;
-          const v = Math.min(1.0, (max / 255) * 1.1);
-          const s = Math.min(1.0, sat * 1.06);
+        // Convert crimson/red/purple robes (Hue <= 13° or >= 245°) to Sapphire Blue (#1c7ed6, Hue 208°) & Silver-Blue (#74c0fc)
+        if (hue <= 13 || hue >= 245) {
+          const targetHue = hue >= 245 && hue < 320 ? 212 : 205;
+          const v = Math.min(0.96, (max / 255) * 1.04);
+          const s = Math.min(0.95, sat * 1.15);
           const c = v * s;
           const x = c * (1 - Math.abs(((targetHue / 60) % 2) - 1));
           const m = v - c;
@@ -1140,13 +1287,16 @@
             canvas.width = 1024;
             canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            if (!isPreOriented) {
-              ctx.filter =
-                modelKey === 'R'
-                  ? 'brightness(1.75) contrast(1.12) saturate(1.22)'
-                  : 'brightness(1.16) contrast(1.06) saturate(1.10)';
-            }
             ctx.drawImage(img, 0, 0, 1024, 1024);
+
+            // Create Blue Faction canvas first (including K_b so Blue General's crimson robe turns Sapphire Blue!)
+            let blueCanvas = null;
+            if (modelKey !== 'K_r') {
+              blueCanvas = createBlueFactionCanvas(canvas, modelKey);
+            }
+
+            // Enhance Red Faction canvas (Cinnabar Red #e03131 + Gold #f59f00, or Ebony-Bronze for Xe)
+            enhanceRedFactionCanvas(canvas, modelKey);
 
             const redTex = new THREE.CanvasTexture(canvas);
             redTex.flipY = false;
@@ -1156,8 +1306,7 @@
             redTex.needsUpdate = true;
 
             let blueTex = redTex;
-            if (modelKey !== 'K_b' && modelKey !== 'K_r') {
-              const blueCanvas = createBlueFactionCanvas(canvas);
+            if (blueCanvas) {
               blueTex = new THREE.CanvasTexture(blueCanvas);
               blueTex.flipY = false;
               blueTex.colorSpace = THREE.SRGBColorSpace;
@@ -1207,6 +1356,7 @@
       );
 
       let fallbackMap = null;
+      const sourceMeshes = [];
 
       gltfScene.traverse((child) => {
         if (child.isMesh) {
@@ -1238,16 +1388,33 @@
             }
           }
 
-          if (child.material && child.material.map && !fallbackMap) {
-            fallbackMap = child.material.map;
+          if (child.material && child.material.map) {
+            child.material.map.colorSpace = THREE.SRGBColorSpace;
+            if (!fallbackMap) fallbackMap = child.material.map;
           }
 
           child.castShadow = true;
-          child.receiveShadow = false;
-          // CRITICAL: Never store THREE.Texture or THREE.Material inside userData because
-          // Object3D.clone() runs JSON.parse(JSON.stringify(source.userData))!
-          child.userData = { outlineParameters: { visible: false }, noOutline: true };
+          child.receiveShadow = true;
+          child.userData = {
+            outlineParameters: {
+              visible: true,
+              thickness: 0.0024,
+              color: [0.067, 0.067, 0.067],
+              alpha: 0.92,
+            },
+          };
+          sourceMeshes.push(child);
         }
+      });
+
+      // Add thin Toon Ink Outline (#111111) backface shell to each mesh for unmistakable comic-ink separation
+      sourceMeshes.forEach((mesh) => {
+        const inkShell = new THREE.Mesh(mesh.geometry, glbInkOutlineMat);
+        inkShell.name = 'ToonInkOutlineShell';
+        inkShell.castShadow = false;
+        inkShell.receiveShadow = false;
+        inkShell.userData = { outlineParameters: { visible: false }, noOutline: true, isInkShell: true };
+        mesh.add(inkShell);
       });
 
       const finalRedMap = customRedTex || fallbackMap;
@@ -1261,42 +1428,141 @@
         finalBlueMap.needsUpdate = true;
       }
 
-      const redMat = new THREE.MeshToonMaterial({
-        map: finalRedMap,
-        gradientMap: highKeyModelGradTex,
-        color: new THREE.Color(1.06, 1.02, 1.0),
-        emissiveMap: finalRedMap,
-        emissive: new THREE.Color(0xffffff),
-        emissiveIntensity: 0.58,
-      });
-      redMat.userData = { outlineParameters: { visible: false } };
+      const isChariot = modelKey === 'R';
 
-      const blueMat = new THREE.MeshToonMaterial({
-        map: finalBlueMap,
-        gradientMap: highKeyModelGradTex,
-        color: new THREE.Color(1.0, 1.03, 1.06),
-        emissiveMap: finalBlueMap,
-        emissive: new THREE.Color(0xffffff),
-        emissiveIntensity: 0.58,
+      // PBR Standard Material with metalness = 0.15, roughness = 0.55 & Faction Emissive Warmth
+      const redMat = new THREE.MeshStandardMaterial({
+        map: finalRedMap,
+        color: new THREE.Color(isChariot ? 0xd99b68 : 0xffdfdc),
+        metalness: 0.15,
+        roughness: 0.55,
+        emissive: new THREE.Color(0x3a0808),
+        emissiveIntensity: 0.52,
       });
-      blueMat.userData = { outlineParameters: { visible: false } };
+      redMat.userData = {
+        outlineParameters: {
+          visible: true,
+          thickness: 0.0024,
+          color: [0.067, 0.067, 0.067],
+          alpha: 0.92,
+        },
+      };
+
+      const blueMat = new THREE.MeshStandardMaterial({
+        map: finalBlueMap,
+        color: new THREE.Color(isChariot ? 0x9ec8f0 : 0xd4ecff),
+        metalness: 0.15,
+        roughness: 0.55,
+        emissive: new THREE.Color(0x051b38),
+        emissiveIntensity: 0.52,
+      });
+      blueMat.userData = {
+        outlineParameters: {
+          visible: true,
+          thickness: 0.0024,
+          color: [0.067, 0.067, 0.067],
+          alpha: 0.92,
+        },
+      };
 
       wrapper.add(gltfScene);
-      return { wrapper, redMat, blueMat };
+      return { wrapper, redMat, blueMat, modelKey };
+    }
+
+    // Build Ebony-Bronze Frame Accents & Vivid Faction War Banners specifically for Xe (Chariot)
+    function buildChariotFactionAccents(isRed) {
+      const grp = new THREE.Group();
+      const ebonyMat = new THREE.MeshStandardMaterial({
+        color: 0x261308,
+        metalness: 0.18,
+        roughness: 0.52,
+      });
+      const metalTrimMat = new THREE.MeshStandardMaterial({
+        color: isRed ? 0xf59f00 : 0x74c0fc,
+        metalness: 0.45,
+        roughness: 0.35,
+        emissive: new THREE.Color(isRed ? 0x3a1800 : 0x051b38),
+        emissiveIntensity: 0.4,
+      });
+      const flagSilkMat = new THREE.MeshStandardMaterial({
+        color: isRed ? 0xe03131 : 0x1c7ed6,
+        metalness: 0.1,
+        roughness: 0.48,
+        emissive: new THREE.Color(isRed ? 0x4a0808 : 0x06234a),
+        emissiveIntensity: 0.55,
+        side: THREE.DoubleSide,
+      });
+
+      // Twin War Banner Poles & Pennants at the rear of the Siege Ballista Chariot
+      [-0.24, 0.24].forEach((bx) => {
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.018, 0.78, 8), ebonyMat);
+        pole.position.set(bx, 0.42, -0.22);
+        grp.add(pole);
+
+        const finial = new THREE.Mesh(new THREE.OctahedronGeometry(0.042, 0), metalTrimMat);
+        finial.position.set(bx, 0.83, -0.22);
+        grp.add(finial);
+
+        const banner = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.34), flagSilkMat);
+        banner.position.set(bx, 0.63, -0.32);
+        banner.rotation.y = bx > 0 ? 0.25 : -0.25;
+        grp.add(banner);
+
+        const borderStrip = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.025, 0.012), metalTrimMat);
+        borderStrip.position.set(bx, 0.79, -0.31);
+        borderStrip.rotation.y = bx > 0 ? 0.25 : -0.25;
+        grp.add(borderStrip);
+      });
+
+      // Glowing Faction Ballista Bolt on the central crossbow rail
+      const boltShaft = new THREE.Mesh(new THREE.CylinderGeometry(0.016, 0.022, 0.62, 8), metalTrimMat);
+      boltShaft.rotation.x = Math.PI / 2;
+      boltShaft.position.set(0, 0.29, 0.12);
+      grp.add(boltShaft);
+
+      return grp;
     }
 
     function instantiateGLTFForSide(cachedEntry, isRed) {
       const instance = cachedEntry.wrapper.clone(true);
-      const targetMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
+      const baseMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
+      // Clone material per unit so selecting a unit can boost its emissiveIntensity independently
+      const unitMat = baseMat.clone();
+      unitMat.userData = {
+        outlineParameters: {
+          visible: true,
+          thickness: 0.0024,
+          color: [0.067, 0.067, 0.067],
+          alpha: 0.92,
+        },
+      };
 
       instance.traverse((child) => {
         if (child.isMesh) {
-          child.castShadow = true;
-          child.receiveShadow = false;
-          child.material = targetMat;
-          child.userData = { outlineParameters: { visible: false }, noOutline: true };
+          if (child.userData?.isInkShell || child.name === 'ToonInkOutlineShell') {
+            child.material = glbInkOutlineMat;
+            child.castShadow = false;
+            child.receiveShadow = false;
+            child.userData = { outlineParameters: { visible: false }, noOutline: true, isInkShell: true };
+          } else {
+            child.castShadow = true;
+            child.receiveShadow = true;
+            child.material = unitMat;
+            child.userData = {
+              outlineParameters: {
+                visible: true,
+                thickness: 0.0024,
+                color: [0.067, 0.067, 0.067],
+                alpha: 0.92,
+              },
+            };
+          }
         }
       });
+
+      if (cachedEntry.modelKey === 'R') {
+        instance.add(buildChariotFactionAccents(isRed));
+      }
 
       return instance;
     }
@@ -1387,13 +1653,13 @@
         side,
       });
 
-    // Faction Palettes (Red Crimson vs Cyan-Blue)
-    const redRobeMat = makeToonMat(0xdc2626);
-    const redSilkMat = makeToonMat(0xf87171, THREE.DoubleSide);
-    const redGoldMat = makeToonMat(0xfbbf24);
+    // Faction Palettes (Red Cinnabar #e03131 vs Sapphire Blue #1c7ed6)
+    const redRobeMat = makeToonMat(0xe03131);
+    const redSilkMat = makeToonMat(0xff6b6b, THREE.DoubleSide);
+    const redGoldMat = makeToonMat(0xf59f00);
 
-    const blueRobeMat = makeToonMat(0x0284c7);
-    const blueSilkMat = makeToonMat(0x38bdf8, THREE.DoubleSide);
+    const blueRobeMat = makeToonMat(0x1c7ed6);
+    const blueSilkMat = makeToonMat(0x74c0fc, THREE.DoubleSide);
     const blueSilverMat = makeToonMat(0xe2e8f0);
 
     const fleshMat = makeToonMat(0xfde68a);
@@ -1401,8 +1667,107 @@
     const silverIronMat = makeToonMat(0xcbd5e1);
     const darkIronMat = makeToonMat(0x334155);
     const bronzeMat = makeToonMat(0xd97706);
-    const woodMat = makeToonMat(0x78350f);
+    const woodMat = makeToonMat(0x4a2511);
     const strawHatMat = makeToonMat(0xd4a359);
+
+    // Procedural Textures for Soft Contact Shadow, Golden Dragon Aura & Foot Qi Halo
+    function createSoftContactShadowTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const g = ctx.createRadialGradient(128, 128, 12, 128, 128, 120);
+      g.addColorStop(0, 'rgba(8, 4, 2, 0.78)');
+      g.addColorStop(0.55, 'rgba(12, 6, 3, 0.42)');
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function createDragonAuraTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      const cx = 256, cy = 256;
+      const g = ctx.createRadialGradient(cx, cy, 45, cx, cy, 248);
+      g.addColorStop(0, 'rgba(255, 215, 0, 0.08)');
+      g.addColorStop(0.62, 'rgba(245, 159, 0, 0.45)');
+      g.addColorStop(0.84, 'rgba(254, 240, 138, 0.85)');
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // Ornate Golden Dragon & Cloud Runes Ring
+      ctx.strokeStyle = '#fef08a';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 212, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#f59f00';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 176, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const dragonRunes = ['龍', '皇', '乾', '天', '龍', '帝', '乾', '罡'];
+      ctx.fillStyle = '#fef08a';
+      ctx.font = '900 34px "Noto Serif SC", serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let i = 0; i < 8; i++) {
+        const ang = (i * Math.PI) / 4;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ang);
+        ctx.fillText(dragonRunes[i], 0, -194);
+        ctx.restore();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    function createFootQiRingTexture(isRed) {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const cx = 128, cy = 128;
+      const g = ctx.createRadialGradient(cx, cy, 58, cx, cy, 124);
+      if (isRed) {
+        g.addColorStop(0, 'rgba(224, 49, 49, 0.0)');
+        g.addColorStop(0.72, 'rgba(224, 49, 49, 0.55)');
+        g.addColorStop(0.86, 'rgba(255, 169, 77, 0.95)');
+        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      } else {
+        g.addColorStop(0, 'rgba(28, 126, 214, 0.0)');
+        g.addColorStop(0.72, 'rgba(28, 126, 214, 0.55)');
+        g.addColorStop(0.86, 'rgba(116, 192, 252, 0.95)');
+        g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      }
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.strokeStyle = isRed ? '#ff8787' : '#a5d8ff';
+      ctx.lineWidth = 3.5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 104, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const sharedContactShadowTex = createSoftContactShadowTexture();
+    const sharedDragonAuraTex = createDragonAuraTexture();
+    const sharedRedFootQiTex = createFootQiRingTexture(true);
+    const sharedBlueFootQiTex = createFootQiRingTexture(false);
 
     function buildLiving3DUnit(type, side) {
       const root = new THREE.Group();
@@ -1411,28 +1776,117 @@
       const silkMat = isRed ? redSilkMat : blueSilkMat;
       const trimMat = isRed ? redGoldMat : blueSilverMat;
 
-      // Miniature Base Pedestal
-      const pedestal = new THREE.Mesh(
-        new THREE.CylinderGeometry(0.41, 0.45, 0.09, 28),
-        woodMat
-      );
-      pedestal.position.y = 0.045;
-      pedestal.receiveShadow = true;
-      root.add(pedestal);
-
-      const factionRing = new THREE.Mesh(
-        new THREE.RingGeometry(0.37, 0.42, 28),
+      // 1. Soft Contact Shadow (Bóng đổ mềm sát mặt bàn gỗ đàn hương, thay thế đế gỗ tròn dày)
+      const contactShadow = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.96, 0.96),
         new THREE.MeshBasicMaterial({
-          color: isRed ? 0xfacc15 : 0x38bdf8,
-          side: THREE.DoubleSide,
+          map: sharedContactShadowTex,
+          transparent: true,
+          depthWrite: false,
+          opacity: 0.9,
         })
       );
-      factionRing.rotation.x = -Math.PI / 2;
-      factionRing.position.y = 0.092;
-      root.add(factionRing);
+      contactShadow.rotation.x = -Math.PI / 2;
+      contactShadow.position.y = 0.005;
+      contactShadow.userData = { outlineParameters: { visible: false }, noOutline: true };
+      root.add(contactShadow);
+
+      // 2. Idle Xianxia Qi Aura (Vòng chân khí mảnh phát sáng & Hạt linh khí Tu Tiên)
+      const idleQiGroup = new THREE.Group();
+      root.add(idleQiGroup);
+
+      const footQiHalo = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.92, 0.92),
+        new THREE.MeshBasicMaterial({
+          map: isRed ? sharedRedFootQiTex : sharedBlueFootQiTex,
+          transparent: true,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          opacity: 0.85,
+        })
+      );
+      footQiHalo.rotation.x = -Math.PI / 2;
+      footQiHalo.position.y = 0.011;
+      footQiHalo.userData = { outlineParameters: { visible: false }, noOutline: true };
+      idleQiGroup.add(footQiHalo);
+      root.userData.footQiHalo = footQiHalo;
+
+      const qiMotes = [];
+      if (type === 'K') {
+        // Quân TƯỚNG (General): Vòng hào quang rồng vàng kim xoay chậm + Hạt linh khí vàng (Golden Qi Particles) bay lên
+        const dragonAura = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.22, 1.22),
+          new THREE.MeshBasicMaterial({
+            map: sharedDragonAuraTex,
+            transparent: true,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            opacity: 0.78,
+          })
+        );
+        dragonAura.rotation.x = -Math.PI / 2;
+        dragonAura.position.y = 0.015;
+        dragonAura.userData = { outlineParameters: { visible: false }, noOutline: true };
+        idleQiGroup.add(dragonAura);
+        root.userData.dragonAura = dragonAura;
+
+        for (let i = 0; i < 12; i++) {
+          const mote = new THREE.Mesh(
+            new THREE.SphereGeometry(0.022, 6, 6),
+            new THREE.MeshBasicMaterial({
+              color: i % 2 === 0 ? 0xfef08a : 0xf59f00,
+              transparent: true,
+              opacity: 0.85,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            })
+          );
+          const ang = (i / 12) * Math.PI * 2;
+          const rad = 0.26 + (i % 3) * 0.07;
+          mote.userData = {
+            outlineParameters: { visible: false },
+            noOutline: true,
+            baseAngle: ang,
+            radius: rad,
+            speed: 0.35 + (i % 4) * 0.08,
+            phase: i * 0.55,
+          };
+          mote.position.set(Math.cos(ang) * rad, 0.1 + (i / 12) * 0.85, Math.sin(ang) * rad);
+          idleQiGroup.add(mote);
+          qiMotes.push(mote);
+        }
+      } else {
+        // Quân SĨ, TƯỢNG, MÃ, PHÁO, XE, CHỐT: Đốm linh quang lấp lánh nhẹ quanh vũ khí/thân
+        const sparkColor = isRed ? 0xff8787 : 0x74c0fc;
+        for (let i = 0; i < 4; i++) {
+          const spark = new THREE.Mesh(
+            new THREE.OctahedronGeometry(0.02, 0),
+            new THREE.MeshBasicMaterial({
+              color: i === 0 ? 0xfef08a : sparkColor,
+              transparent: true,
+              opacity: 0.72,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+            })
+          );
+          const ang = (i / 4) * Math.PI * 2;
+          spark.userData = {
+            outlineParameters: { visible: false },
+            noOutline: true,
+            baseAngle: ang,
+            radius: 0.24 + (i % 2) * 0.08,
+            speed: 0.28 + i * 0.06,
+            phase: i * 1.4,
+          };
+          spark.position.set(Math.cos(ang) * 0.26, 0.25 + i * 0.16, Math.sin(ang) * 0.26);
+          idleQiGroup.add(spark);
+          qiMotes.push(spark);
+        }
+      }
+      root.userData.qiMotes = qiMotes;
 
       const body = new THREE.Group();
-      body.position.y = 0.09;
+      body.position.y = 0.012;
       // Orient units toward the river: Blue (top, r=0..4) faces +Z (0 rad); Red (bottom, r=5..9) faces -Z (PI rad)
       body.rotation.y = isRed ? Math.PI : 0;
       root.add(body);
@@ -1848,7 +2302,7 @@
     }
 
     /**********************************************************************
-     * MODULE 7: TU TIÊN VFX (GLSL Bagua Magic Circle, Trail, Shockwave & God-Rays)
+     * MODULE 7: TU TIÊN VFX (Dual Bagua Magic Array, Ribbon Trail, Crescent Slash & 4K Golden God-Rays)
      **********************************************************************/
     const unitsRoot = new THREE.Group();
     const indicatorsRoot = new THREE.Group();
@@ -1869,23 +2323,24 @@
       ctx.beginPath();
       for (let i = 0; i < 8; i++) {
         const ang = (i * Math.PI) / 4 + Math.PI / 8;
-        const x = cx + Math.cos(ang) * 455;
-        const y = cy + Math.sin(ang) * 455;
+        const x = cx + Math.cos(ang) * 465;
+        const y = cy + Math.sin(ang) * 465;
         if (i === 0) ctx.moveTo(x, y);
         else ctx.lineTo(x, y);
       }
       ctx.closePath();
       ctx.stroke();
 
-      [415, 310, 220, 115].forEach((r, idx) => {
-        ctx.lineWidth = idx === 0 ? 7 : 4;
+      [428, 345, 255, 145].forEach((r, idx) => {
+        ctx.lineWidth = idx === 0 ? 8 : 4.5;
         ctx.beginPath();
         ctx.arc(cx, cy, r, 0, Math.PI * 2);
         ctx.stroke();
       });
 
       const baguaNames = ['乾', '兌', '離', '震', '巽', '坎', '艮', '坤'];
-      ctx.font = '900 56px "Noto Serif SC", serif';
+      const talismanRunes = ['臨', '兵', '鬥', '者', '皆', '陣', '列', '前'];
+      ctx.font = '900 58px "Noto Serif SC", serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       for (let i = 0; i < 8; i++) {
@@ -1893,20 +2348,201 @@
         ctx.save();
         ctx.translate(cx, cy);
         ctx.rotate(ang);
-        ctx.fillText(baguaNames[i], 0, -265);
+        ctx.fillStyle = '#fef08a';
+        ctx.fillText(baguaNames[i], 0, -298);
+        ctx.font = '900 38px "Noto Serif SC", serif';
+        ctx.fillStyle = '#f59f00';
+        ctx.fillText(talismanRunes[i], 0, -386);
         ctx.restore();
       }
       return new THREE.CanvasTexture(canvas);
     }
 
-    // GLSL ShaderMaterial for Rotating Bagua Magic Circle under Selected Piece
+    // Inner Counter-Rotating Halo Texture (White - Purple - Gold, matching reference Cannon selection ring)
+    function createInnerTriColorHaloTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      const cx = 256, cy = 256;
+
+      const radGrad = ctx.createRadialGradient(cx, cy, 40, cx, cy, 245);
+      radGrad.addColorStop(0, 'rgba(255, 255, 255, 0.15)');
+      radGrad.addColorStop(0.48, 'rgba(217, 70, 239, 0.52)');
+      radGrad.addColorStop(0.76, 'rgba(250, 204, 21, 0.92)');
+      radGrad.addColorStop(0.92, 'rgba(255, 255, 255, 0.96)');
+      radGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = radGrad;
+      ctx.fillRect(0, 0, 512, 512);
+
+      // 6 Crescent Spirit Arcs in White-Violet-Gold
+      for (let i = 0; i < 6; i++) {
+        const startAng = (i * Math.PI) / 3;
+        ctx.strokeStyle = i % 2 === 0 ? '#ffffff' : '#e879f9';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 198, startAng, startAng + Math.PI * 0.22);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#fde047';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 148, startAng + 0.2, startAng + Math.PI * 0.25);
+        ctx.stroke();
+      }
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // Golden God-Ray Beam Texture (for 8-12 giant radial light beams bursting across the board)
+    function createGoldenGodRayTexture() {
+      const c = document.createElement('canvas');
+      c.width = 128;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      const g = ctx.createLinearGradient(0, 0, 0, 512);
+      g.addColorStop(0, 'rgba(255, 255, 255, 0)');
+      g.addColorStop(0.15, 'rgba(255, 252, 220, 0.98)');
+      g.addColorStop(0.45, 'rgba(250, 204, 21, 0.85)');
+      g.addColorStop(0.80, 'rgba(245, 158, 11, 0.35)');
+      g.addColorStop(1, 'rgba(245, 158, 11, 0)');
+
+      const hg = ctx.createLinearGradient(0, 0, 128, 0);
+      hg.addColorStop(0, 'rgba(0, 0, 0, 0)');
+      hg.addColorStop(0.35, 'rgba(255, 240, 150, 0.85)');
+      hg.addColorStop(0.5, 'rgba(255, 255, 255, 1)');
+      hg.addColorStop(0.65, 'rgba(255, 240, 150, 0.85)');
+      hg.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 128, 512);
+      ctx.globalCompositeOperation = 'destination-in';
+      ctx.fillStyle = hg;
+      ctx.fillRect(0, 0, 128, 512);
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // Crescent Sword-Qi Slash Texture (Nhát chém kiếm khí hình bán nguyệt)
+    function createCrescentSlashTexture() {
+      const c = document.createElement('canvas');
+      c.width = 512;
+      c.height = 512;
+      const ctx = c.getContext('2d');
+      const cx = 256, cy = 256;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, 220, -Math.PI * 0.78, Math.PI * 0.18, false);
+      ctx.arc(cx - 38, cy + 28, 195, Math.PI * 0.18, -Math.PI * 0.78, true);
+      ctx.closePath();
+      const grad = ctx.createRadialGradient(cx, cy, 110, cx, cy, 230);
+      grad.addColorStop(0, 'rgba(245, 158, 11, 0.2)');
+      grad.addColorStop(0.65, 'rgba(253, 224, 71, 0.95)');
+      grad.addColorStop(0.9, 'rgba(255, 255, 255, 1.0)');
+      grad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.restore();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // Target Lock Reticle Texture (Tâm ngắm đỏ rực xoay tròn cho ô có quân địch)
+    function createCaptureTargetReticleTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const cx = 128, cy = 128;
+
+      const g = ctx.createRadialGradient(cx, cy, 40, cx, cy, 122);
+      g.addColorStop(0, 'rgba(255, 30, 30, 0.12)');
+      g.addColorStop(0.75, 'rgba(239, 68, 68, 0.65)');
+      g.addColorStop(0.92, 'rgba(255, 120, 80, 0.98)');
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.strokeStyle = '#ff2e2e';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 106, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#fde047';
+      ctx.lineWidth = 4;
+      for (let i = 0; i < 4; i++) {
+        const ang = (i * Math.PI) / 2;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(ang);
+        ctx.beginPath();
+        ctx.moveTo(0, -118);
+        ctx.lineTo(-10, -90);
+        ctx.lineTo(10, -90);
+        ctx.closePath();
+        ctx.fillStyle = '#ff4d4f';
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    // Jade Spirit Stone Ring Texture (Vòng sáng linh thạch xanh ngọc cho ô trống hợp lệ)
+    function createJadeSpiritRingTexture() {
+      const c = document.createElement('canvas');
+      c.width = 256;
+      c.height = 256;
+      const ctx = c.getContext('2d');
+      const cx = 128, cy = 128;
+      const g = ctx.createRadialGradient(cx, cy, 18, cx, cy, 108);
+      g.addColorStop(0, 'rgba(0, 245, 212, 0.35)');
+      g.addColorStop(0.65, 'rgba(16, 185, 129, 0.78)');
+      g.addColorStop(0.88, 'rgba(167, 243, 208, 0.98)');
+      g.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, 256, 256);
+
+      ctx.strokeStyle = '#6ee7b7';
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 86, 0, Math.PI * 2);
+      ctx.stroke();
+
+      const tex = new THREE.CanvasTexture(c);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      return tex;
+    }
+
+    const sharedInnerHaloTex = createInnerTriColorHaloTexture();
+    const sharedGodRayTex = createGoldenGodRayTexture();
+    const sharedCrescentSlashTex = createCrescentSlashTexture();
+    const sharedCaptureReticleTex = createCaptureTargetReticleTexture();
+    const sharedJadeSpiritRingTex = createJadeSpiritRingTexture();
+
+    // Dual Rotating Bagua Magic Circle under Selected Piece (Outer Clockwise + Inner Counter-Clockwise White-Purple-Gold)
     const baguaShaderUniforms = {
       uTime: { value: 0 },
       uColor: { value: new THREE.Color(0xf59e0b) },
       uBaguaTex: { value: createBaguaCanvasTexture() },
     };
-    const baguaCircleMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.75, 1.75),
+    const baguaCircleMesh = new THREE.Group();
+    baguaCircleMesh.position.y = 0.022;
+    baguaCircleMesh.visible = false;
+    scene.add(baguaCircleMesh);
+
+    const outerBaguaPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.88, 1.88),
       new THREE.ShaderMaterial({
         vertexShader: BAGUA_VERTEX_SHADER,
         fragmentShader: BAGUA_FRAGMENT_SHADER,
@@ -1917,49 +2553,193 @@
         side: THREE.DoubleSide,
       })
     );
-    baguaCircleMesh.rotation.x = -Math.PI / 2;
-    baguaCircleMesh.position.y = 0.028;
-    baguaCircleMesh.visible = false;
-    scene.add(baguaCircleMesh);
+    outerBaguaPlane.rotation.x = -Math.PI / 2;
+    outerBaguaPlane.userData = { outlineParameters: { visible: false }, noOutline: true };
+    baguaCircleMesh.add(outerBaguaPlane);
+
+    const innerCounterHaloPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.34, 1.34),
+      new THREE.MeshBasicMaterial({
+        map: sharedInnerHaloTex,
+        transparent: true,
+        opacity: 0.95,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+        side: THREE.DoubleSide,
+      })
+    );
+    innerCounterHaloPlane.rotation.x = -Math.PI / 2;
+    innerCounterHaloPlane.position.y = 0.004;
+    innerCounterHaloPlane.userData = { outlineParameters: { visible: false }, noOutline: true };
+    baguaCircleMesh.add(innerCounterHaloPlane);
 
     function clearGroup(grp) {
       while (grp.children.length > 0) grp.remove(grp.children[0]);
     }
 
-    // Spawn Glowing Trail Segment during Piece Glide
-    function spawnTrailDot(x, y, z, isRed) {
+    // Spawn Glowing Ribbon & Spirit Orb Trail during Piece Glide
+    function spawnTrailDot(x, y, z, isRed, prevPos = null) {
+      const trailColor = isRed ? 0xff3b30 : 0x00d2ff;
+      const coreColor = isRed ? 0xf59f00 : 0x74c0fc;
+
       const dot = new THREE.Mesh(
-        new THREE.SphereGeometry(0.11, 10, 10),
+        new THREE.SphereGeometry(0.095, 8, 8),
         new THREE.MeshBasicMaterial({
-          color: isRed ? 0xfef08a : 0x38bdf8,
+          color: coreColor,
           transparent: true,
-          opacity: 0.8,
+          opacity: 0.88,
           blending: THREE.AdditiveBlending,
+          depthWrite: false,
         })
       );
-      dot.position.set(x, Math.max(0.08, y * 0.4), z);
+      dot.position.set(x, Math.max(0.05, y * 0.45), z);
+      dot.userData = { outlineParameters: { visible: false }, noOutline: true };
       trailRoot.add(dot);
-      gsap.to(dot.scale, { x: 0.1, y: 0.1, z: 0.1, duration: 0.42 });
+      gsap.to(dot.scale, { x: 0.08, y: 0.08, z: 0.08, duration: 0.45 });
       gsap.to(dot.material, {
         opacity: 0,
-        duration: 0.42,
+        duration: 0.45,
         onComplete: () => trailRoot.remove(dot),
       });
+
+      if (prevPos) {
+        const dx = x - prevPos.x;
+        const dz = z - prevPos.z;
+        const dist = Math.hypot(dx, dz);
+        if (dist > 0.02) {
+          const ribbon = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.34, dist * 1.35),
+            new THREE.MeshBasicMaterial({
+              color: trailColor,
+              transparent: true,
+              opacity: 0.72,
+              blending: THREE.AdditiveBlending,
+              depthWrite: false,
+              side: THREE.DoubleSide,
+            })
+          );
+          ribbon.rotation.x = -Math.PI / 2;
+          ribbon.rotation.z = -Math.atan2(dx, dz);
+          ribbon.position.set((x + prevPos.x) * 0.5, Math.max(0.035, y * 0.35), (z + prevPos.z) * 0.5);
+          ribbon.userData = { outlineParameters: { visible: false }, noOutline: true };
+          trailRoot.add(ribbon);
+          gsap.to(ribbon.scale, { x: 0.15, duration: 0.42 });
+          gsap.to(ribbon.material, {
+            opacity: 0,
+            duration: 0.42,
+            onComplete: () => trailRoot.remove(ribbon),
+          });
+        }
+      }
     }
 
-    // Trigger "Kiếm Khí / Tuyệt Kỹ" on Capture: GLSL Golden Shockwave + 3D God-Rays + Camera Shake
-    function triggerSwordQiCaptureVFX(coord) {
+    // Dissolve Captured Piece into Rising Spirit Particles (Quân bị ăn tan biến thành hạt linh quang bay lên trời)
+    function dissolveCapturedUnitToParticles(coord, capturedSide = 'b') {
+      const { x, z } = gridToWorld(coord.r, coord.c);
+      const isCapRed = capturedSide === 'r';
+      for (let i = 0; i < 36; i++) {
+        const pColor =
+          i % 3 === 0
+            ? 0xfef08a
+            : isCapRed
+            ? 0xff4d4f
+            : 0x38bdf8;
+        const orb = new THREE.Mesh(
+          new THREE.SphereGeometry(0.032 + Math.random() * 0.028, 6, 6),
+          new THREE.MeshBasicMaterial({
+            color: pColor,
+            transparent: true,
+            opacity: 0.96,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+          })
+        );
+        const ang = Math.random() * Math.PI * 2;
+        const r0 = Math.random() * 0.35;
+        orb.position.set(x + Math.cos(ang) * r0, 0.1 + Math.random() * 0.65, z + Math.sin(ang) * r0);
+        orb.userData = { outlineParameters: { visible: false }, noOutline: true };
+        vfxRoot.add(orb);
+
+        const driftR = r0 + 0.25 + Math.random() * 0.55;
+        const dur = 0.65 + Math.random() * 0.45;
+        gsap.to(orb.position, {
+          x: x + Math.cos(ang + 1.2) * driftR,
+          y: 1.8 + Math.random() * 2.4,
+          z: z + Math.sin(ang + 1.2) * driftR,
+          duration: dur,
+          ease: 'power2.out',
+        });
+        gsap.to(orb.scale, { x: 0.1, y: 0.1, z: 0.1, duration: dur });
+        gsap.to(orb.material, {
+          opacity: 0,
+          duration: dur,
+          onComplete: () => vfxRoot.remove(orb),
+        });
+      }
+    }
+
+    // Trigger "TUYỆT KỸ KIẾM KHÍ 4K" on Capture or Check:
+    // 1. 8-12 Giant Golden God-Rays (PlaneGeometry beams sweeping across the board)
+    // 2. Golden Shockwave Ring + 40 Golden Fire Sparks
+    // 3. Crescent Sword-Qi Slash (Nhát chém bán nguyệt) + Spirit Particle Dissolve
+    // 4. 300ms Camera Shake
+    function triggerSwordQiCaptureVFX(coord, capturedSide = null) {
       const { x, z } = gridToWorld(coord.r, coord.c);
       audio.playSwordQiShockwave();
 
-      // 1. Custom GLSL Golden Shockwave & Radial God-Rays Plane
+      if (capturedSide) {
+        dissolveCapturedUnitToParticles(coord, capturedSide);
+      }
+
+      // 1. 12 GIANT GOLDEN GOD-RAYS (Luồng tia sáng vàng kim khổng lồ vắt ngang mặt bàn cờ)
+      const rayCount = 12;
+      for (let i = 0; i < rayCount; i++) {
+        const ang = (i / rayCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.14;
+        const beamLen = 6.8 + Math.random() * 4.6;
+        const beamW = 0.36 + Math.random() * 0.32;
+
+        const beamGeo = new THREE.PlaneGeometry(beamW, beamLen);
+        beamGeo.translate(0, beamLen * 0.42, 0);
+        const beamMat = new THREE.MeshBasicMaterial({
+          map: sharedGodRayTex,
+          color: i % 2 === 0 ? 0xfef08a : 0xf59f00,
+          transparent: true,
+          opacity: 0.96,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        });
+        const beam = new THREE.Mesh(beamGeo, beamMat);
+        beam.rotation.x = -Math.PI / 2;
+        beam.rotation.z = ang;
+        beam.position.set(x, 0.032 + (i % 3) * 0.003, z);
+        beam.scale.set(0.2, 0.08, 1);
+        beam.userData = { outlineParameters: { visible: false }, noOutline: true };
+        vfxRoot.add(beam);
+
+        gsap.to(beam.scale, {
+          x: 1.35,
+          y: 1.0,
+          duration: 0.24,
+          ease: 'expo.out',
+        });
+        gsap.to(beamMat, {
+          opacity: 0,
+          delay: 0.16,
+          duration: 0.52,
+          ease: 'power2.out',
+          onComplete: () => vfxRoot.remove(beam),
+        });
+      }
+
+      // 2. GOLDEN SHOCKWAVE RING + GLSL RADIAL BURST + 42 GOLDEN FIRE SPARKS
       const shockUniforms = {
         uProgress: { value: 0.0 },
         uPrimaryColor: { value: new THREE.Color(0xfef08a) },
         uSecondaryColor: { value: new THREE.Color(0xf59e0b) },
       };
       const shockPlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(5.8, 5.8),
+        new THREE.PlaneGeometry(6.8, 6.8),
         new THREE.ShaderMaterial({
           vertexShader: BAGUA_VERTEX_SHADER,
           fragmentShader: SHOCKWAVE_GODRAYS_FRAGMENT_SHADER,
@@ -1971,7 +2751,8 @@
         })
       );
       shockPlane.rotation.x = -Math.PI / 2;
-      shockPlane.position.set(x, 0.045, z);
+      shockPlane.position.set(x, 0.042, z);
+      shockPlane.userData = { outlineParameters: { visible: false }, noOutline: true };
       vfxRoot.add(shockPlane);
 
       gsap.to(shockUniforms.uProgress, {
@@ -1981,54 +2762,128 @@
         onComplete: () => vfxRoot.remove(shockPlane),
       });
 
-      // 2. 3D Volumetric Light Rays / Sword-Qi Beams Bursting Across the Board
-      for (let i = 0; i < 18; i++) {
-        const isInk = i % 5 === 0;
-        const rayMat = new THREE.MeshBasicMaterial({
-          color: isInk ? 0x120c08 : i % 2 === 0 ? 0xfef08a : 0xf59e0b,
+      const shockRing = new THREE.Mesh(
+        new THREE.RingGeometry(0.18, 0.36, 48),
+        new THREE.MeshBasicMaterial({
+          color: 0xfef08a,
           transparent: true,
-          opacity: 0.95,
-          blending: isInk ? THREE.NormalBlending : THREE.AdditiveBlending,
+          opacity: 0.98,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+          side: THREE.DoubleSide,
+        })
+      );
+      shockRing.rotation.x = -Math.PI / 2;
+      shockRing.position.set(x, 0.048, z);
+      shockRing.userData = { outlineParameters: { visible: false }, noOutline: true };
+      vfxRoot.add(shockRing);
+
+      gsap.to(shockRing.scale, {
+        x: 11.5,
+        y: 11.5,
+        duration: 0.58,
+        ease: 'power3.out',
+      });
+      gsap.to(shockRing.material, {
+        opacity: 0,
+        duration: 0.58,
+        onComplete: () => vfxRoot.remove(shockRing),
+      });
+
+      // 42 Golden Fire Sparks splashing across the board
+      for (let i = 0; i < 42; i++) {
+        const sparkMat = new THREE.MeshBasicMaterial({
+          color: i % 3 === 0 ? 0xffffff : i % 2 === 0 ? 0xfacc15 : 0xf97316,
+          transparent: true,
+          opacity: 0.98,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
         });
-        const rayLen = 1.6 + Math.random() * 2.4;
-        const ray = new THREE.Mesh(new THREE.ConeGeometry(0.08, rayLen, 6), rayMat);
-        const ang = (i / 18) * Math.PI * 2;
-        const tilt = 0.35 + Math.random() * 0.85;
+        const spark = new THREE.Mesh(new THREE.ConeGeometry(0.042, 0.36, 5), sparkMat);
+        const ang = (i / 42) * Math.PI * 2 + (Math.random() - 0.5) * 0.2;
+        const dist = 1.6 + Math.random() * 3.2;
+        const peakH = 0.45 + Math.random() * 1.9;
 
-        ray.position.set(x, 0.25, z);
-        ray.rotation.y = ang;
-        ray.rotation.z = Math.cos(ang) * tilt;
-        ray.rotation.x = Math.sin(ang) * tilt;
-        vfxRoot.add(ray);
+        spark.position.set(x, 0.16, z);
+        spark.rotation.z = Math.cos(ang) * 1.1;
+        spark.rotation.x = Math.sin(ang) * 1.1;
+        spark.userData = { outlineParameters: { visible: false }, noOutline: true };
+        vfxRoot.add(spark);
 
-        const dist = 2.0 + Math.random() * 1.8;
-        gsap.to(ray.position, {
+        gsap.to(spark.position, {
           x: x + Math.cos(ang) * dist,
-          y: 0.85 + Math.random() * 2.2,
+          y: peakH,
           z: z + Math.sin(ang) * dist,
-          duration: 0.55,
+          duration: 0.52 + Math.random() * 0.22,
           ease: 'power3.out',
         });
-        gsap.to(ray.material, {
+        gsap.to(sparkMat, {
           opacity: 0,
-          duration: 0.55,
-          onComplete: () => vfxRoot.remove(ray),
+          duration: 0.55 + Math.random() * 0.2,
+          onComplete: () => vfxRoot.remove(spark),
         });
       }
 
-      // 3. Subtle Camera Shake (Rung nhẹ Camera)
+      // 3. CRESCENT SWORD-QI SLASH (Nhát chém kiếm khí hình bán nguyệt chém xuống mục tiêu)
+      for (let s = 0; s < 2; s++) {
+        const slashMesh = new THREE.Mesh(
+          new THREE.PlaneGeometry(2.6, 2.6),
+          new THREE.MeshBasicMaterial({
+            map: sharedCrescentSlashTex,
+            color: s === 0 ? 0xffffff : 0xfacc15,
+            transparent: true,
+            opacity: 0.98,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+            side: THREE.DoubleSide,
+          })
+        );
+        slashMesh.position.set(x, 1.15, z);
+        slashMesh.rotation.y = s === 0 ? Math.PI * 0.22 : -Math.PI * 0.28;
+        slashMesh.rotation.x = 0.32;
+        slashMesh.rotation.z = -1.2;
+        slashMesh.scale.setScalar(0.35);
+        slashMesh.userData = { outlineParameters: { visible: false }, noOutline: true };
+        vfxRoot.add(slashMesh);
+
+        gsap.to(slashMesh.position, {
+          y: 0.38,
+          duration: 0.26,
+          ease: 'power3.out',
+        });
+        gsap.to(slashMesh.rotation, {
+          z: 0.85,
+          duration: 0.32,
+          ease: 'power2.out',
+        });
+        gsap.to(slashMesh.scale, {
+          x: 1.25,
+          y: 1.25,
+          z: 1.25,
+          duration: 0.28,
+          ease: 'back.out(1.6)',
+        });
+        gsap.to(slashMesh.material, {
+          opacity: 0,
+          delay: 0.14,
+          duration: 0.28,
+          onComplete: () => vfxRoot.remove(slashMesh),
+        });
+      }
+
+      // 4. CAMERA SHAKE IN 300ms (Rung lắc nhẹ Camera tạo lực đánh ngàn cân)
       const origX = camera.position.x;
       const origY = camera.position.y;
       const origZ = camera.position.z;
       gsap.fromTo(
         camera.position,
-        { x: origX - 0.16, y: origY + 0.14 },
+        { x: origX - 0.22, y: origY + 0.18, z: origZ + 0.12 },
         {
           x: origX,
           y: origY,
           z: origZ,
-          duration: 0.36,
-          ease: 'elastic.out(1.2, 0.25)',
+          duration: 0.30,
+          ease: 'elastic.out(1.35, 0.22)',
         }
       );
     }
@@ -3733,6 +4588,22 @@
       }
     }
 
+    let highlightedUnitMesh = null;
+
+    function setUnitSelectionHighlight(unitMesh, selected) {
+      if (!unitMesh) return;
+      gsap.to(unitMesh.position, {
+        y: selected ? 0.16 : 0,
+        duration: 0.24,
+        ease: selected ? 'back.out(1.8)' : 'power2.out',
+      });
+      unitMesh.traverse((child) => {
+        if (child.isMesh && child.material && child.material.emissiveIntensity !== undefined && !child.userData?.isInkShell) {
+          child.material.emissiveIntensity = selected ? 0.92 : 0.52;
+        }
+      });
+    }
+
     function selectSquare(r, c) {
       if (isAnimating) return;
 
@@ -3744,19 +4615,30 @@
         }
       }
 
+      if (highlightedUnitMesh) {
+        setUnitSelectionHighlight(highlightedUnitMesh, false);
+        highlightedUnitMesh = null;
+      }
+
       const p = boardState[r][c];
       if (p && p.side === currentTurn) {
         selectedCoord = { r, c };
         currentLegalMoves = getLegalMoves(boardState, r, c);
         audio.playSelect();
 
+        const selectedUnit = unitMeshes.get(`${r},${c}`);
+        if (selectedUnit) {
+          highlightedUnitMesh = selectedUnit;
+          setUnitSelectionHighlight(selectedUnit, true);
+        }
+
         const pos = gridToWorld(r, c);
-        baguaCircleMesh.position.set(pos.x, 0.028, pos.z);
+        baguaCircleMesh.position.set(pos.x, 0.022, pos.z);
         baguaCircleMesh.visible = true;
         gsap.fromTo(
           baguaCircleMesh.scale,
           { x: 0.25, y: 0.25, z: 0.25 },
-          { x: 1, y: 1, z: 1, duration: 0.32, ease: 'back.out(1.8)' }
+          { x: 1, y: 1, z: 1, duration: 0.34, ease: 'back.out(1.8)' }
         );
 
         clearGroup(indicatorsRoot);
@@ -3764,19 +4646,63 @@
           const pt = gridToWorld(m.to.r, m.to.c);
           const isCap = Boolean(boardState[m.to.r][m.to.c]);
           if (isCap) {
-            const targetRing = new THREE.Mesh(
-              new THREE.RingGeometry(0.45, 0.56, 28),
-              new THREE.MeshBasicMaterial({ color: 0xef4444, side: THREE.DoubleSide })
+            // Ô có quân địch có thể ăn: Vòng đỏ rực có vòng tâm ngắm xoay tròn (Rotating Capture Reticle)
+            const targetReticle = new THREE.Mesh(
+              new THREE.PlaneGeometry(1.18, 1.18),
+              new THREE.MeshBasicMaterial({
+                map: sharedCaptureReticleTex,
+                transparent: true,
+                opacity: 0.96,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+              })
             );
-            targetRing.rotation.x = -Math.PI / 2;
-            targetRing.position.set(pt.x, 0.04, pt.z);
-            indicatorsRoot.add(targetRing);
+            targetReticle.rotation.x = -Math.PI / 2;
+            targetReticle.position.set(pt.x, 0.036, pt.z);
+            targetReticle.userData = {
+              outlineParameters: { visible: false },
+              noOutline: true,
+              isReticle: true,
+            };
+            indicatorsRoot.add(targetReticle);
           } else {
-            const orb = new THREE.Mesh(
-              new THREE.OctahedronGeometry(0.13, 0),
-              new THREE.MeshBasicMaterial({ color: 0xfef08a })
+            // Ô trống hợp lệ: Vòng sáng linh thạch Xanh Ngọc (Jade Spirit Stone Ring + Crystal)
+            const jadeRing = new THREE.Mesh(
+              new THREE.PlaneGeometry(0.68, 0.68),
+              new THREE.MeshBasicMaterial({
+                map: sharedJadeSpiritRingTex,
+                transparent: true,
+                opacity: 0.92,
+                blending: THREE.AdditiveBlending,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+              })
             );
-            orb.position.set(pt.x, 0.2, pt.z);
+            jadeRing.rotation.x = -Math.PI / 2;
+            jadeRing.position.set(pt.x, 0.026, pt.z);
+            jadeRing.userData = {
+              outlineParameters: { visible: false },
+              noOutline: true,
+              isJadeRing: true,
+            };
+            indicatorsRoot.add(jadeRing);
+
+            const orb = new THREE.Mesh(
+              new THREE.OctahedronGeometry(0.11, 0),
+              new THREE.MeshBasicMaterial({
+                color: 0x00f5d4,
+                transparent: true,
+                opacity: 0.95,
+                blending: THREE.AdditiveBlending,
+              })
+            );
+            orb.position.set(pt.x, 0.18, pt.z);
+            orb.userData = {
+              outlineParameters: { visible: false },
+              noOutline: true,
+              isJadeOrb: true,
+            };
             indicatorsRoot.add(orb);
           }
         });
@@ -3790,6 +4716,10 @@
 
     function executeTroopMove(move) {
       isAnimating = true;
+      if (highlightedUnitMesh) {
+        setUnitSelectionHighlight(highlightedUnitMesh, false);
+        highlightedUnitMesh = null;
+      }
       selectedCoord = null;
       currentLegalMoves = [];
       baguaCircleMesh.visible = false;
@@ -3813,22 +4743,24 @@
       boardState[move.from.r][move.from.c] = null;
 
       let stepTick = 0;
+      let prevTrailPos = { x: start.x, y: 0.05, z: start.z };
       const proxy = { t: 0 };
       gsap.to(proxy, {
         t: 1,
-        duration: 0.44,
+        duration: 0.42,
         ease: 'power2.inOut',
         onUpdate: () => {
           const t = proxy.t;
           if (mover) {
             const cx = start.x + (end.x - start.x) * t;
             const cz = start.z + (end.z - start.z) * t;
-            const cy = 4 * 1.4 * t * (1 - t);
+            const cy = 4 * 1.35 * t * (1 - t);
             mover.position.set(cx, cy, cz);
 
             stepTick++;
             if (stepTick % 2 === 0) {
-              spawnTrailDot(cx, cy, cz, move.piece.side === 'r');
+              spawnTrailDot(cx, cy, cz, move.piece.side === 'r', prevTrailPos);
+              prevTrailPos = { x: cx, y: cy, z: cz };
             }
           }
         },
@@ -3841,7 +4773,7 @@
 
           if (target && move.captured) {
             unitsRoot.remove(target);
-            triggerSwordQiCaptureVFX(move.to);
+            triggerSwordQiCaptureVFX(move.to, move.captured.side);
           } else {
             audio.playMoveStep();
           }
@@ -4058,7 +4990,7 @@
       outlineEffect.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // 60FPS Animation Loop with Post-Processing OutlineEffect & GLSL Uniform Updates
+    // 60FPS Animation Loop with Post-Processing OutlineEffect & Xianxia Cultivation VFX
     const clock = new THREE.Clock();
     function animate() {
       requestAnimationFrame(animate);
@@ -4066,16 +4998,65 @@
 
       if (controls.enabled) controls.update();
 
-      // Update GLSL Bagua Shader Time Uniform
+      // Update Dual Bagua Selection Array (Outer Clockwise Shader + Inner Counter-Clockwise Halo)
       baguaShaderUniforms.uTime.value = elapsed;
+      if (baguaCircleMesh.visible) {
+        innerCounterHaloPlane.rotation.z = -elapsed * 1.95;
+        const pulse = 1.0 + Math.sin(elapsed * 4.2) * 0.045;
+        innerCounterHaloPlane.scale.set(pulse, pulse, 1);
+      }
 
-      indicatorsRoot.children.forEach((orb) => {
-        orb.rotation.y = elapsed * 2.5;
+      // Animate Valid Move Indicators (Jade Spirit Orbs & Red Capture Target Reticles)
+      indicatorsRoot.children.forEach((ind, idx) => {
+        if (ind.userData?.isReticle) {
+          ind.rotation.z = -elapsed * 2.2;
+          const s = 1.0 + Math.sin(elapsed * 5.0 + idx) * 0.08;
+          ind.scale.set(s, s, 1);
+        } else if (ind.userData?.isJadeRing) {
+          ind.rotation.z = elapsed * 1.4;
+          const s = 1.0 + Math.sin(elapsed * 3.6 + idx) * 0.06;
+          ind.scale.set(s, s, 1);
+        } else if (ind.userData?.isJadeOrb) {
+          ind.rotation.y = elapsed * 2.8;
+          ind.position.y = 0.18 + Math.sin(elapsed * 3.8 + idx) * 0.035;
+        }
       });
 
+      // Animate Idle Xianxia Qi Aura & Breathing for All 32 Units
       unitsRoot.children.forEach((u, i) => {
         if (u.userData?.bobGroup) {
-          u.userData.bobGroup.position.y = 0.09 + Math.sin(elapsed * 2.8 + i * 0.45) * 0.015;
+          u.userData.bobGroup.position.y = 0.012 + Math.sin(elapsed * 2.6 + i * 0.45) * 0.012;
+        }
+        if (u.userData?.footQiHalo) {
+          const breath = 0.94 + Math.sin(elapsed * 2.8 + i * 0.6) * 0.07;
+          u.userData.footQiHalo.scale.set(breath, breath, 1);
+          u.userData.footQiHalo.material.opacity = 0.68 + Math.sin(elapsed * 2.8 + i * 0.6) * 0.18;
+        }
+        if (u.userData?.dragonAura) {
+          u.userData.dragonAura.rotation.z = elapsed * 0.58;
+          const dScale = 0.97 + Math.sin(elapsed * 2.2 + i) * 0.05;
+          u.userData.dragonAura.scale.set(dScale, dScale, 1);
+        }
+        if (u.userData?.qiMotes) {
+          const isGeneral = u.userData.type === 'K';
+          u.userData.qiMotes.forEach((mote) => {
+            const md = mote.userData;
+            if (isGeneral) {
+              const t = (elapsed * md.speed + md.phase) % 1.0;
+              const curAng = md.baseAngle + elapsed * 1.1;
+              mote.position.x = Math.cos(curAng) * md.radius;
+              mote.position.z = Math.sin(curAng) * md.radius;
+              mote.position.y = 0.06 + t * 0.96;
+              mote.material.opacity = Math.sin(t * Math.PI) * 0.92;
+            } else {
+              const curAng = md.baseAngle + elapsed * 0.9;
+              mote.position.x = Math.cos(curAng) * md.radius;
+              mote.position.z = Math.sin(curAng) * md.radius;
+              mote.position.y = 0.22 + ((Math.sin(elapsed * 1.8 + md.phase) + 1) * 0.5) * 0.52;
+              mote.rotation.y = elapsed * 2.4;
+              mote.material.opacity = 0.35 + ((Math.sin(elapsed * 3.2 + md.phase) + 1) * 0.5) * 0.55;
+            }
+          });
         }
       });
 
