@@ -47,11 +47,17 @@ const PIECE_RADIUS = 0.42;
 const PIECE_HEIGHT = 0.23;
 const BOARD_TOP_Y = 0;
 
+interface CachedGLTFEntry {
+  wrapper: THREE.Group;
+  redMat: THREE.MeshToonMaterial;
+  blueMat: THREE.MeshToonMaterial;
+}
+
 // Shared GLTFLoader with MeshoptDecoder for Tripo PBR Meshopt GLB models
 const sharedGltfLoader = new GLTFLoader();
 sharedGltfLoader.setMeshoptDecoder(MeshoptDecoder);
-const sharedGltfCache = new Map<PieceType, THREE.Group>();
-const sharedGltfPromises = new Map<PieceType, Promise<THREE.Group>>();
+const sharedGltfCache = new Map<PieceType, CachedGLTFEntry>();
+const sharedGltfPromises = new Map<PieceType, Promise<CachedGLTFEntry>>();
 
 function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.CanvasTexture | null> {
   return new Promise((resolve) => {
@@ -111,7 +117,7 @@ function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.Can
 function normalizeChariotGLTF(
   gltfScene: THREE.Group,
   customBrightTex: THREE.CanvasTexture | null = null
-): THREE.Group {
+): CachedGLTFEntry {
   gltfScene.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(gltfScene);
   const size = new THREE.Vector3();
@@ -129,6 +135,8 @@ function normalizeChariotGLTF(
     -box.min.y * targetScale,
     -center.z * targetScale
   );
+
+  let fallbackMap: THREE.Texture | null = null;
 
   gltfScene.traverse((child) => {
     const mesh = child as THREE.Mesh;
@@ -159,72 +167,59 @@ function normalizeChariotGLTF(
           mesh.geometry.setAttribute('normal', new THREE.BufferAttribute(f32Norm, 3));
         }
       }
+      const origMat = mesh.material as THREE.MeshStandardMaterial;
+      if (origMat && !Array.isArray(origMat) && origMat.map && !fallbackMap) {
+        fallbackMap = origMat.map;
+      }
       mesh.castShadow = true;
       mesh.receiveShadow = false;
-      mesh.userData.outlineParameters = { visible: false };
-      if (customBrightTex) {
-        mesh.userData.brightCanvasTex = customBrightTex;
-      }
-      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      mats.forEach((m) => {
-        if (!m) return;
-        m.userData = m.userData || {};
-        m.userData.outlineParameters = { visible: false };
-        if (customBrightTex) {
-          m.userData.brightCanvasTex = customBrightTex;
-        }
-      });
+      mesh.userData = { outlineParameters: { visible: false } };
     }
   });
 
+  const finalMap = customBrightTex || fallbackMap;
+  if (finalMap) {
+    finalMap.colorSpace = THREE.SRGBColorSpace;
+    finalMap.needsUpdate = true;
+  }
+
+  const redMat = new THREE.MeshToonMaterial({
+    map: finalMap,
+    color: new THREE.Color(1.38, 1.15, 1.06),
+    emissiveMap: finalMap,
+    emissive: new THREE.Color(0xffd6c4),
+    emissiveIntensity: 0.68,
+  });
+  redMat.userData = { outlineParameters: { visible: false } };
+
+  const blueMat = new THREE.MeshToonMaterial({
+    map: finalMap,
+    color: new THREE.Color(1.06, 1.24, 1.42),
+    emissiveMap: finalMap,
+    emissive: new THREE.Color(0xc4ebff),
+    emissiveIntensity: 0.68,
+  });
+  blueMat.userData = { outlineParameters: { visible: false } };
+
   wrapper.add(gltfScene);
-  return wrapper;
+  return { wrapper, redMat, blueMat };
 }
 
 function instantiateChariotForSide(
-  normalizedWrapper: THREE.Group,
+  cachedEntry: CachedGLTFEntry,
   isRed: boolean,
   woodMat: THREE.Material,
   bannerMat: THREE.Material
 ): THREE.Group {
-  const instance = normalizedWrapper.clone(true);
+  const instance = cachedEntry.wrapper.clone(true);
+  const targetMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
+
   instance.traverse((child) => {
     const mesh = child as THREE.Mesh;
     if (mesh.isMesh) {
       mesh.castShadow = true;
       mesh.receiveShadow = false;
-      mesh.userData.outlineParameters = { visible: false };
-      const origMat = mesh.material as THREE.MeshStandardMaterial;
-      if (origMat && !Array.isArray(origMat)) {
-        origMat.userData = origMat.userData || {};
-        origMat.userData.outlineParameters = { visible: false };
-        const matKey = isRed ? '__redBrightToonMat' : '__blueBrightToonMat';
-        if (!origMat.userData[matKey]) {
-          const baseMap =
-            mesh.userData.brightCanvasTex ||
-            origMat.userData?.brightCanvasTex ||
-            origMat.map ||
-            null;
-          if (baseMap) {
-            baseMap.colorSpace = THREE.SRGBColorSpace;
-            baseMap.needsUpdate = true;
-          }
-          const brightMat = new THREE.MeshToonMaterial({
-            map: baseMap,
-            color: isRed
-              ? new THREE.Color(1.38, 1.15, 1.06)
-              : new THREE.Color(1.06, 1.24, 1.42),
-            emissiveMap: baseMap,
-            emissive: isRed
-              ? new THREE.Color(0xffd6c4)
-              : new THREE.Color(0xc4ebff),
-            emissiveIntensity: 0.68,
-          });
-          brightMat.userData = { outlineParameters: { visible: false } };
-          origMat.userData[matKey] = brightMat;
-        }
-        mesh.material = origMat.userData[matKey];
-      }
+      mesh.material = targetMat;
     }
   });
 
@@ -240,14 +235,14 @@ function instantiateChariotForSide(
   return instance;
 }
 
-function loadChariotGLTFOnce(): Promise<THREE.Group> {
+function loadChariotGLTFOnce(): Promise<CachedGLTFEntry> {
   if (sharedGltfCache.has('R')) {
     return Promise.resolve(sharedGltfCache.get('R')!);
   }
   if (sharedGltfPromises.has('R')) {
     return sharedGltfPromises.get('R')!;
   }
-  const p = new Promise<THREE.Group>((resolve, reject) => {
+  const p = new Promise<CachedGLTFEntry>((resolve, reject) => {
     fetch('/models/xe_chariot.glb')
       .then((r) => r.arrayBuffer())
       .then((buffer) => {

@@ -84,5 +84,7 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
     expect(content).toContain('extractAndBrightenGLBTexture');
     expect(content).toContain('new THREE.BufferAttribute(f32Norm, 3)');
     expect(content).not.toContain('child.geometry.computeVertexNormals()');
+    expect(content).not.toContain('child.userData.brightCanvasTex');
+    expect(content).toContain('return { wrapper, redMat, blueMat }');
   });
 });

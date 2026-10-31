@@ -1081,11 +1081,11 @@
         -center.z * targetScale
       );
 
+      let fallbackMap = null;
+
       gltfScene.traverse((child) => {
         if (child.isMesh) {
-          // 1. CRITICAL FIX: DO NOT call computeVertexNormals() on Int8Array InterleavedBufferAttribute!
-          // (computeVertexNormals writes float ~1e-6 into Int8Array, rounding every normal to [0,0,0] -> NaN black!).
-          // Instead, convert the quantized Int8 normals directly into a unit-length Float32Array BufferAttribute:
+          // 1. Convert quantized Int8 normals directly into a unit-length Float32Array BufferAttribute
           if (child.geometry) {
             const oldNorm = child.geometry.getAttribute('normal');
             if (oldNorm) {
@@ -1113,71 +1113,57 @@
             }
           }
 
-          child.castShadow = true;
-          child.receiveShadow = false;
-          child.userData.outlineParameters = { visible: false };
-          if (customBrightTex) {
-            child.userData.brightCanvasTex = customBrightTex;
+          if (child.material && child.material.map && !fallbackMap) {
+            fallbackMap = child.material.map;
           }
 
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach((m) => {
-            if (!m) return;
-            m.userData = m.userData || {};
-            m.userData.outlineParameters = { visible: false };
-            if (customBrightTex) {
-              m.userData.brightCanvasTex = customBrightTex;
-            }
-          });
+          child.castShadow = true;
+          child.receiveShadow = false;
+          // CRITICAL: Never store THREE.Texture or THREE.Material inside userData because
+          // Object3D.clone() runs JSON.parse(JSON.stringify(source.userData))!
+          child.userData = { outlineParameters: { visible: false } };
         }
       });
 
+      const finalMap = customBrightTex || fallbackMap;
+      if (finalMap) {
+        finalMap.colorSpace = THREE.SRGBColorSpace;
+        finalMap.needsUpdate = true;
+      }
+
+      const redMat = new THREE.MeshToonMaterial({
+        map: finalMap,
+        gradientMap: toonGradTex,
+        color: new THREE.Color(1.38, 1.15, 1.06),
+        emissiveMap: finalMap,
+        emissive: new THREE.Color(0xffd6c4),
+        emissiveIntensity: 0.68,
+      });
+      redMat.userData = { outlineParameters: { visible: false } };
+
+      const blueMat = new THREE.MeshToonMaterial({
+        map: finalMap,
+        gradientMap: toonGradTex,
+        color: new THREE.Color(1.06, 1.24, 1.42),
+        emissiveMap: finalMap,
+        emissive: new THREE.Color(0xc4ebff),
+        emissiveIntensity: 0.68,
+      });
+      blueMat.userData = { outlineParameters: { visible: false } };
+
       wrapper.add(gltfScene);
-      return wrapper;
+      return { wrapper, redMat, blueMat };
     }
 
-    function instantiateGLTFForSide(normalizedWrapper, isRed, woodMaterial, redSilk, blueSilk) {
-      const instance = normalizedWrapper.clone(true);
+    function instantiateGLTFForSide(cachedEntry, isRed, woodMaterial, redSilk, blueSilk) {
+      const instance = cachedEntry.wrapper.clone(true);
+      const targetMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
+
       instance.traverse((child) => {
         if (child.isMesh) {
           child.castShadow = true;
           child.receiveShadow = false;
-          child.userData.outlineParameters = { visible: false };
-          if (child.material) {
-            const matKey = isRed ? '__redBrightToonMat' : '__blueBrightToonMat';
-            if (!child.material.userData) child.material.userData = {};
-            child.material.userData.outlineParameters = { visible: false };
-
-            if (!child.material.userData[matKey]) {
-              const baseMap =
-                child.userData.brightCanvasTex ||
-                child.material.userData?.brightCanvasTex ||
-                child.material.map ||
-                null;
-              if (baseMap) {
-                baseMap.colorSpace = THREE.SRGBColorSpace;
-                baseMap.needsUpdate = true;
-              }
-
-              const brightMat = new THREE.MeshToonMaterial({
-                map: baseMap,
-                gradientMap: toonGradTex,
-                color: isRed
-                  ? new THREE.Color(1.38, 1.15, 1.06)
-                  : new THREE.Color(1.06, 1.24, 1.42),
-                emissiveMap: baseMap,
-                emissive: isRed
-                  ? new THREE.Color(0xffd6c4)
-                  : new THREE.Color(0xc4ebff),
-                emissiveIntensity: 0.68,
-              });
-              brightMat.userData = {
-                outlineParameters: { visible: false },
-              };
-              child.material.userData[matKey] = brightMat;
-            }
-            child.material = child.material.userData[matKey];
-          }
+          child.material = targetMat;
         }
       });
 
