@@ -53,13 +53,119 @@ interface CachedGLTFEntry {
   blueMat: THREE.MeshToonMaterial;
 }
 
-// Shared GLTFLoader with MeshoptDecoder for Tripo PBR Meshopt GLB models
+interface ExtractedGLBTexturePair {
+  redTex: THREE.CanvasTexture;
+  blueTex: THREE.CanvasTexture;
+  isPreOriented: boolean;
+}
+
+// Shared GLTFLoader with MeshoptDecoder for All 8 3D Piece GLB models
 const sharedGltfLoader = new GLTFLoader();
 sharedGltfLoader.setMeshoptDecoder(MeshoptDecoder);
-const sharedGltfCache = new Map<PieceType, CachedGLTFEntry>();
-const sharedGltfPromises = new Map<PieceType, Promise<CachedGLTFEntry>>();
+const sharedGltfCache = new Map<string, CachedGLTFEntry>();
+const sharedGltfPromises = new Map<string, Promise<CachedGLTFEntry>>();
 
-function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.CanvasTexture | null> {
+const PIECE_GLB_URLS: Record<string, string> = {
+  K_r: '/models/tuong_red.glb',
+  K_b: '/models/tuong_blue.glb',
+  K: '/models/tuong_red.glb',
+  A: '/models/si.glb',
+  B: '/models/tuong_voi.glb',
+  E: '/models/tuong_voi.glb',
+  N: '/models/ma.glb',
+  H: '/models/ma.glb',
+  R: '/models/xe.glb',
+  C: '/models/phao.glb',
+  P: '/models/chot.glb',
+};
+
+const PIECE_TARGET_MAX_DIM: Record<string, number> = {
+  K_r: 1.05,
+  K_b: 1.08,
+  K: 1.05,
+  A: 0.96,
+  B: 1.00,
+  E: 1.00,
+  N: 1.02,
+  H: 1.02,
+  R: 0.98,
+  C: 0.95,
+  P: 0.88,
+};
+
+const highKeyModelBytes = new Uint8Array([
+  192, 192, 192, 255,
+  216, 216, 216, 255,
+  238, 238, 238, 255,
+  255, 255, 255, 255,
+]);
+const highKeyModelGradTex = new THREE.DataTexture(highKeyModelBytes, 4, 1, THREE.RGBAFormat);
+highKeyModelGradTex.minFilter = THREE.NearestFilter;
+highKeyModelGradTex.magFilter = THREE.NearestFilter;
+highKeyModelGradTex.needsUpdate = true;
+
+function uint8ToBase64DataUrl(bytes: Uint8Array, mimeType = 'image/jpeg'): string {
+  let binary = '';
+  const chunkSize = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunkSize) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
+  }
+  return 'data:' + mimeType + ';base64,' + btoa(binary);
+}
+
+function createBlueFactionCanvas(sourceCanvas: HTMLCanvasElement): HTMLCanvasElement {
+  const w = sourceCanvas.width;
+  const h = sourceCanvas.height;
+  const blueCanvas = document.createElement('canvas');
+  blueCanvas.width = w;
+  blueCanvas.height = h;
+  const bCtx = blueCanvas.getContext('2d')!;
+  bCtx.drawImage(sourceCanvas, 0, 0);
+  const imgData = bCtx.getImageData(0, 0, w, h);
+  const data = imgData.data;
+
+  for (let i = 0, len = data.length; i < len; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const maxRB = r > b ? r : b;
+    if (maxRB < 30 || g >= maxRB * 0.78) continue;
+
+    const max = maxRB > g ? maxRB : g;
+    const min = r < g ? (r < b ? r : b) : g < b ? g : b;
+    const d = max - min;
+    const sat = max === 0 ? 0 : d / max;
+    if (sat < 0.25) continue;
+
+    let hue = 0;
+    if (max === r) {
+      hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+    } else if (max === b) {
+      hue = ((r - g) / d + 4) * 60;
+    } else {
+      continue;
+    }
+
+    if (hue <= 11 || hue >= 250) {
+      const targetHue = hue >= 250 && hue < 320 ? 216 : 204;
+      const v = Math.min(1.0, (max / 255) * 1.1);
+      const s = Math.min(1.0, sat * 1.06);
+      const c = v * s;
+      const x = c * (1 - Math.abs(((targetHue / 60) % 2) - 1));
+      const m = v - c;
+      data[i] = Math.min(255, Math.round(m * 255));
+      data[i + 1] = Math.min(255, Math.round((x + m) * 255));
+      data[i + 2] = Math.min(255, Math.round((c + m) * 255));
+    }
+  }
+  bCtx.putImageData(imgData, 0, 0);
+  return blueCanvas;
+}
+
+function extractAndBrightenGLBTexture(
+  glbBuffer: ArrayBuffer,
+  modelKey = 'R'
+): Promise<ExtractedGLBTexturePair | null> {
   return new Promise((resolve) => {
     try {
       const dv = new DataView(glbBuffer);
@@ -68,6 +174,7 @@ function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.Can
       const jsonLen = dv.getUint32(12, true);
       const jsonBytes = new Uint8Array(glbBuffer, 20, jsonLen);
       const json = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
+      const isPreOriented = json.asset?.generator === 'Xiangqi3D-Masterpiece-Optimizer';
 
       const matDef = json.materials?.[0];
       const texIdx = matDef?.pbrMetallicRoughness?.baseColorTexture?.index ?? 0;
@@ -82,42 +189,60 @@ function extractAndBrightenGLBTexture(glbBuffer: ArrayBuffer): Promise<THREE.Can
         binChunkStart + (bv.byteOffset || 0),
         bv.byteLength
       );
-      const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/jpeg' });
-      const blobUrl = URL.createObjectURL(blob);
+      const dataUrl = uint8ToBase64DataUrl(imgBytes, imgDef.mimeType || 'image/jpeg');
 
       const img = new Image();
       img.onload = () => {
         const canvas = document.createElement('canvas');
-        canvas.width = 2048;
-        canvas.height = 2048;
+        canvas.width = 1024;
+        canvas.height = 1024;
         const ctx = canvas.getContext('2d')!;
-        ctx.filter = 'brightness(1.95) contrast(1.18) saturate(1.32)';
-        ctx.drawImage(img, 0, 0, 2048, 2048);
-        URL.revokeObjectURL(blobUrl);
+        if (!isPreOriented) {
+          ctx.filter =
+            modelKey === 'R'
+              ? 'brightness(1.75) contrast(1.12) saturate(1.22)'
+              : 'brightness(1.16) contrast(1.06) saturate(1.10)';
+        }
+        ctx.drawImage(img, 0, 0, 1024, 1024);
 
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.flipY = false;
-        tex.colorSpace = THREE.SRGBColorSpace;
-        tex.wrapS = THREE.RepeatWrapping;
-        tex.wrapT = THREE.RepeatWrapping;
-        tex.needsUpdate = true;
-        resolve(tex);
+        const redTex = new THREE.CanvasTexture(canvas);
+        redTex.flipY = false;
+        redTex.colorSpace = THREE.SRGBColorSpace;
+        redTex.wrapS = THREE.RepeatWrapping;
+        redTex.wrapT = THREE.RepeatWrapping;
+        redTex.needsUpdate = true;
+
+        let blueTex = redTex;
+        if (modelKey !== 'K_b' && modelKey !== 'K_r') {
+          const blueCanvas = createBlueFactionCanvas(canvas);
+          blueTex = new THREE.CanvasTexture(blueCanvas);
+          blueTex.flipY = false;
+          blueTex.colorSpace = THREE.SRGBColorSpace;
+          blueTex.wrapS = THREE.RepeatWrapping;
+          blueTex.wrapT = THREE.RepeatWrapping;
+          blueTex.needsUpdate = true;
+        }
+
+        resolve({ redTex, blueTex, isPreOriented });
       };
-      img.onerror = () => {
-        URL.revokeObjectURL(blobUrl);
-        resolve(null);
-      };
-      img.src = blobUrl;
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
     } catch {
       resolve(null);
     }
   });
 }
 
-function normalizeChariotGLTF(
+function normalizePieceGLTF(
   gltfScene: THREE.Group,
-  customBrightTex: THREE.CanvasTexture | null = null
+  customBrightTex: ExtractedGLBTexturePair | null = null,
+  modelKey = 'R'
 ): CachedGLTFEntry {
+  const isPreOriented = customBrightTex ? Boolean(customBrightTex.isPreOriented) : true;
+  if (!isPreOriented) {
+    gltfScene.rotation.y = modelKey === 'C' ? (-152 * Math.PI) / 180 : -Math.PI / 2;
+  }
+
   gltfScene.updateMatrixWorld(true);
   const box = new THREE.Box3().setFromObject(gltfScene);
   const size = new THREE.Vector3();
@@ -126,7 +251,8 @@ function normalizeChariotGLTF(
   box.getCenter(center);
 
   const maxDim = Math.max(size.x, size.y, size.z) || 1;
-  const targetScale = 0.86 / maxDim;
+  const desiredMax = PIECE_TARGET_MAX_DIM[modelKey] || 0.98;
+  const targetScale = desiredMax / maxDim;
 
   const wrapper = new THREE.Group();
   gltfScene.scale.setScalar(targetScale);
@@ -173,31 +299,38 @@ function normalizeChariotGLTF(
       }
       mesh.castShadow = true;
       mesh.receiveShadow = false;
-      mesh.userData = { outlineParameters: { visible: false } };
+      mesh.userData = { outlineParameters: { visible: false }, noOutline: true };
     }
   });
 
-  const finalMap = customBrightTex || fallbackMap;
-  if (finalMap) {
-    finalMap.colorSpace = THREE.SRGBColorSpace;
-    finalMap.needsUpdate = true;
+  const finalRedMap = customBrightTex?.redTex || fallbackMap;
+  const finalBlueMap = customBrightTex?.blueTex || finalRedMap;
+  if (finalRedMap) {
+    finalRedMap.colorSpace = THREE.SRGBColorSpace;
+    finalRedMap.needsUpdate = true;
+  }
+  if (finalBlueMap) {
+    finalBlueMap.colorSpace = THREE.SRGBColorSpace;
+    finalBlueMap.needsUpdate = true;
   }
 
   const redMat = new THREE.MeshToonMaterial({
-    map: finalMap,
-    color: new THREE.Color(1.38, 1.15, 1.06),
-    emissiveMap: finalMap,
-    emissive: new THREE.Color(0xffd6c4),
-    emissiveIntensity: 0.68,
+    map: finalRedMap,
+    gradientMap: highKeyModelGradTex,
+    color: new THREE.Color(1.06, 1.02, 1.0),
+    emissiveMap: finalRedMap,
+    emissive: new THREE.Color(0xffffff),
+    emissiveIntensity: 0.58,
   });
   redMat.userData = { outlineParameters: { visible: false } };
 
   const blueMat = new THREE.MeshToonMaterial({
-    map: finalMap,
-    color: new THREE.Color(1.06, 1.24, 1.42),
-    emissiveMap: finalMap,
-    emissive: new THREE.Color(0xc4ebff),
-    emissiveIntensity: 0.68,
+    map: finalBlueMap,
+    gradientMap: highKeyModelGradTex,
+    color: new THREE.Color(1.0, 1.03, 1.06),
+    emissiveMap: finalBlueMap,
+    emissive: new THREE.Color(0xffffff),
+    emissiveIntensity: 0.58,
   });
   blueMat.userData = { outlineParameters: { visible: false } };
 
@@ -205,12 +338,7 @@ function normalizeChariotGLTF(
   return { wrapper, redMat, blueMat };
 }
 
-function instantiateChariotForSide(
-  cachedEntry: CachedGLTFEntry,
-  isRed: boolean,
-  woodMat: THREE.Material,
-  bannerMat: THREE.Material
-): THREE.Group {
+function instantiatePieceForSide(cachedEntry: CachedGLTFEntry, isRed: boolean): THREE.Group {
   const instance = cachedEntry.wrapper.clone(true);
   const targetMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
 
@@ -220,39 +348,32 @@ function instantiateChariotForSide(
       mesh.castShadow = true;
       mesh.receiveShadow = false;
       mesh.material = targetMat;
+      mesh.userData = { outlineParameters: { visible: false }, noOutline: true };
     }
-  });
-
-  [-0.24, 0.24].forEach((bx) => {
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.8, 8), woodMat);
-    pole.position.set(bx, 0.4, -0.3);
-    instance.add(pole);
-    const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.25), bannerMat);
-    flag.position.set(bx, 0.65, -0.22);
-    instance.add(flag);
   });
 
   return instance;
 }
 
-function loadChariotGLTFOnce(): Promise<CachedGLTFEntry> {
-  if (sharedGltfCache.has('R')) {
-    return Promise.resolve(sharedGltfCache.get('R')!);
+function loadPieceGLTFOnce(modelKey: string): Promise<CachedGLTFEntry> {
+  if (sharedGltfCache.has(modelKey)) {
+    return Promise.resolve(sharedGltfCache.get(modelKey)!);
   }
-  if (sharedGltfPromises.has('R')) {
-    return sharedGltfPromises.get('R')!;
+  if (sharedGltfPromises.has(modelKey)) {
+    return sharedGltfPromises.get(modelKey)!;
   }
+  const url = PIECE_GLB_URLS[modelKey] || '/models/xe.glb';
   const p = new Promise<CachedGLTFEntry>((resolve, reject) => {
-    fetch('/models/xe_chariot.glb')
+    fetch(url)
       .then((r) => r.arrayBuffer())
       .then((buffer) => {
-        extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+        extractAndBrightenGLBTexture(buffer, modelKey).then((brightTex) => {
           sharedGltfLoader.parse(
             buffer,
             '/models/',
             (gltf) => {
-              const normalized = normalizeChariotGLTF(gltf.scene, brightTex);
-              sharedGltfCache.set('R', normalized);
+              const normalized = normalizePieceGLTF(gltf.scene, brightTex, modelKey);
+              sharedGltfCache.set(modelKey, normalized);
               resolve(normalized);
             },
             reject
@@ -261,7 +382,7 @@ function loadChariotGLTFOnce(): Promise<CachedGLTFEntry> {
       })
       .catch(reject);
   });
-  sharedGltfPromises.set('R', p);
+  sharedGltfPromises.set(modelKey, p);
   return p;
 }
 
@@ -609,6 +730,19 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
     root.add(body);
     root.userData.bobGroup = body;
 
+    const modelKey = type === 'K' ? (isRed ? 'K_r' : 'K_b') : type;
+    if (sharedGltfCache.has(modelKey)) {
+      body.add(instantiatePieceForSide(sharedGltfCache.get(modelKey)!, isRed));
+      return root;
+    }
+
+    loadPieceGLTFOnce(modelKey)
+      .then((normalizedGroup) => {
+        body.clear();
+        body.add(instantiatePieceForSide(normalizedGroup, isRed));
+      })
+      .catch(() => {});
+
     if (type === 'K') {
       // TƯỚNG (General): Seated on ornate Golden Dragon Throne, flowing robes, symmetrical pose
       const throneDais = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.12, 0.48), redGold);
@@ -707,11 +841,7 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       lance.rotation.x = 0.72;
       rearingGroup.add(lance);
     } else if (type === 'R') {
-      // XE (Chariot): Load Tripo PBR Meshopt GLB model with procedural fallback while decoding
-      if (sharedGltfCache.has('R')) {
-        body.add(instantiateChariotForSide(sharedGltfCache.get('R')!, isRed, woodMat, mainMat));
-        return root;
-      }
+      // XE (Chariot): Procedural fallback while GLTF decodes
       const chassis = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.18, 0.66), woodMat);
       chassis.position.set(0, 0.22, 0);
       body.add(chassis);
@@ -729,13 +859,6 @@ export const XiangqiBoard3D: React.FC<XiangqiBoard3DProps> = ({
       const rail = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.08, 0.64), redGold);
       rail.position.set(0, 0.36, 0);
       body.add(rail);
-
-      loadChariotGLTFOnce()
-        .then((normalizedGroup) => {
-          body.clear();
-          body.add(instantiateChariotForSide(normalizedGroup, isRed, woodMat, mainMat));
-        })
-        .catch(() => {});
     } else if (type === 'C') {
       // PHÁO (Cannon): Muscular warrior carrying massive silver-iron bombard cannon on shoulder, crouched stance
       const crouchGroup = new THREE.Group();

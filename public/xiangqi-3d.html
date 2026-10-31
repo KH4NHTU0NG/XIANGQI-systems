@@ -189,8 +189,8 @@
     <span class="text-amber-500/50">|</span>
     <button id="btn-piece-style" class="hover:text-amber-300 transition cursor-pointer font-semibold">⚔️ Hình Khối: Nhân Vật 3D</button>
     <span class="text-amber-500/50">|</span>
-    <button id="btn-upload-glb" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/70 text-emerald-300 font-bold transition cursor-pointer shadow" title="Model 3D Quân Xe (Tripo PBR Meshopt GLB) — Nhấn để đổi hoặc nạp file .glb/.gltf khác">
-      <span id="glb-status-badge">📦 Xe 3D: Đang nạp Tripo GLB...</span>
+    <button id="btn-upload-glb" class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/70 text-emerald-300 font-bold transition cursor-pointer shadow" title="Đã tích hợp đủ 8 Model 3D (Tướng 1, Tướng 2, Sĩ, Tượng, Xe, Pháo, Mã, Chốt) — Nhấn để nạp thêm file .glb/.gltf">
+      <span id="glb-status-badge">⏳ Đang nạp 8 Model 3D...</span>
     </button>
     <input id="input-glb-file" type="file" accept=".glb,.gltf" class="hidden" />
   </div>
@@ -319,7 +319,8 @@
     </div>
   </div>
 
-  <!-- Preloaded Base64 GLB Bundle for file:// Zero-CORS Desktop Execution -->
+  <!-- Preloaded Base64 GLB Bundle for file:// Zero-CORS Desktop Execution (All 8 3D Piece Models) -->
+  <script src="./models/all_pieces_inline.js" onerror="console.info('all_pieces_inline.js not found; trying fallback')"></script>
   <script src="./models/xe_chariot_inline.js" onerror="console.info('GLB inline bundle not used; loading via HTTP fetch')"></script>
 
   <!-- MAIN WEBGL + GLSL SHADER + OUTLINE EFFECT MODULE -->
@@ -983,16 +984,53 @@
     const gltfCache = new Map();
     const gltfLoadingPromises = new Map();
 
-    // External GLTF/GLB model registry (with Tripo PBR Meshopt GLB enabled for Xe / Chariot)
+    // Complete 8-Model GLTF/GLB Registry (Red & Blue Generals + Advisor, Elephant, Horse, Chariot, Cannon, Soldier)
     const OPTIONAL_GLTF_URLS = {
-      K: null, // e.g. './models/general.glb'
-      A: null, // e.g. './models/advisor.glb'
-      E: null, // e.g. './models/elephant.glb'
-      R: './models/xe_chariot.glb', // Tripo PBR Meshopt 3D Model for Xe (Chariot)
-      C: null, // e.g. './models/cannon.glb'
-      H: null, // e.g. './models/horse.glb'
-      P: null, // e.g. './models/soldier.glb'
+      K_r: './models/tuong_red.glb',   // modelTướng-2.glb (Seated Emperor on Golden Dragon Throne)
+      K_b: './models/tuong_blue.glb',  // modelTướng-1.glb (Standing Emperor in Imperial Robes)
+      K: './models/tuong_red.glb',
+      A: './models/si.glb',            // modelSĩ.glb (Female Xianxia Sword Cultivator)
+      E: './models/tuong_voi.glb',     // model-Tượng.glb (Heavy-Set Guardian General)
+      B: './models/tuong_voi.glb',
+      H: './models/ma.glb',            // modelMã.glb (Cavalry Warrior on White Warhorse)
+      N: './models/ma.glb',
+      R: './models/xe.glb',            // modelXe.glb (Siege Ballista War Chariot)
+      C: './models/phao.glb',          // modelPháo.glb (Muscular Bombard Cannoneer)
+      P: './models/chot.glb',          // modelChốt.glb (Armored Infantry Soldier with Pole-Sabre)
     };
+
+    // Tailored world-space maximum bounding dimension per piece type (CELL_SIZE = 1.08)
+    const PIECE_TARGET_MAX_DIM = {
+      K_r: 1.08,
+      K_b: 1.12,
+      K: 1.08,
+      A: 1.00,
+      E: 1.04,
+      B: 1.04,
+      H: 1.05,
+      N: 1.05,
+      R: 1.02,
+      C: 0.98,
+      P: 0.92,
+    };
+
+    // High-key Toon Gradient Texture (RGBAFormat 4x1) so 3D GLB models never go dark in shadow
+    const highKeyBytes = new Uint8Array([
+      192, 192, 192, 255,
+      216, 216, 216, 255,
+      238, 238, 238, 255,
+      255, 255, 255, 255,
+    ]);
+    const highKeyModelGradTex = new THREE.DataTexture(highKeyBytes, 4, 1, THREE.RGBAFormat);
+    highKeyModelGradTex.minFilter = THREE.NearestFilter;
+    highKeyModelGradTex.magFilter = THREE.NearestFilter;
+    highKeyModelGradTex.needsUpdate = true;
+
+    const toonSteps = new Uint8Array([72, 145, 210, 255]);
+    const toonGradTex = new THREE.DataTexture(toonSteps, 4, 1, THREE.RedFormat);
+    toonGradTex.minFilter = THREE.NearestFilter;
+    toonGradTex.magFilter = THREE.NearestFilter;
+    toonGradTex.needsUpdate = true;
 
     function base64ToArrayBuffer(b64) {
       const binStr = atob(b64);
@@ -1004,9 +1042,73 @@
       return bytes.buffer;
     }
 
-    // Directly extract the embedded BaseColor JPEG from GLB binary chunk via DOM <img> + 2D <canvas>
-    // (Bypasses ImageBitmapLoader fetch() issues on file:// and brightens dark baked mahogany albedo)
-    function extractAndBrightenGLBTexture(glbBuffer) {
+    function uint8ToBase64DataUrl(bytes, mimeType = 'image/jpeg') {
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode.apply(null, bytes.subarray(i, i + chunkSize));
+      }
+      return 'data:' + mimeType + ';base64,' + btoa(binary);
+    }
+
+    // Selective HSV Crimson/Purple -> Royal Cyan-Blue recolor for Blue Faction shared models
+    // Preserves warm skin tones (Hue 14°..55°), white horses/trousers, and gold/silver armor
+    function createBlueFactionCanvas(sourceCanvas) {
+      const w = sourceCanvas.width;
+      const h = sourceCanvas.height;
+      const blueCanvas = document.createElement('canvas');
+      blueCanvas.width = w;
+      blueCanvas.height = h;
+      const bCtx = blueCanvas.getContext('2d');
+      bCtx.drawImage(sourceCanvas, 0, 0);
+      const imgData = bCtx.getImageData(0, 0, w, h);
+      const data = imgData.data;
+
+      for (let i = 0, len = data.length; i < len; i += 4) {
+        const r = data[i];
+        const g = data[i + 1];
+        const b = data[i + 2];
+        const maxRB = r > b ? r : b;
+        // Fast reject for neutral/white/black/skin/gold pixels
+        if (maxRB < 30 || g >= maxRB * 0.78) continue;
+
+        const max = maxRB > g ? maxRB : g;
+        const min = r < g ? (r < b ? r : b) : (g < b ? g : b);
+        const d = max - min;
+        const sat = max === 0 ? 0 : d / max;
+        if (sat < 0.25) continue;
+
+        let hue = 0;
+        if (max === r) {
+          hue = ((g - b) / d + (g < b ? 6 : 0)) * 60;
+        } else if (max === b) {
+          hue = ((r - g) / d + 4) * 60;
+        } else {
+          continue;
+        }
+
+        if (hue <= 11 || hue >= 250) {
+          const targetHue = hue >= 250 && hue < 320 ? 216 : 204;
+          const v = Math.min(1.0, (max / 255) * 1.1);
+          const s = Math.min(1.0, sat * 1.06);
+          const c = v * s;
+          const x = c * (1 - Math.abs(((targetHue / 60) % 2) - 1));
+          const m = v - c;
+          const nr = m;
+          const ng = x + m;
+          const nb = c + m;
+          data[i] = Math.min(255, Math.round(nr * 255));
+          data[i + 1] = Math.min(255, Math.round(ng * 255));
+          data[i + 2] = Math.min(255, Math.round(nb * 255));
+        }
+      }
+      bCtx.putImageData(imgData, 0, 0);
+      return blueCanvas;
+    }
+
+    // Directly extract the embedded BaseColor JPEG from GLB binary chunk via Base64 Data URI + 2D <canvas>
+    // (100% immune to file:// origin restrictions and generates crisp Red & Blue faction CanvasTextures)
+    function extractAndBrightenGLBTexture(glbBuffer, modelKey = 'R') {
       return new Promise((resolve) => {
         try {
           const dv = new DataView(glbBuffer);
@@ -1015,6 +1117,7 @@
           const jsonLen = dv.getUint32(12, true);
           const jsonBytes = new Uint8Array(glbBuffer, 20, jsonLen);
           const json = JSON.parse(new TextDecoder('utf-8').decode(jsonBytes));
+          const isPreOriented = json.asset?.generator === 'Xiangqi3D-Masterpiece-Optimizer';
 
           const matDef = json.materials && json.materials[0];
           const texIdx = matDef?.pbrMetallicRoughness?.baseColorTexture?.index ?? 0;
@@ -1029,32 +1132,44 @@
             binChunkStart + (bv.byteOffset || 0),
             bv.byteLength
           );
-          const blob = new Blob([imgBytes], { type: imgDef.mimeType || 'image/jpeg' });
-          const blobUrl = URL.createObjectURL(blob);
+          const dataUrl = uint8ToBase64DataUrl(imgBytes, imgDef.mimeType || 'image/jpeg');
 
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            canvas.width = 2048;
-            canvas.height = 2048;
+            canvas.width = 1024;
+            canvas.height = 1024;
             const ctx = canvas.getContext('2d');
-            ctx.filter = 'brightness(1.95) contrast(1.18) saturate(1.32)';
-            ctx.drawImage(img, 0, 0, 2048, 2048);
-            URL.revokeObjectURL(blobUrl);
+            if (!isPreOriented) {
+              ctx.filter =
+                modelKey === 'R'
+                  ? 'brightness(1.75) contrast(1.12) saturate(1.22)'
+                  : 'brightness(1.16) contrast(1.06) saturate(1.10)';
+            }
+            ctx.drawImage(img, 0, 0, 1024, 1024);
 
-            const tex = new THREE.CanvasTexture(canvas);
-            tex.flipY = false;
-            tex.colorSpace = THREE.SRGBColorSpace;
-            tex.wrapS = THREE.RepeatWrapping;
-            tex.wrapT = THREE.RepeatWrapping;
-            tex.needsUpdate = true;
-            resolve(tex);
+            const redTex = new THREE.CanvasTexture(canvas);
+            redTex.flipY = false;
+            redTex.colorSpace = THREE.SRGBColorSpace;
+            redTex.wrapS = THREE.RepeatWrapping;
+            redTex.wrapT = THREE.RepeatWrapping;
+            redTex.needsUpdate = true;
+
+            let blueTex = redTex;
+            if (modelKey !== 'K_b' && modelKey !== 'K_r') {
+              const blueCanvas = createBlueFactionCanvas(canvas);
+              blueTex = new THREE.CanvasTexture(blueCanvas);
+              blueTex.flipY = false;
+              blueTex.colorSpace = THREE.SRGBColorSpace;
+              blueTex.wrapS = THREE.RepeatWrapping;
+              blueTex.wrapT = THREE.RepeatWrapping;
+              blueTex.needsUpdate = true;
+            }
+
+            resolve({ redTex, blueTex, isPreOriented });
           };
-          img.onerror = () => {
-            URL.revokeObjectURL(blobUrl);
-            resolve(null);
-          };
-          img.src = blobUrl;
+          img.onerror = () => resolve(null);
+          img.src = dataUrl;
         } catch (e) {
           console.warn('Direct GLB texture extract fallback:', e);
           resolve(null);
@@ -1062,7 +1177,16 @@
       });
     }
 
-    function normalizeAndPrepareGLTF(gltfScene, customBrightTex = null) {
+    function normalizeAndPrepareGLTF(gltfScene, customBrightTex = null, modelKey = 'R') {
+      const isTexPair = customBrightTex && (customBrightTex.redTex || customBrightTex.blueTex);
+      const customRedTex = isTexPair ? customBrightTex.redTex : customBrightTex;
+      const customBlueTex = isTexPair ? customBrightTex.blueTex || customBrightTex.redTex : customBrightTex;
+      const isPreOriented = isTexPair ? Boolean(customBrightTex.isPreOriented) : true;
+
+      if (!isPreOriented) {
+        gltfScene.rotation.y = modelKey === 'C' ? (-152 * Math.PI) / 180 : -Math.PI / 2;
+      }
+
       gltfScene.updateMatrixWorld(true);
       const box = new THREE.Box3().setFromObject(gltfScene);
       const size = new THREE.Vector3();
@@ -1071,7 +1195,8 @@
       box.getCenter(center);
 
       const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const targetScale = 0.88 / maxDim;
+      const desiredMax = PIECE_TARGET_MAX_DIM[modelKey] || 1.0;
+      const targetScale = desiredMax / maxDim;
 
       const wrapper = new THREE.Group();
       gltfScene.scale.setScalar(targetScale);
@@ -1121,33 +1246,38 @@
           child.receiveShadow = false;
           // CRITICAL: Never store THREE.Texture or THREE.Material inside userData because
           // Object3D.clone() runs JSON.parse(JSON.stringify(source.userData))!
-          child.userData = { outlineParameters: { visible: false } };
+          child.userData = { outlineParameters: { visible: false }, noOutline: true };
         }
       });
 
-      const finalMap = customBrightTex || fallbackMap;
-      if (finalMap) {
-        finalMap.colorSpace = THREE.SRGBColorSpace;
-        finalMap.needsUpdate = true;
+      const finalRedMap = customRedTex || fallbackMap;
+      const finalBlueMap = customBlueTex || finalRedMap;
+      if (finalRedMap) {
+        finalRedMap.colorSpace = THREE.SRGBColorSpace;
+        finalRedMap.needsUpdate = true;
+      }
+      if (finalBlueMap) {
+        finalBlueMap.colorSpace = THREE.SRGBColorSpace;
+        finalBlueMap.needsUpdate = true;
       }
 
       const redMat = new THREE.MeshToonMaterial({
-        map: finalMap,
-        gradientMap: toonGradTex,
-        color: new THREE.Color(1.38, 1.15, 1.06),
-        emissiveMap: finalMap,
-        emissive: new THREE.Color(0xffd6c4),
-        emissiveIntensity: 0.68,
+        map: finalRedMap,
+        gradientMap: highKeyModelGradTex,
+        color: new THREE.Color(1.06, 1.02, 1.0),
+        emissiveMap: finalRedMap,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: 0.58,
       });
       redMat.userData = { outlineParameters: { visible: false } };
 
       const blueMat = new THREE.MeshToonMaterial({
-        map: finalMap,
-        gradientMap: toonGradTex,
-        color: new THREE.Color(1.06, 1.24, 1.42),
-        emissiveMap: finalMap,
-        emissive: new THREE.Color(0xc4ebff),
-        emissiveIntensity: 0.68,
+        map: finalBlueMap,
+        gradientMap: highKeyModelGradTex,
+        color: new THREE.Color(1.0, 1.03, 1.06),
+        emissiveMap: finalBlueMap,
+        emissive: new THREE.Color(0xffffff),
+        emissiveIntensity: 0.58,
       });
       blueMat.userData = { outlineParameters: { visible: false } };
 
@@ -1155,7 +1285,7 @@
       return { wrapper, redMat, blueMat };
     }
 
-    function instantiateGLTFForSide(cachedEntry, isRed, woodMaterial, redSilk, blueSilk) {
+    function instantiateGLTFForSide(cachedEntry, isRed) {
       const instance = cachedEntry.wrapper.clone(true);
       const targetMat = isRed ? cachedEntry.redMat : cachedEntry.blueMat;
 
@@ -1164,35 +1294,32 @@
           child.castShadow = true;
           child.receiveShadow = false;
           child.material = targetMat;
+          child.userData = { outlineParameters: { visible: false }, noOutline: true };
         }
-      });
-
-      // Add Faction War Banners (Cờ Lệnh Chiến Xa Đỏ / Lam) behind the 3D Chariot
-      const bannerSilkMat = isRed ? redSilk : blueSilk;
-      [-0.25, 0.25].forEach((bx) => {
-        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.82, 8), woodMaterial);
-        pole.position.set(bx, 0.42, -0.32);
-        instance.add(pole);
-        const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.18, 0.26), bannerSilkMat);
-        flag.position.set(bx, 0.68, -0.24);
-        instance.add(flag);
       });
 
       return instance;
     }
 
-    function parseGLBBufferWithBrightTexture(buffer, type, resolve, reject) {
-      extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+    function updateGLBLoadedStatusBadge() {
+      const badge = document.getElementById('glb-status-badge');
+      if (!badge) return;
+      const count = gltfCache.size;
+      badge.textContent =
+        count >= 8
+          ? '✅ Đủ 8/8 Model 3D: Tướng•Sĩ•Tượng•Xe•Pháo•Mã•Chốt'
+          : `✅ Đã nạp ${count}/8 Model 3D`;
+    }
+
+    function parseGLBBufferWithBrightTexture(buffer, modelKey, resolve, reject) {
+      extractAndBrightenGLBTexture(buffer, modelKey).then((brightTex) => {
         gltfLoader.parse(
           buffer,
           './models/',
           (gltf) => {
-            const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex);
-            gltfCache.set(type, normalized);
-            const badge = document.getElementById('glb-status-badge');
-            if (badge) {
-              badge.textContent = '✅ Xe 3D: Tripo PBR Meshopt GLB';
-            }
+            const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex, modelKey);
+            gltfCache.set(modelKey, normalized);
+            updateGLBLoadedStatusBadge();
             resolve(normalized);
           },
           reject
@@ -1200,25 +1327,35 @@
       });
     }
 
-    function loadGLTFModelOnce(type, url) {
-      if (gltfCache.has(type)) {
-        return Promise.resolve(gltfCache.get(type));
+    function loadGLTFModelOnce(modelKey, url) {
+      if (gltfCache.has(modelKey)) {
+        return Promise.resolve(gltfCache.get(modelKey));
       }
-      if (gltfLoadingPromises.has(type)) {
-        return gltfLoadingPromises.get(type);
+      if (gltfLoadingPromises.has(modelKey)) {
+        return gltfLoadingPromises.get(modelKey);
       }
 
       const promise = new Promise((resolve, reject) => {
-        // Zero-CORS Desktop file:// execution using preloaded Base64 ArrayBuffer
-        if (type === 'R' && window.__PRELOADED_XE_GLB_BASE64__) {
+        // 1. Check multi-model preloaded inline dictionary (window.__PRELOADED_ALL_GLB_BASE64__)
+        const preloadedMap = window.__PRELOADED_ALL_GLB_BASE64__;
+        const b64Payload =
+          (preloadedMap && preloadedMap[modelKey]) ||
+          (modelKey === 'R' ? window.__PRELOADED_XE_GLB_BASE64__ : null);
+
+        if (b64Payload) {
           try {
-            const buffer = base64ToArrayBuffer(window.__PRELOADED_XE_GLB_BASE64__);
-            window.__PRELOADED_XE_GLB_BASE64__ = null;
-            parseGLBBufferWithBrightTexture(buffer, type, resolve, (err) => {
+            const buffer = base64ToArrayBuffer(b64Payload);
+            if (preloadedMap && preloadedMap[modelKey]) {
+              delete preloadedMap[modelKey];
+            }
+            if (modelKey === 'R') {
+              window.__PRELOADED_XE_GLB_BASE64__ = null;
+            }
+            parseGLBBufferWithBrightTexture(buffer, modelKey, resolve, (err) => {
               console.warn('Preloaded GLB parse fallback to URL load:', err);
               fetch(url)
                 .then((r) => r.arrayBuffer())
-                .then((buf) => parseGLBBufferWithBrightTexture(buf, type, resolve, reject))
+                .then((buf) => parseGLBBufferWithBrightTexture(buf, modelKey, resolve, reject))
                 .catch(reject);
             });
             return;
@@ -1229,25 +1366,19 @@
 
         fetch(url)
           .then((r) => r.arrayBuffer())
-          .then((buf) => parseGLBBufferWithBrightTexture(buf, type, resolve, reject))
+          .then((buf) => parseGLBBufferWithBrightTexture(buf, modelKey, resolve, reject))
           .catch((err) => {
             const badge = document.getElementById('glb-status-badge');
             if (badge) {
-              badge.textContent = '📂 Nạp file .glb cho Quân Xe';
+              badge.textContent = '📂 Nạp file .glb 3D';
             }
             reject(err);
           });
       });
 
-      gltfLoadingPromises.set(type, promise);
+      gltfLoadingPromises.set(modelKey, promise);
       return promise;
     }
-
-    const toonSteps = new Uint8Array([72, 145, 210, 255]);
-    const toonGradTex = new THREE.DataTexture(toonSteps, 4, 1, THREE.RedFormat);
-    toonGradTex.minFilter = THREE.NearestFilter;
-    toonGradTex.magFilter = THREE.NearestFilter;
-    toonGradTex.needsUpdate = true;
 
     const makeToonMat = (hex, side = THREE.FrontSide) =>
       new THREE.MeshToonMaterial({
@@ -1302,22 +1433,24 @@
 
       const body = new THREE.Group();
       body.position.y = 0.09;
-      // Orient units toward the river
+      // Orient units toward the river: Blue (top, r=0..4) faces +Z (0 rad); Red (bottom, r=5..9) faces -Z (PI rad)
       body.rotation.y = isRed ? Math.PI : 0;
       root.add(body);
       root.userData.bobGroup = body;
 
-      // Support loading external GLB/GLTF if configured (with Meshopt & deduplicated caching)
-      if (OPTIONAL_GLTF_URLS[type] || gltfCache.has(type)) {
-        if (gltfCache.has(type)) {
-          body.add(instantiateGLTFForSide(gltfCache.get(type), isRed, woodMat, redSilkMat, blueSilkMat));
+      // Resolve piece model key: Red General -> K_r (modelTướng-2.glb), Blue General -> K_b (modelTướng-1.glb)
+      const modelKey = type === 'K' ? (isRed ? 'K_r' : 'K_b') : type;
+      const modelUrl = OPTIONAL_GLTF_URLS[modelKey] || OPTIONAL_GLTF_URLS[type];
+
+      if (modelUrl || gltfCache.has(modelKey)) {
+        if (gltfCache.has(modelKey)) {
+          body.add(instantiateGLTFForSide(gltfCache.get(modelKey), isRed));
           return root;
         }
-        const url = OPTIONAL_GLTF_URLS[type];
-        loadGLTFModelOnce(type, url)
+        loadGLTFModelOnce(modelKey, modelUrl)
           .then((normalizedGroup) => {
             body.clear();
-            body.add(instantiateGLTFForSide(normalizedGroup, isRed, woodMat, redSilkMat, blueSilkMat));
+            body.add(instantiateGLTFForSide(normalizedGroup, isRed));
           })
           .catch(() => {});
       }
@@ -3851,24 +3984,39 @@
       renderBoardUnits(boardState);
     });
 
-    function handleCustomGLBFile(file, targetPieceType = 'R') {
+    function inferPieceModelKeyFromFilename(filename, fallback = 'R') {
+      const n = (filename || '').normalize('NFC').toLowerCase();
+      if (n.includes('tướng-1') || n.includes('tuong-1') || n.includes('tuong_blue')) return 'K_b';
+      if (n.includes('tướng-2') || n.includes('tuong-2') || n.includes('tuong_red')) return 'K_r';
+      if (n.includes('tượng') || n.includes('tuong_voi') || n.includes('elephant')) return 'E';
+      if (n.includes('tướng') || n.includes('general')) return 'K_r';
+      if (n.includes('sĩ') || n.includes('si') || n.includes('advisor')) return 'A';
+      if (n.includes('mã') || n.includes('ma') || n.includes('horse')) return 'H';
+      if (n.includes('pháo') || n.includes('phao') || n.includes('cannon')) return 'C';
+      if (n.includes('chốt') || n.includes('chot') || n.includes('tốt') || n.includes('soldier')) return 'P';
+      if (n.includes('xe') || n.includes('chariot')) return 'R';
+      return fallback;
+    }
+
+    function handleCustomGLBFile(file, targetPieceType = null) {
       if (!file) return;
+      const resolvedKey = targetPieceType || inferPieceModelKeyFromFilename(file.name, 'R');
       const badge = document.getElementById('glb-status-badge');
       if (badge) badge.textContent = '⏳ Đang giải mã Meshopt GLB...';
       const reader = new FileReader();
       reader.onload = (ev) => {
         const buffer = ev.target.result;
-        extractAndBrightenGLBTexture(buffer).then((brightTex) => {
+        extractAndBrightenGLBTexture(buffer, resolvedKey).then((brightTex) => {
           gltfLoader.parse(
             buffer,
             '',
             (gltf) => {
-              const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex);
-              gltfCache.set(targetPieceType, normalized);
-              OPTIONAL_GLTF_URLS[targetPieceType] = 'custom://' + file.name;
-              if (badge) badge.textContent = '✅ Xe 3D: ' + file.name.slice(0, 22);
+              const normalized = normalizeAndPrepareGLTF(gltf.scene, brightTex, resolvedKey);
+              gltfCache.set(resolvedKey, normalized);
+              OPTIONAL_GLTF_URLS[resolvedKey] = 'custom://' + file.name;
+              updateGLBLoadedStatusBadge();
               renderBoardUnits(boardState);
-              triggerSwordQiCaptureVFX({ r: 9, c: 0 });
+              triggerSwordQiCaptureVFX({ r: 4, c: 4 });
             },
             (err) => {
               console.error('Lỗi giải mã GLB:', err);
@@ -3885,8 +4033,8 @@
     });
 
     document.getElementById('input-glb-file').addEventListener('change', (e) => {
-      const file = e.target.files?.[0];
-      if (file) handleCustomGLBFile(file, 'R');
+      const files = Array.from(e.target.files || []);
+      files.forEach((f) => handleCustomGLBFile(f));
     });
 
     window.addEventListener('dragover', (e) => {
@@ -3895,10 +4043,12 @@
 
     window.addEventListener('drop', (e) => {
       e.preventDefault();
-      const file = e.dataTransfer?.files?.[0];
-      if (file && (file.name.endsWith('.glb') || file.name.endsWith('.gltf'))) {
-        handleCustomGLBFile(file, 'R');
-      }
+      const files = Array.from(e.dataTransfer?.files || []);
+      files.forEach((f) => {
+        if (f.name.endsWith('.glb') || f.name.endsWith('.gltf')) {
+          handleCustomGLBFile(f);
+        }
+      });
     });
 
     window.addEventListener('resize', () => {

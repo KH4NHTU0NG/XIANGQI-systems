@@ -62,26 +62,55 @@ describe('Xiangqi 3D Masterpiece & Mastery Roadmap Integration', () => {
     expect(desktopContent).toContain('gltfLoader.setMeshoptDecoder(MeshoptDecoder)');
   });
 
-  it('verifies Tripo PBR Meshopt GLB 3D model for Xe (Chariot) is integrated and valid glTF 2.0 binary', () => {
-    const glbPath = path.resolve(__dirname, '../../../public/models/xe_chariot.glb');
-    expect(fs.existsSync(glbPath)).toBe(true);
+  it('verifies all 8 Tripo 3D GLB models (Tướng Đỏ, Tướng Xanh, Sĩ, Tượng, Mã, Xe, Pháo, Chốt) are integrated and valid glTF 2.0 binaries', () => {
+    const modelFiles = [
+      'tuong_red.glb',
+      'tuong_blue.glb',
+      'si.glb',
+      'tuong_voi.glb',
+      'ma.glb',
+      'xe.glb',
+      'xe_chariot.glb',
+      'phao.glb',
+      'chot.glb',
+    ];
 
-    const buf = fs.readFileSync(glbPath);
-    const magic = buf.toString('ascii', 0, 4);
-    const version = buf.readUInt32LE(4);
-    const chunkLen = buf.readUInt32LE(12);
-    const json = JSON.parse(buf.toString('utf8', 20, 20 + chunkLen));
+    for (const file of modelFiles) {
+      const glbPath = path.resolve(__dirname, `../../../public/models/${file}`);
+      expect(fs.existsSync(glbPath)).toBe(true);
 
-    expect(magic).toBe('glTF');
-    expect(version).toBe(2);
-    expect(json.extensionsRequired).toContain('EXT_meshopt_compression');
+      const buf = fs.readFileSync(glbPath);
+      const magic = buf.toString('ascii', 0, 4);
+      const version = buf.readUInt32LE(4);
+      const chunkLen = buf.readUInt32LE(12);
+      const json = JSON.parse(buf.toString('utf8', 20, 20 + chunkLen));
+
+      expect(magic).toBe('glTF');
+      expect(version).toBe(2);
+      expect(json.meshes[0].primitives[0].attributes.NORMAL).toBeDefined();
+      const normAccessor = json.accessors[json.meshes[0].primitives[0].attributes.NORMAL];
+      expect(normAccessor.componentType).toBe(5126); // Float32 normals
+    }
+
+    const inlineAllPath = path.resolve(__dirname, '../../../public/models/all_pieces_inline.js');
+    expect(fs.existsSync(inlineAllPath)).toBe(true);
 
     const content = fs.readFileSync(htmlPath, 'utf8');
+    expect(content).toContain('./models/all_pieces_inline.js');
     expect(content).toContain('MeshoptDecoder');
     expect(content).toContain('gltfLoader.setMeshoptDecoder(MeshoptDecoder)');
-    expect(content).toContain("R: './models/xe_chariot.glb'");
+    expect(content).toContain("K_r: './models/tuong_red.glb'");
+    expect(content).toContain("K_b: './models/tuong_blue.glb'");
+    expect(content).toContain("A: './models/si.glb'");
+    expect(content).toContain("B: './models/tuong_voi.glb'");
+    expect(content).toContain("N: './models/ma.glb'");
+    expect(content).toContain("R: './models/xe.glb'");
+    expect(content).toContain("C: './models/phao.glb'");
+    expect(content).toContain("P: './models/chot.glb'");
     expect(content).toContain('normalizeAndPrepareGLTF');
     expect(content).toContain('extractAndBrightenGLBTexture');
+    expect(content).toContain('uint8ToBase64DataUrl');
+    expect(content).toContain('createBlueFactionCanvas');
     expect(content).toContain('new THREE.BufferAttribute(f32Norm, 3)');
     expect(content).not.toContain('child.geometry.computeVertexNormals()');
     expect(content).not.toContain('child.userData.brightCanvasTex');
